@@ -18,10 +18,8 @@ export default defineConfig(({ mode }) => {
   // 本地開發時未設置，預設使用 '/'；如果是 Electron，則使用 './'
   const base = isElectron ? './' : (process.env.BASE_URL ?? '/');
   return {
-    base,
     base: isElectron ? './' : '/',
     server: {
-      port: 5173,
       port: 5173,
       host: "0.0.0.0"
     },

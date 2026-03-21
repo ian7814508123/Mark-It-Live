@@ -1,19 +1,6 @@
 import { app, BrowserWindow, Menu, ipcMain } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// 定義 __dirname for ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// 簡單的 development 檢查 - 優先檢查 process.env
-const isDev = !app.isPackaged || 
-              process.env.NODE_ENV === 'development' || 
-              process.env.VITE_DEV_SERVER_URL !== undefined;
-
-console.log('[Electron] isDev:', isDev);
-console.log('[Electron] app.isPackaged:', app.isPackaged);
-console.log('[Electron] NODE_ENV:', process.env.NODE_ENV);
+import isDev from 'electron-is-dev';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -23,23 +10,22 @@ const createWindow = () => {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    icon: path.join(__dirname, '../public/favicon.ico'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.ts'),
       nodeIntegration: false,
       contextIsolation: true,
     },
+    icon: path.join(__dirname, '../public/favicon.svg'),
   });
 
+  const startUrl = isDev
+    ? 'http://localhost:5173'
+    : `file://${path.join(__dirname, '../dist/index.html')}`;
+
+  mainWindow.loadURL(startUrl);
+
   if (isDev) {
-    const devServerUrl = 'http://localhost:5173';
-    console.log('Loading URL:', devServerUrl);
-    mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools();
-  } else {
-    const prodPath = path.join(__dirname, '../dist/index.html');
-    console.log('Loading file:', prodPath);
-    mainWindow.loadFile(prodPath);
   }
 
   mainWindow.on('closed', () => {

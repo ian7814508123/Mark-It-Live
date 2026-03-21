@@ -66,17 +66,16 @@
     "@uiw/codemirror-theme-vscode": "^4.25.8",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
-    "concurrently": "^8.2.1",
-    "cross-env": "^10.1.0",
-    "electron": "^31.0.0",
-    "electron-builder": "^24.9.1",
+    "concurrently": "^9.1.0",
+    "electron": "^32.0.0",
+    "electron-builder": "^25.1.1",
     "electron-is-dev": "^3.0.1",
     "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-require-transform": "^1.0.21",
-    "wait-on": "^7.2.0"
+    "wait-on": "^8.1.0"
   },
   "build": {
     "appId": "com.markdownlivepreviewer.app",
@@ -103,19 +102,13 @@
             "x64"
           ]
         }
-      ],
-      "icon": "public/favicon.ico",
-      "certificateFile": null,
-      "certificatePassword": null,
-      "signingHashAlgorithms": null,
-      "sign": null
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "differentialPackage": false
+      "createStartMenuShortcut": true
     },
     "mac": {
       "target": [
