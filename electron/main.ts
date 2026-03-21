@@ -1,5 +1,10 @@
 import { app, BrowserWindow, Menu, ipcMain } from 'electron';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// 定義 __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 簡單的 development 檢查
 const isDev = process.env.NODE_ENV === 'development' || 
