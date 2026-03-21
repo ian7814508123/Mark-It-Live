@@ -1,6 +1,9 @@
 import { app, BrowserWindow, Menu, ipcMain } from 'electron';
 import path from 'path';
-import isDev from 'electron-is-dev';
+
+// 簡單的 development 檢查
+const isDev = process.env.NODE_ENV === 'development' || 
+              (process.env.ELECTRON_START_URL !== undefined);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -11,17 +14,17 @@ const createWindow = () => {
     minWidth: 800,
     minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.ts'),
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
-    icon: path.join(__dirname, '../public/favicon.svg'),
   });
 
   const startUrl = isDev
     ? 'http://localhost:5173'
     : `file://${path.join(__dirname, '../dist/index.html')}`;
 
+  console.log('Loading URL:', startUrl);
   mainWindow.loadURL(startUrl);
 
   if (isDev) {
