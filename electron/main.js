@@ -13,14 +13,14 @@ console.log('[Electron] app.isPackaged:', app.isPackaged);
 console.log('[Electron] NODE_ENV:', process.env.NODE_ENV);
 let mainWindow = null;
 const createWindow = () => {
-    mainWindow = new BrowserWindow({
+    mainWindow = new electron_1.BrowserWindow({
         width: 1400,
         height: 900,
         minWidth: 800,
         minHeight: 600,
         icon: path.join(__dirname, '../public/favicon.ico'),
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path_1.default.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
         },
@@ -51,7 +51,7 @@ const createMenu = () => {
                     label: 'Exit',
                     accelerator: 'CmdOrCtrl+Q',
                     click: () => {
-                        app.quit();
+                        electron_1.app.quit();
                     },
                 },
             ],
@@ -76,21 +76,21 @@ const createMenu = () => {
             ],
         },
     ];
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
+    const menu = electron_1.Menu.buildFromTemplate(template);
+    electron_1.Menu.setApplicationMenu(menu);
 };
-app.on('ready', createWindow);
-app.on('window-all-closed', () => {
+electron_1.app.on('ready', createWindow);
+electron_1.app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-        app.quit();
+        electron_1.app.quit();
     }
 });
-app.on('activate', () => {
+electron_1.app.on('activate', () => {
     if (mainWindow === null) {
         createWindow();
     }
 });
 // IPC handlers
-ipcMain.handle('get-app-version', () => {
-    return app.getVersion();
+electron_1.ipcMain.handle('get-app-version', () => {
+    return electron_1.app.getVersion();
 });
