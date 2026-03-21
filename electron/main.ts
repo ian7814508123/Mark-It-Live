@@ -23,6 +23,7 @@ const createWindow = () => {
     height: 900,
     minWidth: 800,
     minHeight: 600,
+    icon: path.join(__dirname, '../public/favicon.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
