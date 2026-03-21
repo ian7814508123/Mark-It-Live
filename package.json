@@ -5,7 +5,7 @@
   "private": true,
   "version": "4.1.2",
   "type": "module",
-  "main": "dist-electron/main.js",
+  "main": "electron/main.js",
   "engines": {
     "node": ">=22"
   },
