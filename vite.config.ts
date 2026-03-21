@@ -19,7 +19,9 @@ export default defineConfig(({ mode }) => {
   const base = isElectron ? './' : (process.env.BASE_URL ?? '/');
   return {
     base,
+    base: isElectron ? './' : '/',
     server: {
+      port: 5173,
       port: 5173,
       host: "0.0.0.0"
     },
@@ -40,7 +42,7 @@ export default defineConfig(({ mode }) => {
           const verifyId = fromLoadEnv || fromProcessEnv;
 
           // Debug：確認環境變數注入狀況
-          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv  ? `"${fromLoadEnv}"` : '(empty)');
+          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv ? `"${fromLoadEnv}"` : '(empty)');
           console.log('[google-verify] process.env.VITE_GOOGLE_VERIFY_ID =', fromProcessEnv ? `"${fromProcessEnv}"` : '(empty)');
 
           if (verifyId) {
