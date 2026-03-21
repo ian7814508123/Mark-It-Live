@@ -129,9 +129,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+electron/main.js
 
 # vscode
 .vscode/
-.vs
-# Google Verification
-public/google*.html
+.vs/
