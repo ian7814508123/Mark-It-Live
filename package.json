@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "compile-electron": "tsc electron/main.ts --outDir electron --declaration false --target ES2020 --module esnext --lib ES2020 --skipLibCheck true --esModuleInterop true --moduleResolution node",
     "electron-dev": "npm run compile-electron && electron .",
-    "electron-build": "npm run build && npm run electron-dist",
+    "electron-build": "cross-env VITE_ELECTRON=true npm run build && npm run electron-dist",
     "electron-dist": "npm run compile-electron && electron-builder",
     "dev-electron": "concurrently npm:dev npm:electron-dev",
     "dev-electron-wait": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && npm run electron-dev\""
@@ -67,6 +67,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
     "concurrently": "^8.2.1",
+    "cross-env": "^10.1.0",
     "electron": "^31.0.0",
     "electron-builder": "^24.9.1",
     "electron-is-dev": "^3.0.1",
@@ -103,7 +104,11 @@
           ]
         }
       ],
-      "icon": "public/favicon.svg"
+      "icon": "public/favicon.ico",
+      "certificateFile": null,
+      "certificatePassword": null,
+      "signingHashAlgorithms": null,
+      "sign": null
     },
     "nsis": {
       "oneClick": false,
