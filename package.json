@@ -13,7 +13,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "compile-electron": "tsc electron/main.ts --outDir electron --declaration false --target ES2020 --module commonjs --lib ES2020 --skipLibCheck true --esModuleInterop true --moduleResolution node",
+    "compile-electron": "tsc electron/main.ts --outDir electron --declaration false --target ES2020 --module esnext --lib ES2020 --skipLibCheck true --esModuleInterop true --moduleResolution node",
     "electron-dev": "npm run compile-electron && electron .",
     "electron-build": "npm run build && npm run electron-dist",
     "electron-dist": "npm run compile-electron && electron-builder",
