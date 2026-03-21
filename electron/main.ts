@@ -31,6 +31,7 @@ const createWindow = () => {
     },
   });
 
+
   if (isDev) {
     const devServerUrl = 'http://localhost:5173';
     console.log('Loading URL:', devServerUrl);
