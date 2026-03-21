@@ -13,13 +13,14 @@ export default defineConfig(({ mode }) => {
     ...loadEnv(mode, process.cwd(), ''),
     ...(fs.existsSync(renderSecretsDir) ? loadEnv(mode, renderSecretsDir, '') : {}),
   };
+  const isElectron = process.env.VITE_ELECTRON === 'true';
   // GitHub Pages 部署時，CI 會傳入 BASE_URL=/<repo-name>/
-  // 本地開發時未設置，預設使用 '/'
-  const base = process.env.BASE_URL ?? '/';
+  // 本地開發時未設置，預設使用 '/'；如果是 Electron，則使用 './'
+  const base = isElectron ? './' : (process.env.BASE_URL ?? '/');
   return {
     base,
     server: {
-      port: 3000,
+      port: 5173,
       host: "0.0.0.0"
     },
     plugins: [
