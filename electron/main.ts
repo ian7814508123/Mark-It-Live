@@ -6,9 +6,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 簡單的 development 檢查
-const isDev = process.env.NODE_ENV === 'development' || 
-              (process.env.ELECTRON_START_URL !== undefined);
+// 簡單的 development 檢查 - 優先檢查 process.env
+const isDev = !app.isPackaged || 
+              process.env.NODE_ENV === 'development' || 
+              process.env.VITE_DEV_SERVER_URL !== undefined;
+
+console.log('[Electron] isDev:', isDev);
+console.log('[Electron] app.isPackaged:', app.isPackaged);
+console.log('[Electron] NODE_ENV:', process.env.NODE_ENV);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -25,12 +30,12 @@ const createWindow = () => {
     },
   });
 
-  const startUrl = isDev
-    ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../dist/index.html')}`;
+  // 優先嘗試連接 Vite 開發服務器
+  const devServerUrl = 'http://localhost:5173';
+  const prodUrl = `file://${path.join(__dirname, '../dist/index.html')}`;
 
-  console.log('Loading URL:', startUrl);
-  mainWindow.loadURL(startUrl);
+  console.log('Loading URL:', isDev ? devServerUrl : prodUrl);
+  mainWindow.loadURL(isDev ? devServerUrl : prodUrl);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
