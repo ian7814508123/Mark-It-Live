@@ -67,6 +67,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
     "concurrently": "^8.2.1",
+    "cross-env": "^10.1.0",
     "electron": "^31.0.0",
     "electron-builder": "^24.9.1",
     "electron-is-dev": "^3.0.1",
@@ -103,7 +104,11 @@
           ]
         }
       ],
-      "icon": "public/favicon.svg"
+      "icon": "public/favicon.ico",
+      "certificateFile": null,
+      "certificatePassword": null,
+      "signingHashAlgorithms": null,
+      "sign": null
     },
     "nsis": {
       "oneClick": false,

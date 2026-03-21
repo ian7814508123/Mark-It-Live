@@ -23,7 +23,7 @@ const createWindow = () => {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    icon: path.join(__dirname, '../public/favicon.svg'),
+    icon: path.join(__dirname, '../public/favicon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -31,15 +31,15 @@ const createWindow = () => {
     },
   });
 
-  // 優先嘗試連接 Vite 開發服務器
-  const devServerUrl = 'http://localhost:5173';
-  const prodUrl = `file://${path.join(__dirname, '../dist/index.html')}`;
-
-  console.log('Loading URL:', isDev ? devServerUrl : prodUrl);
-  mainWindow.loadURL(isDev ? devServerUrl : prodUrl);
-
   if (isDev) {
+    const devServerUrl = 'http://localhost:5173';
+    console.log('Loading URL:', devServerUrl);
+    mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools();
+  } else {
+    const prodPath = path.join(__dirname, '../dist/index.html');
+    console.log('Loading file:', prodPath);
+    mainWindow.loadFile(prodPath);
   }
 
   mainWindow.on('closed', () => {
