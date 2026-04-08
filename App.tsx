@@ -60,6 +60,7 @@ async function getMermaid(theme: string = 'neutral') {
 type EditorMode = 'mermaid' | 'markdown';
 
 const App: React.FC = () => {
+  const isElectron = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase().includes('electron');
   // State for loading default contents from external .md files
   const [defaultContents, setDefaultContents] = useState<{
     markdown: Record<string, string>;
@@ -895,7 +896,7 @@ const App: React.FC = () => {
     style.textContent = `
       @media print {
         @page { size: ${paperSize} ${orientation}; margin: ${marginMap[margin] ?? '1.5cm'}; }
-        header, footer, aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
+        header,  aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
         .preview-panel { 
           overflow: visible !important; 
           width: 100% !important; 
@@ -1477,10 +1478,9 @@ const App: React.FC = () => {
         </main>
 
         {/* 可見的頁腳 - 增加 AdSense 文字密度與連結 */}
-        <Footer showIntroTrigger={openDocIds.length > 0} onOpenIntro={() => setIsIntroModalOpen(true)} />
+        {!isElectron && <Footer showIntroTrigger={openDocIds.length > 0} onOpenIntro={() => setIsIntroModalOpen(true)} />}
 
         <IntroModal isOpen={isIntroModalOpen} onClose={() => setIsIntroModalOpen(false)} />
-
         {/* SEO Content - Hidden from visual display but visible to search engines */}
         <SEOContent />
 
