@@ -939,7 +939,11 @@ const App: React.FC = () => {
       const prevTitle = document.title;
       document.title = sanitizeFileName(printFileName);
 
-      window.print();
+      if (window.electron && window.electron.print) {
+        window.electron.print();
+      } else {
+        window.print();
+      }
 
       // 恢復原本的標題
       document.title = prevTitle;

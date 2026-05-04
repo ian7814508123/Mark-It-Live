@@ -23,6 +23,7 @@ const createWindow = () => {
             preload: path_1.default.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
+            plugins: true,
         },
     });
 
@@ -94,4 +95,10 @@ electron_1.app.on('activate', () => {
 // IPC handlers
 electron_1.ipcMain.handle('get-app-version', () => {
     return electron_1.app.getVersion();
+});
+ipcMain.handle('print', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+        win.webContents.print({ silent: false, printBackground: true });
+    }
 });
