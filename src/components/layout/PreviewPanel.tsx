@@ -69,6 +69,7 @@ interface PrintPaperProps {
     scrollRef?: React.Ref<HTMLDivElement>;
     isGlobalAnnotationMode?: boolean;
     setIsGlobalAnnotationMode?: (isMode: boolean) => void;
+    activeScale?: number;
 }
 
 const PrintPaper: React.FC<PrintPaperProps> = ({
@@ -95,6 +96,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     scrollRef,
     isGlobalAnnotationMode,
     setIsGlobalAnnotationMode,
+    activeScale = 1,
 }) => {
     const [contentHeight, setContentHeight] = useState(0);
     const [manualBreaks, setManualBreaks] = useState<number[]>([]);
@@ -167,7 +169,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={showPrintPreview ? 'prose-container relative' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
+            <div className={showPrintPreview ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}
@@ -182,6 +184,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     isMergedPrint={isMergedPrint}
                     isGlobalAnnotationMode={isGlobalAnnotationMode}
                     setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+                    activeScale={activeScale}
                 />
                 {showPrintPreview && (
                     <PageBreaksOverlay
@@ -458,6 +461,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                                     scrollRef={scrollRef}
                                     isGlobalAnnotationMode={isGlobalAnnotationMode}
                                     setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+                                    activeScale={activeScale}
                                 />
                             );
                         })}

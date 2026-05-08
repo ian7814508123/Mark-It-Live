@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 import { Annotation } from '../../types';
 import { Type, GripVertical } from 'lucide-react';
+import { ANNOTATION_COLORS, DEFAULT_ANNOTATION_COLOR } from '../../constants/annotationColors';
 
 interface AnnotationLayerProps {
     annotations: Annotation[];
@@ -11,15 +12,8 @@ interface AnnotationLayerProps {
     containerRef: React.RefObject<HTMLDivElement | null>;
     selectedId: string | null;
     onSelect: (id: string | null) => void;
+    scale?: number; // 傳入目前的縮放比例，解決 react-rnd offset 計算錯誤
 }
-
-const COLORS = [
-    { bg: '#fef3c7', text: '#92400e', border: '#fcd34d', name: 'Yellow' },
-    { bg: '#dcfce7', text: '#166534', border: '#86efac', name: 'Green' },
-    { bg: '#dbeafe', text: '#1e40af', border: '#93c5fd', name: 'Blue' },
-    { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5', name: 'Red' },
-    { bg: '#f3e8ff', text: '#6b21a8', border: '#d8b4fe', name: 'Purple' },
-];
 
 export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
     annotations,
@@ -28,7 +22,8 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
     isEditable,
     containerRef,
     selectedId,
-    onSelect
+    onSelect,
+    scale = 1
 }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -48,6 +43,7 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
                     isEditingText={editingId === ann.id}
                     setEditingText={(editing) => setEditingId(editing ? ann.id : null)}
                     containerRef={containerRef}
+                    scale={scale}
                 />
             ))}
         </div>
@@ -64,6 +60,7 @@ interface AnnotationItemProps {
     isEditingText: boolean;
     setEditingText: (editing: boolean) => void;
     containerRef: React.RefObject<HTMLDivElement | null>;
+    scale: number;
 }
 
 const AnnotationItem: React.FC<AnnotationItemProps> = ({
@@ -75,7 +72,8 @@ const AnnotationItem: React.FC<AnnotationItemProps> = ({
     onSelect,
     isEditingText,
     setEditingText,
-    containerRef
+    containerRef,
+    scale
 }) => {
     const [tempContent, setTempContent] = useState(annotation.content);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -150,6 +148,7 @@ const AnnotationItem: React.FC<AnnotationItemProps> = ({
 
     return (
         <Rnd
+            scale={scale} // ⭐ 核心解法：告訴 react-rnd 目前的 CSS 縮放比例，修正 d.x 和 offset 計算！
             size={{ width: annotation.width, height: annotation.height }}
             position={displayPos}
             onDrag={handleDrag}
@@ -181,9 +180,9 @@ const AnnotationItem: React.FC<AnnotationItemProps> = ({
                         : 'hover:shadow-xl'
                     }`}
                 style={{
-                    backgroundColor: annotation.style.backgroundColor || COLORS[0].bg,
-                    borderColor: isSelected ? 'var(--brand-primary)' : (annotation.style.borderColor || COLORS[0].border),
-                    color: annotation.style.color || COLORS[0].text,
+                    backgroundColor: annotation.style.backgroundColor || DEFAULT_ANNOTATION_COLOR.bg,
+                    borderColor: isSelected ? 'var(--brand-primary)' : (annotation.style.borderColor || DEFAULT_ANNOTATION_COLOR.border),
+                    color: annotation.style.color || DEFAULT_ANNOTATION_COLOR.text,
                     fontSize: annotation.style.fontSize || '13px',
                     borderRadius: annotation.style.borderRadius || '8px',
                     textAlign: annotation.style.textAlign || 'left',

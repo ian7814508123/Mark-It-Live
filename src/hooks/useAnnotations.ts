@@ -6,7 +6,8 @@ import { Annotation } from '../types';
  * @param blockId 區塊唯一識別碼 (通常是 hashString(code))
  */
 export function useAnnotations(blockId: string) {
-    const storageKey = `annotations:${blockId}`;
+    // 增加版本號以強制清除舊版不相容的座標資料
+    const storageKey = `annotations:v2:${blockId}`;
     
     const [annotations, setAnnotations] = useState<Annotation[]>(() => {
         const saved = localStorage.getItem(storageKey);
@@ -15,6 +16,9 @@ export function useAnnotations(blockId: string) {
 
     // 當 annotations 改變時存入 localStorage
     useEffect(() => {
+        // 清除舊版的資料 (可選)
+        localStorage.removeItem(`annotations:${blockId}`);
+
         if (annotations.length > 0) {
             localStorage.setItem(storageKey, JSON.stringify(annotations));
         } else {

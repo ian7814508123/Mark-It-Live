@@ -34,6 +34,16 @@ export interface AppState {
 }
 
 /**
+ * 標註顏色選項型別
+ */
+export interface AnnotationColor {
+    name: string;
+    bg: string;
+    border: string;
+    text: string;
+}
+
+/**
  * 視覺標註 (Annotation) 型別
  */
 export interface Annotation {

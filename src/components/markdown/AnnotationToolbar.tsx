@@ -6,22 +6,16 @@ import {
     AlignRight, Copy, Layers, Sun, Trash2
 } from 'lucide-react';
 
-// ─── 類型定義 ──────────────────────────────────────────────────────────
-
-interface ColorOption {
-    name: string;
-    bg: string;
-    border: string;
-    text: string;
-}
+import { Annotation, AnnotationColor } from '../../types';
+import { ANNOTATION_COLORS } from '../../constants/annotationColors';
 
 interface AnnotationToolbarProps {
     isVisible: boolean;
     isActuallyPrinting: boolean;
     activeTool: 'sticky' | 'rect' | 'circle';
     setActiveTool: (tool: 'sticky' | 'rect' | 'circle') => void;
-    activeColor: ColorOption;
-    setActiveColor: (color: ColorOption) => void;
+    activeColor: AnnotationColor;
+    setActiveColor: (color: AnnotationColor) => void;
     selectedAnnotationId: string | null;
     setSelectedAnnotationId: (id: string | null) => void;
     annotations: any[];
@@ -30,7 +24,6 @@ interface AnnotationToolbarProps {
     onRemoveAnnotation: (id: string) => void;
     onBringToFront: (id: string) => void;
     onExitMode: () => void;
-    colors: ColorOption[];
 }
 
 // ─── 標註工具按鈕元件 ──────────────────────────────────────────────────────
@@ -62,6 +55,8 @@ const ToolButton: React.FC<ToolButtonProps> = ({ active, onClick, icon, label, t
     </button>
 );
 
+
+
 /**
  * 全局標註工具列組件
  * 提供標註工具切換、顏色選擇以及選中物件的屬性編輯
@@ -80,8 +75,6 @@ const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
     onAddAnnotation,
     onRemoveAnnotation,
     onBringToFront,
-    onExitMode,
-    colors
 }) => {
     if (!isVisible || isActuallyPrinting) return null;
 
@@ -91,7 +84,7 @@ const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
         <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[9900] animate-in slide-in-from-bottom-8 fade-in duration-500 print:hidden">
             <div
                 onMouseDown={(e) => e.stopPropagation()}
-                className="flex items-center gap-2 p-1.5 bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-white rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5),0_0_30px_rgba(14,165,233,0.1)] border border-slate-300 dark:border-white/20 backdrop-blur-3xl transition-all duration-300"
+                className="flex items-center gap-2 p-1.5 bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-white rounded-full border border-slate-300 dark:border-white/20 backdrop-blur-3xl transition-all duration-300"
             >
                 {/* 條件式工具列內容 */}
                 {!selectedAnnotationId ? (
@@ -117,7 +110,7 @@ const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
                         />
                         <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
                         <div className="flex items-center gap-1.5 px-1">
-                            {colors.map(c => (
+                            {ANNOTATION_COLORS.map(c => (
                                 <button
                                     key={c.name}
                                     onClick={() => setActiveColor(c)}
@@ -138,7 +131,7 @@ const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
                             return (
                                 <>
                                     <div className="flex items-center gap-1 px-1 bg-slate-100 dark:bg-white/5 rounded-full p-1">
-                                        {colors.map(c => (
+                                        {ANNOTATION_COLORS.map(c => (
                                             <button
                                                 key={c.name}
                                                 onClick={() => onUpdateAnnotation(selectedAnnotationId, {
@@ -303,7 +296,7 @@ const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
                 </p>
             )}
         </div>
-    , document.body);
+        , document.body);
 };
 
 export default AnnotationToolbar;
