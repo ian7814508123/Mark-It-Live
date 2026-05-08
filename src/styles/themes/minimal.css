@@ -4,6 +4,12 @@
     --minimal-font-sans: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --minimal-accent: #3b82f6;
     --minimal-bg-soft: #f8fafc;
+    
+    /* 系統變數對接：現代藍色調 */
+    --brand-primary: #3b82f6;
+    --brand-secondary: #eff6ff;
+    --brand-surface: #ffffff;
+    --code-border: #e2e8f0;
 }
 
 .theme-minimal.prose {
@@ -12,18 +18,24 @@
     line-height: 1.75;
 }
 
+/* 標題階層強化 (H1-H6) */
 .theme-minimal.prose h1,
 .theme-minimal.prose h2,
-.theme-minimal.prose h3 {
+.theme-minimal.prose h3,
+.theme-minimal.prose h4,
+.theme-minimal.prose h5,
+.theme-minimal.prose h6 {
     color: #1e293b;
     font-weight: 800;
     letter-spacing: -0.02em;
 }
 
-.theme-minimal.prose h1 {
-    font-size: 2.75rem;
-    margin-bottom: 2.5rem;
-}
+.theme-minimal.prose h1 { font-size: 2.75rem; margin-bottom: 2.5rem; }
+.theme-minimal.prose h2 { font-size: 2rem; margin-top: 3rem; }
+.theme-minimal.prose h3 { font-size: 1.5rem; }
+.theme-minimal.prose h4 { font-size: 1.25rem; }
+.theme-minimal.prose h5 { font-size: 1.1rem; }
+.theme-minimal.prose h6 { font-size: 1rem; color: #64748b; }
 
 .theme-minimal.prose blockquote {
     background-color: var(--minimal-bg-soft);
@@ -37,11 +49,12 @@
 .theme-minimal.prose a {
     color: var(--minimal-accent);
     text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
 }
 
 .theme-minimal.prose a:hover {
+    background-color: var(--brand-secondary);
     border-bottom-color: var(--minimal-accent);
 }
 
@@ -55,9 +68,35 @@
 .theme-minimal.prose img {
     border-radius: 12px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
 }
 
-/* Print Specifics for Minimal */
+/* 表格：簡約現代風 */
+.theme-minimal.prose table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.theme-minimal.prose th {
+    background-color: #f8fafc;
+    padding: 1rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+.theme-minimal.prose td {
+    padding: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* 清單樣式微調 */
+.theme-minimal.prose ul li::marker { color: var(--minimal-accent); }
+
+/* Print Specifics */
 @media print {
     .theme-minimal.prose {
         background-color: white !important;
@@ -75,5 +114,10 @@
     .theme-minimal.prose hr {
         background: #e2e8f0 !important;
         height: 0.5pt !important;
+    }
+
+    .theme-minimal.prose a {
+        color: #1e293b !important;
+        text-decoration: underline !important;
     }
 }

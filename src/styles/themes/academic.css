@@ -5,6 +5,12 @@
     --academic-line-height: 1.6;
     --academic-text-color: #1a1a1a;
     --academic-accent: #000;
+    
+    /* 系統變數對接：讓 UI 介面（按鈕、捲軸）也變為學術沉穩風格 */
+    --brand-primary: #1a1a1a;
+    --brand-secondary: #f3f4f6;
+    --brand-accent: #4b5563;
+    --code-border: #d1d5db;
 }
 
 .theme-academic.prose {
@@ -15,13 +21,15 @@
     text-align: justify;
 }
 
+/* 標題階層強化 (H1-H6) */
 .theme-academic.prose h1,
 .theme-academic.prose h2,
 .theme-academic.prose h3,
-.theme-academic.prose h4 {
+.theme-academic.prose h4,
+.theme-academic.prose h5,
+.theme-academic.prose h6 {
     font-family: var(--academic-font-serif);
     color: var(--academic-accent);
-    text-align: center; /* Academic titles often centered */
     border-bottom: none;
     margin-top: 2.5rem;
 }
@@ -29,6 +37,7 @@
 .theme-academic.prose h1 {
     font-size: 2.5rem;
     font-weight: 700;
+    text-align: center; /* 標題居中 */
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 2rem;
@@ -36,19 +45,34 @@
 
 .theme-academic.prose h2 {
     font-size: 1.75rem;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 0.3rem;
     text-align: left;
 }
 
+.theme-academic.prose h3 { font-size: 1.4rem; font-style: italic; }
+.theme-academic.prose h4 { font-size: 1.2rem; font-weight: 700; }
+.theme-academic.prose h5 { font-size: 1.1rem; font-weight: 700; }
+.theme-academic.prose h6 { font-size: 1rem; font-style: italic; }
+
 .theme-academic.prose blockquote {
     font-style: italic;
-    border-left: 3px solid #ccc;
+    border-left: 2pt solid #1a1a1a;
     padding-left: 1.5rem;
     margin: 2rem 0;
-    color: #444;
+    color: #374151;
 }
 
+.theme-academic.prose a {
+    color: #1a1a1a;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: opacity 0.2s;
+}
+
+.theme-academic.prose a:hover { opacity: 0.7; }
+
+/* 表格：學術三線表風格 */
 .theme-academic.prose table {
     border-top: 2px solid #000;
     border-bottom: 2px solid #000;
@@ -61,35 +85,47 @@
     text-transform: uppercase;
     font-size: 0.85rem;
     padding: 0.75rem;
+    font-weight: 700;
 }
 
-.theme-academic.prose td {
-    padding: 0.5rem 0.75rem;
+.theme-academic.prose td { padding: 0.5rem 0.75rem; }
+
+/* 清單階層優化 */
+.theme-academic.prose ul, 
+.theme-academic.prose ol {
+    margin-left: 1rem;
 }
 
-/* Print Specifics for Academic */
+/* Print Specifics: 嚴謹的學術列印規範 */
 @media print {
     .theme-academic.prose {
         background-color: white !important;
         color: black !important;
         font-size: 11pt !important;
         line-height: 1.5 !important;
+        text-align: justify;
     }
 
     .theme-academic.prose h1 {
-        font-size: 24pt !important;
+        font-size: 22pt !important;
         margin-top: 0 !important;
         margin-bottom: 30pt !important;
     }
 
     .theme-academic.prose h2 {
-        border-bottom: 0.5pt solid black !important;
+        border-bottom: 1pt solid black !important;
         font-size: 16pt !important;
         margin-top: 20pt !important;
     }
 
     .theme-academic.prose blockquote {
-        border-left: 2pt solid #666 !important;
+        border-left: 2pt solid black !important;
         font-style: italic !important;
+        color: black !important;
+    }
+
+    .theme-academic.prose a {
+        text-decoration: none !important;
+        color: black !important;
     }
 }

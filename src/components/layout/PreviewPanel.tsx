@@ -159,7 +159,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
             }}
             onScroll={!showPrintPreview && isActive ? onScroll : undefined}
             className={`
-                ${showPrintPreview
+                ${showPrintPreview || isPrinting
                     ? `print-paper bg-white shadow-2xl mx-auto paper-${paperSize.toLowerCase()} paper-${orientation} margin-${margin} relative`
                     : `flex-1 w-full h-full overflow-auto print:overflow-visible custom-scrollbar bg-white dark:bg-slate-900 transition-colors duration-200`}
                 ${isVisibleOnScreen ? 'block' : 'hidden'} 
@@ -169,7 +169,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={showPrintPreview ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
+            <div className={showPrintPreview || isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}
@@ -397,8 +397,21 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
     }, [currentDocId, showPrintPreview]);
 
     return (
-        <section
-            className={`flex-1 min-w-0 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto ${showPrintPreview ? 'show-print-preview' : ''}`}
+        <>
+            {(isPrinting || showPrintPreview) && (
+                <style>
+                    {`
+                    @media print {
+                        @page {
+                            size: ${paperSize.toLowerCase()} ${orientation};
+                            margin: 0 !important;
+                        }
+                    }
+                    `}
+                </style>
+            )}
+            <section
+                className={`flex-1 min-w-0 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto ${showPrintPreview ? 'show-print-preview' : ''}`}
             onMouseEnter={() => {
                 isHoveringInternal.current = true;
                 if (onMouseEnter) onMouseEnter();
@@ -469,6 +482,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                 </div>
             </div>
         </section>
+        </>
     );
 };
 

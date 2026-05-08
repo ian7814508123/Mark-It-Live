@@ -563,6 +563,8 @@
             color-adjust: exact !important;
             transition: none !important;
             animation: none !important;
+            text-shadow: none !important; /* 消除文字重影/疊影 */
+            box-shadow: none !important;  /* 消除容器陰影 */
         }
 
         /* 2. 全域強制顏色與背景重置 (僅針對基礎容器) */
@@ -580,8 +582,9 @@
         }
 
         /* 3. 在列印環境下重新宣告語法高亮變數（不依賴 .dark 類別）
-         *    使用 VS Code Light+ 風格，確保在白紙上的對比度與可讀性。 */
-        :root {
+         *    使用 VS Code Light+ 風格，確保在白紙上的對比度與可讀性。
+         *    同時針對 .dark 類別強制重置，防止主題變數洩漏。 */
+        :root, .dark {
             --code-bg: #f8f9fa !important;
             --code-border: #e2e8f0 !important;
             --code-token-comment: #008000 !important;
@@ -626,14 +629,14 @@
             border-radius: 4px;
         }
 
-        /* 7. 語言標籤列印樣式：強制使用淺色風格 */
+        /* 7. 語言標籤列印樣式：強制使用淺色風格，改為不透明以消除與底層邊框的疊影 */
         .code-lang-label {
             color: #475569 !important;
             /* slate-600 */
-            background-color: rgba(226, 232, 240, 0.6) !important;
-            /* slate-200/60 */
+            background-color: #f1f5f9 !important; /* 不透明淺灰 */
             border-bottom: 1px solid #cbd5e1;
             border-right: 1px solid #cbd5e1;
+            text-shadow: none !important;
         }
     }
 
