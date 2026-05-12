@@ -175,6 +175,27 @@ export function useDocumentStorage() {
     }, []);
 
     /**
+     * 更新行號註解
+     */
+    const updateLineComment = useCallback((docId: string, line: number, comment: string) => {
+        setState(prev => ({
+            ...prev,
+            documents: prev.documents.map(doc => {
+                if (doc.id !== docId) return doc;
+                
+                const newComments = { ...(doc.lineComments || {}) };
+                if (!comment.trim()) {
+                    delete newComments[line];
+                } else {
+                    newComments[line] = comment;
+                }
+                
+                return { ...doc, lineComments: newComments, updatedAt: Date.now() };
+            })
+        }));
+    }, []);
+
+    /**
      * 切換到指定文檔
      */
     const switchDocument = useCallback((docId: string) => {
@@ -384,5 +405,6 @@ export function useDocumentStorage() {
         renameFolder,
         moveDocument,
         reorderDocuments,
+        updateLineComment,
     };
 }

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MousePointer2 } from 'lucide-react';
+import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
@@ -24,8 +24,8 @@ interface HeaderProps {
     printSettings?: any;
     /** 更新設定的回呼 */
     onUpdatePrintSettings?: (patch: any) => void;
-    isGlobalAnnotationMode?: boolean;
-    setIsGlobalAnnotationMode?: (isMode: boolean) => void;
+    isCommentMode?: boolean;
+    setIsCommentMode?: (isMode: boolean) => void;
     /** 列印預覽是否開啟（只有開啟時才允許進入標註模式） */
     showPrintPreview?: boolean;
     /** 是否有任何文件被打開 */
@@ -48,8 +48,8 @@ const Header: React.FC<HeaderProps> = ({
     isInFolder,
     printSettings,
     onUpdatePrintSettings,
-    isGlobalAnnotationMode,
-    setIsGlobalAnnotationMode,
+    isCommentMode,
+    setIsCommentMode,
     showPrintPreview = false,
     hasOpenDocuments = false,
 }) => {
@@ -347,21 +347,21 @@ const Header: React.FC<HeaderProps> = ({
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
 
-                    {/* 標註模式開關：只有列印預覽開啟時才能使用，確保座標系統一致 */}
+                    {/* 註解模式開關：在非列印預覽時使用，註解不隨文檔導出 */}
                     <MagneticButton
-                        onClick={() => hasOpenDocuments && showPrintPreview && setIsGlobalAnnotationMode?.(!isGlobalAnnotationMode)}
-                        title={!hasOpenDocuments ? '請先開啟文件以使用標註模式' : (showPrintPreview ? '開啟視覺標註模式' : '請先開啟列印預覽以使用標註模式')}
-                        disabled={!hasOpenDocuments || !showPrintPreview}
-                        style={{ position: 'relative', overflow: 'hidden', cursor: (hasOpenDocuments && showPrintPreview) ? undefined : 'not-allowed' }}
+                        onClick={() => hasOpenDocuments && !showPrintPreview && setIsCommentMode?.(!isCommentMode)}
+                        title={!hasOpenDocuments ? '請先開啟文件以使用註解模式' : (showPrintPreview ? '列印預覽中無法使用註解模式' : '開啟/關閉行號註解模式')}
+                        disabled={!hasOpenDocuments || showPrintPreview}
+                        style={{ position: 'relative', overflow: 'hidden', cursor: (hasOpenDocuments && !showPrintPreview) ? undefined : 'not-allowed' }}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none
-                            ${(!showPrintPreview || !hasOpenDocuments)
+                            ${(showPrintPreview || !hasOpenDocuments)
                                 ? 'opacity-35 text-slate-400 dark:text-slate-600'
-                                : isGlobalAnnotationMode
+                                : isCommentMode
                                     ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary shadow-sm ring-1 ring-brand-primary/10'
                                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}>
-                        <MousePointer2 size={14} className={isGlobalAnnotationMode && showPrintPreview && hasOpenDocuments ? 'animate-bounce' : ''} />
-                        標註模式
+                        <MessageSquare size={14} className={isCommentMode && !showPrintPreview && hasOpenDocuments ? 'animate-bounce' : ''} />
+                        註解模式
                     </MagneticButton>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />

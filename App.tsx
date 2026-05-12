@@ -123,6 +123,7 @@ const App: React.FC = () => {
     renameFolder,
     moveDocument,
     reorderDocuments,
+    updateLineComment,
   } = useDocumentStorage();
 
   // UI 狀態
@@ -141,14 +142,14 @@ const App: React.FC = () => {
   const [openDocIds, setOpenDocIds] = useState<string[]>([]);
   const [isPrinting, setIsPrinting] = useState(false);
   const [printSessionId, setPrintSessionId] = useState(0);
-  const [isGlobalAnnotationMode, setIsGlobalAnnotationMode] = useState(false);
+  const [isCommentMode, setIsCommentMode] = useState(false);
 
   const { settings, updateMacros, updatePrintSettings, restoreDefaults } = useAppSettings();
 
-  // 列印預覽關閉時，強制退出標註模式（避免座標系統不一致）
+  // 當列印預覽開啟時，強制退出註解模式
   useEffect(() => {
-    if (!settings.printSettings.showPrintPreview) {
-      setIsGlobalAnnotationMode(false);
+    if (settings.printSettings.showPrintPreview) {
+      setIsCommentMode(false);
     }
   }, [settings.printSettings.showPrintPreview]);
 
@@ -1333,8 +1334,8 @@ const App: React.FC = () => {
           isInFolder={!!currentDocument?.folderId}
           printSettings={settings.printSettings}
           onUpdatePrintSettings={updatePrintSettings}
-          isGlobalAnnotationMode={isGlobalAnnotationMode}
-          setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+          isCommentMode={isCommentMode}
+          setIsCommentMode={setIsCommentMode}
           showPrintPreview={settings.printSettings.showPrintPreview}
           hasOpenDocuments={openDocIds.length > 0}
         />
@@ -1445,8 +1446,9 @@ const App: React.FC = () => {
               printSettings={settings.printSettings}
               isPrinting={isPrinting}
               printSessionId={printSessionId}
-              isGlobalAnnotationMode={isGlobalAnnotationMode}
-              setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+              isCommentMode={isCommentMode}
+              setIsCommentMode={setIsCommentMode}
+              onUpdateLineComment={updateLineComment}
             />
           </div>
         </main>

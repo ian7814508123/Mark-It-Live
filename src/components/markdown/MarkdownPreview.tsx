@@ -14,10 +14,10 @@ import { ResizableWrapper } from '../ui/ResizableWrapper';
 import { hashString } from '../../utils';
 import { useDebounce } from '../../hooks/useDebounce';
 import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSettings';
-import { useAnnotations } from '../../hooks/useAnnotations';
-import { AnnotationLayer } from './AnnotationLayer';
-import AnnotationToolbar from './AnnotationToolbar';
-import { WrapText, X, MousePointer2, Trash2 } from 'lucide-react';
+import { WrapText } from 'lucide-react';
+import LineCommentItem from './LineCommentItem';
+import { CommentProvider } from './CommentContext';
+import MagneticButton from '../ui/MagneticButton';
 
 interface MarkdownPreviewProps {
     content: string;
@@ -32,8 +32,9 @@ interface MarkdownPreviewProps {
     printSessionId?: number;
     isMergedPrint?: boolean;
     previewTheme?: 'default' | 'academic' | 'minimal' | 'developer';
-    isGlobalAnnotationMode?: boolean;
-    setIsGlobalAnnotationMode?: (isMode: boolean) => void;
+    isCommentMode?: boolean;
+    setIsCommentMode?: (isMode: boolean) => void;
+    onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     activeScale?: number;
 }
 
@@ -443,13 +444,6 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
 
 // ─── 區塊判斷上下文：用於解決 react-markdown v10 移除 inline prop 後的辨識問題 ───────
 const IsInPreContext = React.createContext(false);
-const GlobalAnnotationContext = React.createContext<{
-    isEditable: boolean;
-    setIsEditable: (v: boolean) => void;
-} | null>(null);
-
-import { ANNOTATION_COLORS, DEFAULT_ANNOTATION_COLOR } from '../../constants/annotationColors';
-import { useAnnotationDrawing } from '../../hooks/useAnnotationDrawing';
 
 const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ 
     content, 
@@ -463,16 +457,12 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     printSessionId = 0, 
     isMergedPrint, 
     previewTheme,
-    isGlobalAnnotationMode = false,
-    setIsGlobalAnnotationMode,
+    isCommentMode = false,
+    setIsCommentMode,
+    onUpdateLineComment,
     activeScale = 1,
 }) => {
-    // 關鍵修正：判斷當前是否處於「需要白色底」或「列印中」的狀態
-    // 優先使用 Props 以確保 React 渲染週期同步，避免 reliance on DOM queries
     const isActuallyPrinting = !!isPrinting || !!showPrintPreview;
-    // 只有真正執行 window.print() 時才為 true（列印預覽不在此列）
-    // 用於封鎖標註互動，允許列印預覽下正常操作便利貼
-    const isReallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
     const processedContent = useMemo(() => {
         return content
@@ -482,81 +472,57 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             .replace(/^---pb---\s*$/gm, '<div class="page-break"></div>\n\n');
     }, [content]);
     const debouncedContent = useDebounce(processedContent, 200);
-    // 在 MarkdownPreview 頂層呼叫一次，避免每個 LocalImage 獨立開啟 DB 連線
     const { getImage } = useImageStorage();
 
-    // ─── 全局標註功能 ───────────────────────────────────────────────────────
-    const {
-        annotations: globalAnnotations,
-        addAnnotation: addGlobalAnnotation,
-        updateAnnotation: updateGlobalAnnotation,
-        removeAnnotation: removeGlobalAnnotation,
-        bringToFront: bringGlobalToFront,
-        clearAnnotations
-    } = useAnnotations(`doc-global:${currentDocId || 'none'}`);
+    const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
+    const lineComments = currentDoc?.lineComments || {};
 
-    const [activeTool, setActiveTool] = useState<'sticky' | 'rect' | 'circle'>('sticky');
-    const [activeColor, setActiveColor] = useState(DEFAULT_ANNOTATION_COLOR);
-    const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
-
-    // 標註模式關閉時，清除選中狀態，避免殘留的 UI 在下次開啟時出現
-    useEffect(() => {
-        if (!isGlobalAnnotationMode) {
-            setSelectedAnnotationId(null);
-        }
-    }, [isGlobalAnnotationMode]);
-
-    // 真正進入列印對話框時清除選取，避免選取邊框（ring-4 highlight）被印入 PDF
-    useEffect(() => {
-        if (isReallyPrinting) {
-            setSelectedAnnotationId(null);
-        }
-    }, [isReallyPrinting]);
-
-    const globalContainerRef = useRef<HTMLDivElement>(null);
-
-    const { isDrawing, drawRect, handlers } = useAnnotationDrawing({
-        containerRef: globalContainerRef,
-        isActive: isGlobalAnnotationMode,
-        activeTool,
-        activeColor,
-        onAdd: addGlobalAnnotation,
-        isReallyPrinting: isReallyPrinting // 必須使用 isReallyPrinting (僅 window.print 時封鎖)，允許在列印預覽(showPrintPreview)中繪製
-    });
-
-    // 監聽來自 ToolsModal 的全域事件
-    useEffect(() => {
-        const handleAddMemo = (e: any) => {
-            setIsGlobalAnnotationMode?.(true);
-            // 直接在中心新增一個便利貼
-            addGlobalAnnotation({
-                type: 'sticky',
-                content: '',
-                x: 35,
-                y: 35,
-                width: 200,
-                height: 120,
-                style: {
-                    backgroundColor: activeColor.bg,
-                    borderColor: activeColor.border,
-                    color: activeColor.text,
-                    borderRadius: '4px'
-                }
-            });
-        };
-        const handleToggleMode = () => setIsGlobalAnnotationMode?.(!isGlobalAnnotationMode);
-
-        window.addEventListener('add-global-memo', handleAddMemo);
-        window.addEventListener('toggle-global-memo-mode', handleToggleMode);
-        return () => {
-            window.removeEventListener('add-global-memo', handleAddMemo);
-            window.removeEventListener('toggle-global-memo-mode', handleToggleMode);
-        };
-    }, [addGlobalAnnotation, currentDocId, activeColor]);
-
-    // ─── 繪製邏輯（已移至 useAnnotationDrawing hook） ──────────────────────────────────────────────────────────
+    // 註解相關 state 已搬移至 LineCommentItem 組件內部自治管理
 
     const renderContextRef = useRef<any>(null);
+
+    // ─── wrapWithComment：在 block 元素旁插入行內評論組件與 hover 提示 ────────────
+    const wrapWithComment = useCallback((node: any, children: React.ReactNode, className: string = '') => {
+        const line = node?.position?.start?.line;
+        const hasComment = !!lineComments[line];
+
+        return (
+            <div className={`relative group/line ${className}`} data-line={line}>
+                {children}
+
+                {/* ─── Hover 提示 Badge（非評論模式 & 有評論時顯示） ──── */}
+                {!isCommentMode && hasComment && (
+                    <div
+                        aria-label={`第 ${line} 行有評論`}
+                        className="
+                            absolute left-full ml-2 top-1/2 -translate-y-1/2
+                            opacity-0 group-hover/line:opacity-100
+                            pointer-events-none
+                            transition-opacity duration-150
+                            flex items-center gap-1
+                            px-1.5 py-0.5 rounded-full
+                            bg-brand-primary/15 dark:bg-brand-primary/25
+                            border border-brand-primary/30 dark:border-brand-primary/50
+                            text-brand-primary text-[9px] font-bold
+                            select-none z-10 print:hidden
+                        "
+                    >
+                        <span>💬</span>
+                        <span>#{line}</span>
+                    </div>
+                )}
+
+                {/* ─── 評論操作組件（評論模式 or 有評論時掛載） ─────────── */}
+                <LineCommentItem
+                    line={line}
+                    comment={lineComments[line]}
+                    isCommentMode={isCommentMode}
+                    currentDocId={currentDocId ?? null}
+                    onUpdateLineComment={onUpdateLineComment}
+                />
+            </div>
+        );
+    }, [lineComments, isCommentMode, currentDocId, onUpdateLineComment]);
 
     // 🛠️ 同步更新渲染上下文 (Ref)，確保 ReactMarkdown 中的 Memoized 子組件能讀取到最新狀態，
     // 同時避免因為 components 物件 identity 改變而觸發整個 Markdown 樹重掛。
@@ -624,13 +590,13 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const line = node?.position?.start?.line;
 
             if (isBlock) {
-                if (language === 'mermaid') return <div data-line={line} className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>;
-                if (language === 'vega' || language === 'vega-lite') return <div data-line={line} className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>;
-                if (language === 'smiles') return <div data-line={line} className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>;
-                if (language === 'abc') return <React.Suspense fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div data-line={line} className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div></React.Suspense>;
+                if (language === 'mermaid') return wrapWithComment(node, <div className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
+                if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
+                if (language === 'smiles') return wrapWithComment(node, <div className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
+                if (language === 'abc') return wrapWithComment(node, <React.Suspense fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div></React.Suspense>);
 
-                return (
-                    <div data-line={line} className="code-block-wrapper not-prose">
+                return wrapWithComment(node, (
+                    <div className="code-block-wrapper not-prose">
                         <EnhancedCodeBlock
                             language={language}
                             codeString={codeString}
@@ -639,23 +605,23 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                             shouldShowDark={ctx.shouldShowDark}
                         />
                     </div>
-                );
+                ));
             }
             return <code className={`${className || ''} inline-code`} {...props} data-line={line}>{children}</code>;
         },
         // ─── 注入 Line Number 以實現精準同步捲動 ───────────────────────────────────
-        p: ({ node, ...props }: any) => <div className="mb-4 last:mb-0" data-line={node?.position?.start?.line} {...props} />,
-        h1: ({ node, ...props }: any) => <h1 data-line={node?.position?.start?.line} {...props} />,
-        h2: ({ node, ...props }: any) => <h2 data-line={node?.position?.start?.line} {...props} />,
-        h3: ({ node, ...props }: any) => <h3 data-line={node?.position?.start?.line} {...props} />,
-        h4: ({ node, ...props }: any) => <h4 data-line={node?.position?.start?.line} {...props} />,
-        h5: ({ node, ...props }: any) => <h5 data-line={node?.position?.start?.line} {...props} />,
-        h6: ({ node, ...props }: any) => <h6 data-line={node?.position?.start?.line} {...props} />,
-        ul: ({ node, ...props }: any) => <ul data-line={node?.position?.start?.line} {...props} />,
-        ol: ({ node, ...props }: any) => <ol data-line={node?.position?.start?.line} {...props} />,
-        li: ({ node, ...props }: any) => <li data-line={node?.position?.start?.line} {...props} />,
-        blockquote: ({ node, ...props }: any) => <blockquote data-line={node?.position?.start?.line} {...props} />,
-        table: ({ node, ...props }: any) => <table data-line={node?.position?.start?.line} {...props} />,
+        p: ({ node, ...props }: any) => wrapWithComment(node, <div className="mb-4 last:mb-0" {...props} />),
+        h1: ({ node, ...props }: any) => wrapWithComment(node, <h1 {...props} />),
+        h2: ({ node, ...props }: any) => wrapWithComment(node, <h2 {...props} />),
+        h3: ({ node, ...props }: any) => wrapWithComment(node, <h3 {...props} />),
+        h4: ({ node, ...props }: any) => wrapWithComment(node, <h4 {...props} />),
+        h5: ({ node, ...props }: any) => wrapWithComment(node, <h5 {...props} />),
+        h6: ({ node, ...props }: any) => wrapWithComment(node, <h6 {...props} />),
+        ul: ({ node, ...props }: any) => wrapWithComment(node, <ul {...props} />),
+        ol: ({ node, ...props }: any) => wrapWithComment(node, <ol {...props} />),
+        li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
+        blockquote: ({ node, ...props }: any) => wrapWithComment(node, <blockquote {...props} />),
+        table: ({ node, ...props }: any) => wrapWithComment(node, <table {...props} />),
         // ─────────────────────────────────────────────────────────────────────────
         div: ({ node, className, children, ...props }: any) => {
             if (className?.includes('math-display')) {
@@ -717,7 +683,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 />
             );
         },
-    }), []);
+    }), [wrapWithComment, urlTransform]);
 
     // 監聽圖片載入完成，若有必要可觸發同步刷新
     useEffect(() => {
@@ -725,8 +691,6 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         if (!container) return;
 
         const handleImageLoad = () => {
-            // 圖片載入後高度會變，這可能會導致同步偏差。
-            // 這裡可以觸發一個自定義事件或回調，讓 App.tsx 重新對齊
             window.dispatchEvent(new CustomEvent('preview-content-height-change'));
         };
 
@@ -735,77 +699,22 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     }, [debouncedContent]);
 
     return (
-        <div
-            className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isGlobalAnnotationMode ? 'cursor-crosshair' : ''}`}
-            ref={globalContainerRef}
-            onMouseDown={(e) => {
-                // 如果是滑鼠左鍵點擊空白處，才清空選取
-                if (e.button === 0 && !(e.target as HTMLElement).closest('.react-draggable')) {
-                    setSelectedAnnotationId(null);
-                }
-                handlers.onMouseDown(e);
-            }}
-            onMouseMove={handlers.onMouseMove}
-            onMouseUp={handlers.onMouseUp}
-        >
-            <div className={`prose max-w-none p-8 ${isGlobalAnnotationMode ? 'select-none' : 'select-text'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl prose-table:border-collapse prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:p-2 prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2 print:p-0 print:max-w-none print:bg-white relative z-10`}>
-                <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeRaw]}
-                    remarkRehypeOptions={remarkRehypeOptions}
-                    components={components}
-                    urlTransform={urlTransform}
-                >
-                    {debouncedContent}
-                </ReactMarkdown>
+        // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
+        <CommentProvider>
+            <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0`}>
+                <div className={`prose max-w-none p-8 ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl prose-table:border-collapse prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:p-2 prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2 print:p-0 print:max-w-none print:bg-white relative z-10`}>
+                    <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeRaw]}
+                        remarkRehypeOptions={remarkRehypeOptions}
+                        components={components}
+                        urlTransform={urlTransform}
+                    >
+                        {debouncedContent}
+                    </ReactMarkdown>
+                </div>
             </div>
-
-            {/* 繪製中的預覽矩形 */}
-            {isDrawing && drawRect && (
-                <div
-                    className="absolute border-2 border-dashed border-brand-primary bg-brand-primary/10 z-[60] pointer-events-none"
-                    style={{
-                        left: `${drawRect.x}%`,
-                        top: `${drawRect.y}%`,
-                        width: `${drawRect.w}%`,
-                        height: `${drawRect.h}%`,
-                        borderRadius: activeTool === 'circle' ? '50%' : '4px'
-                    }}
-                />
-            )}
-
-            {/* 全局標註層 */}
-            <AnnotationLayer
-                annotations={globalAnnotations}
-                onUpdate={updateGlobalAnnotation}
-                onRemove={removeGlobalAnnotation}
-                isEditable={isGlobalAnnotationMode && !isReallyPrinting}
-                containerRef={globalContainerRef}
-                selectedId={selectedAnnotationId}
-                onSelect={setSelectedAnnotationId}
-                scale={activeScale}
-            />
-
-            {/* 全局編輯狀態提示 (浮動於底部中心) - 膠囊形狀 Context-Aware Bar */}
-            {/* isActuallyPrinting 僅傳 isPrinting（真正列印時才隱藏），
-                showPrintPreview 時 toolbar 應保持顯示供使用者操作標註 */}
-            <AnnotationToolbar
-                isVisible={!!isGlobalAnnotationMode}
-                isActuallyPrinting={!!isPrinting}
-                activeTool={activeTool}
-                setActiveTool={setActiveTool}
-                activeColor={activeColor}
-                setActiveColor={setActiveColor}
-                selectedAnnotationId={selectedAnnotationId}
-                setSelectedAnnotationId={setSelectedAnnotationId}
-                annotations={globalAnnotations}
-                onUpdateAnnotation={updateGlobalAnnotation}
-                onAddAnnotation={addGlobalAnnotation}
-                onRemoveAnnotation={removeGlobalAnnotation}
-                onBringToFront={bringGlobalToFront}
-                onExitMode={() => setIsGlobalAnnotationMode?.(false)}
-            />
-        </div>
+        </CommentProvider>
     );
 };
 

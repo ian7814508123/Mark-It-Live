@@ -67,8 +67,9 @@ interface PrintPaperProps {
     onCreateMissing?: (name: string) => void;
     onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
     scrollRef?: React.Ref<HTMLDivElement>;
-    isGlobalAnnotationMode?: boolean;
-    setIsGlobalAnnotationMode?: (isMode: boolean) => void;
+    isCommentMode?: boolean;
+    setIsCommentMode?: (isMode: boolean) => void;
+    onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     activeScale?: number;
 }
 
@@ -94,8 +95,9 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     onCreateMissing,
     onScroll,
     scrollRef,
-    isGlobalAnnotationMode,
-    setIsGlobalAnnotationMode,
+    isCommentMode,
+    setIsCommentMode,
+    onUpdateLineComment,
     activeScale = 1,
 }) => {
     const [contentHeight, setContentHeight] = useState(0);
@@ -182,8 +184,9 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     showPrintPreview={showPrintPreview}
                     printSessionId={printSessionId}
                     isMergedPrint={isMergedPrint}
-                    isGlobalAnnotationMode={isGlobalAnnotationMode}
-                    setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+                    isCommentMode={isCommentMode}
+                    setIsCommentMode={setIsCommentMode}
+                    onUpdateLineComment={onUpdateLineComment}
                     activeScale={activeScale}
                 />
                 {showPrintPreview && (
@@ -218,8 +221,9 @@ interface MarkdownPreviewSectionProps {
     printSettings: any;
     isPrinting?: boolean;
     printSessionId?: number;
-    isGlobalAnnotationMode?: boolean;
-    setIsGlobalAnnotationMode?: (isMode: boolean) => void;
+    isCommentMode?: boolean;
+    setIsCommentMode?: (isMode: boolean) => void;
+    onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
 }
 
 const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
@@ -238,8 +242,9 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
     printSettings,
     isPrinting = false,
     printSessionId = 0,
-    isGlobalAnnotationMode,
-    setIsGlobalAnnotationMode,
+    isCommentMode,
+    setIsCommentMode,
+    onUpdateLineComment,
 }) => {
     // 當前文件物件
     const currentDoc = documents?.find((d: any) => d.id === currentDocId);
@@ -472,8 +477,9 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                                     onCreateMissing={onCreateMissing}
                                     onScroll={onScroll}
                                     scrollRef={scrollRef}
-                                    isGlobalAnnotationMode={isGlobalAnnotationMode}
-                                    setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+                                    isCommentMode={isCommentMode}
+                                    setIsCommentMode={setIsCommentMode}
+                                    onUpdateLineComment={onUpdateLineComment}
                                     activeScale={activeScale}
                                 />
                             );
@@ -517,8 +523,9 @@ interface PreviewPanelProps {
     printSettings: any;
     isPrinting?: boolean;
     printSessionId?: number;
-    isGlobalAnnotationMode?: boolean;
-    setIsGlobalAnnotationMode?: (isMode: boolean) => void;
+    isCommentMode?: boolean;
+    setIsCommentMode?: (isMode: boolean) => void;
+    onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
 }
 
 const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
@@ -550,8 +557,9 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     printSettings,
     isPrinting,
     printSessionId,
-    isGlobalAnnotationMode,
-    setIsGlobalAnnotationMode,
+    isCommentMode,
+    setIsCommentMode,
+    onUpdateLineComment,
 }, ref) => {
     const [isHUDExpanded, setIsHUDExpanded] = useState(false);
     const hudRef = useRef<HTMLDivElement>(null);
@@ -595,8 +603,9 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 printSettings={printSettings}
                 isPrinting={isPrinting}
                 printSessionId={printSessionId}
-                isGlobalAnnotationMode={isGlobalAnnotationMode}
-                setIsGlobalAnnotationMode={setIsGlobalAnnotationMode}
+                isCommentMode={isCommentMode}
+                setIsCommentMode={setIsCommentMode}
+                onUpdateLineComment={onUpdateLineComment}
             />
         );
     }

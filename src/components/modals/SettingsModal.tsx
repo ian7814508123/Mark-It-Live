@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MousePointer2 } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -286,16 +286,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-5 ml-11" />
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-500 dark:text-indigo-400 rounded-2xl">
-                                                <MousePointer2 size={18} />
+                                                <MessageSquare size={18} />
                                             </div>
-                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">標註模式 (Beta) </h4>
+                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">註解模式 (Beta) </h4>
                                         </div>
                                         <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            開啟 <code className="px-1 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[10px] font-mono mx-1">偏好設定 &gt; 列印與匯出 &gt;顯示列印預覽 </code> 後回到編輯頁面,
-                                            開啟頂列的標註模式,即可在文件空白處新增便利貼。
+                                            開啟頂列的註解模式,即可開始在預覽器中標記文字內容並添加註解。
                                         </p>
                                         <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            (注意!: 此功能仍在測試中,建議以數位展示作為用途,或是多加留意列印時的實際樣式呈現。)
+                                            (注意!: 此功能仍在測試中,目前註解不會用於輸出 Markdown 或 PDF,建議僅在數位展示環境下使用。)
                                         </p>
                                     </div>
                                     <div className="p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 shadow-sm">
