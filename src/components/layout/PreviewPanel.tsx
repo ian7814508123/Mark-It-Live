@@ -59,7 +59,7 @@ interface PrintPaperProps {
     isPrinting: boolean;
     printSessionId: number;
     isMergedPrint: boolean;
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan';
     theme: any;
     isDarkMode: boolean;
     documents: any[];

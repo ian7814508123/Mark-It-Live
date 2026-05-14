@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -8,6 +8,7 @@ import GlassRailSelector from '../ui/GlassRailSelector';
 import { PrintSettings } from '../../hooks/useAppSettings';
 import pkg from '../../../package.json';
 import InteractiveLogo from '../ui/InteractiveLogo';
+import ThemeGridSelector, { ThemeOption } from '../ui/ThemeGridSelector';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -62,14 +63,40 @@ const PdfSettingsPanel: React.FC<{
                 </div>
 
                 {/* Markdown 主題選擇 */}
-                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700/50">
                     <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">預覽風格 (Theme)</p>
-                    <GlassRailSelector
+                    <ThemeGridSelector
                         options={[
-                            { label: '預設', value: 'default', hint: 'Tailwind' },
-                            { label: '學術', value: 'academic', hint: 'Serif' },
-                            { label: '極簡', value: 'minimal', hint: 'Modern' },
-                            { label: '工程師', value: 'developer', hint: 'Mono' },
+                            {
+                                label: '預設', value: 'default', hint: 'default',
+                                icon: <Zap size={16} />, color: '#000000',
+                                previewImg: '/image/themes/default.png',
+                                description: '最均衡的排版，適合一般技術文件。'
+                            },
+                            {
+                                label: '學術', value: 'academic', hint: 'academic',
+                                icon: <BookOpen size={16} />, color: '#78350f',
+                                previewImg: '/image/themes/academic.png',
+                                description: '使用襯線字體，模擬學術期刊與論文排版。'
+                            },
+                            {
+                                label: '極簡', value: 'minimal', hint: 'minimal',
+                                icon: <Feather size={16} />, color: '#cece91ff',
+                                previewImg: '/image/themes/minimal.png',
+                                description: '極大的白留與現代字體，適合詩歌或文學創作。'
+                            },
+                            {
+                                label: '工程師', value: 'developer', hint: 'developer',
+                                icon: <Code size={16} />, color: '#059669',
+                                previewImg: '/image/themes/developer.png',
+                                description: '全等寬字體與終端機風格，技術感滿滿。'
+                            },
+                            {
+                                label: '實作計畫', value: 'implementation-plan', hint: 'Plan',
+                                icon: <ClipboardList size={16} />, color: '#005B94',
+                                previewImg: '/image/themes/plan.png',
+                                description: '工業化結構設計，適合展示開發方案與進度。'
+                            },
                         ]}
                         value={settings.previewTheme}
                         onChange={(v) => onChange({ previewTheme: v as any })}

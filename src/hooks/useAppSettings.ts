@@ -16,7 +16,7 @@ export interface PrintSettings {
     /** 在預覽區顯示列印預覽（邊界與分頁線） */
     showPrintPreview: boolean;
     /** Markdown 預覽主題 */
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan';
 }
 
 export interface AppSettings {

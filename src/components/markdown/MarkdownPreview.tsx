@@ -31,7 +31,7 @@ interface MarkdownPreviewProps {
     showPrintPreview?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer';
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan';
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;

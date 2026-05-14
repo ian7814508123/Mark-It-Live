@@ -1,0 +1,215 @@
+/* Implementation Plan Theme: Structured, Industrial, High Contrast, Blueprint-like */
+
+.theme-implementation-plan {
+    --plan-primary: #005B94;
+    --plan-secondary: #f0f9ff;
+    --plan-accent: #0366d6;
+    --plan-text: #334155;
+    --plan-heading: #0f172a;
+    --plan-border: #e2e8f0;
+    
+    /* 系統變數對接 */
+    --brand-primary: var(--plan-primary);
+    --brand-secondary: var(--plan-secondary);
+    --brand-surface: #f8fafc;
+    --code-bg: #0f172a;
+    --code-border: #1e293b;
+}
+
+/* 深色模式變數覆蓋 */
+.dark .theme-implementation-plan {
+    --plan-primary: #38bdf8;
+    --plan-secondary: #0c4a6e;
+    --plan-text: #cbd5e1;
+    --plan-heading: #f1f5f9;
+    --plan-border: #334155;
+    
+    --brand-primary: var(--plan-primary);
+    --brand-secondary: var(--plan-secondary);
+    --brand-surface: #0f172a;
+    --code-bg: #010409;
+    --code-border: rgba(56, 189, 248, 0.2);
+}
+
+/* 主題基礎樣式 */
+.theme-implementation-plan.prose {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    color: var(--plan-text);
+    line-height: 1.7;
+}
+
+/* 標題設計：結構感與裝飾線 */
+.theme-implementation-plan.prose h1 {
+    color: var(--plan-heading);
+    border-bottom: 3px solid var(--plan-primary);
+    padding-bottom: 0.5rem;
+    margin-top: 2.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.theme-implementation-plan.prose h2 {
+    color: var(--plan-heading);
+    border-left: 4px solid var(--plan-primary);
+    padding-left: 1rem;
+    margin-top: 2rem;
+    font-weight: 800;
+}
+
+.theme-implementation-plan.prose h3 {
+    color: var(--plan-primary);
+    font-weight: 700;
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.05em;
+}
+
+/* 引言區塊：自動適配 GitHub-style Alerts (NOTE, IMPORTANT 等) */
+.theme-implementation-plan.prose blockquote {
+    border-left: 4px solid var(--plan-border);
+    background-color: var(--brand-surface);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 0 0.75rem 0.75rem 0;
+    font-style: normal;
+    color: var(--plan-text);
+}
+
+/* 針對 Alert 的特定色彩 (透過 content 匹配) */
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[NOTE]")),
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!NOTE]")) {
+    border-left-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[IMPORTANT]")),
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!IMPORTANT]")) {
+    border-left-color: #8b5cf6;
+    background-color: rgba(139, 92, 246, 0.05);
+}
+
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[WARNING]")),
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!WARNING]")) {
+    border-left-color: #f59e0b;
+    background-color: rgba(245, 158, 11, 0.05);
+}
+
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[CAUTION]")),
+.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!CAUTION]")) {
+    border-left-color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* 強調文字 */
+.theme-implementation-plan.prose strong {
+    color: var(--plan-heading);
+    font-weight: 700;
+}
+
+/* 任務列表：Checkbox 樣式 */
+.theme-implementation-plan.prose li:has(input[type="checkbox"]) {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.theme-implementation-plan.prose input[type="checkbox"] {
+    appearance: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid var(--plan-primary);
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    position: relative;
+    vertical-align: middle;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.theme-implementation-plan.prose input[type="checkbox"]:checked {
+    background-color: var(--plan-primary);
+}
+
+.theme-implementation-plan.prose input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute;
+    color: white;
+    font-size: 0.9rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+}
+
+.theme-implementation-plan.prose li:has(input[type="checkbox"]:checked) {
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+/* 表格：清晰、工業感 */
+.theme-implementation-plan.prose table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--plan-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.theme-implementation-plan.prose th {
+    background-color: var(--plan-secondary);
+    color: var(--plan-heading);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--plan-border);
+}
+
+.theme-implementation-plan.prose td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--plan-border);
+}
+
+/* 連結 */
+.theme-implementation-plan.prose a {
+    color: var(--plan-accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.theme-implementation-plan.prose a:hover {
+    border-bottom-color: var(--plan-accent);
+}
+
+/* Print Specifics */
+@media print {
+    .theme-implementation-plan {
+        --plan-primary: #005B94 !important;
+        --plan-text: #000000 !important;
+        --plan-heading: #000000 !important;
+        --plan-border: #cbd5e1 !important;
+    }
+
+    .theme-implementation-plan.prose {
+        background-color: white !important;
+        font-size: 10pt !important;
+    }
+
+    .theme-implementation-plan.prose h1 {
+        border-bottom: 2pt solid #005B94 !important;
+        font-size: 20pt !important;
+    }
+    
+    .theme-implementation-plan.prose blockquote {
+        background-color: #f8fafc !important;
+        border-left: 3pt solid #cbd5e1 !important;
+        page-break-inside: avoid;
+    }
+
+    .theme-implementation-plan.prose table {
+        border: 1pt solid #cbd5e1 !important;
+    }
+}
