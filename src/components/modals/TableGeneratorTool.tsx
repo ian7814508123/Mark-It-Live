@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     Table, Copy, Check, AlignLeft, AlignCenter, AlignRight,
-    Plus, Minus, FileInput, AlertTriangle, ClipboardPaste, ArrowRight,
+    Plus, Minus, FileInput, AlertTriangle, ClipboardPaste, ArrowRight
 } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import GlassRailSelector from '../ui/GlassRailSelector';
@@ -295,15 +295,20 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
     return (
         <div className="flex flex-col gap-2 p-3 min-h-0 h-full">
 
-            {/* 標題 */}
-            <div className="flex items-center gap-2 shrink-0">
-                <div className="w-7 h-7 bg-brand-secondary dark:bg-brand-primary/40 text-brand-primary rounded-2xl flex items-center justify-center">
-                    <Table size={15} />
+            {/* ── 標題 ── */}
+            <div className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2.5 mb-1">
+                    <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
+                        <Table size={16} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Markdown 表格產生器</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                            視覺化編輯，或貼上外部表格自動轉換
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Markdown 表格產生器</p>
-                    <p className="text-[12px] text-slate-600 dark:text-slate-300">視覺化編輯，或貼上外部表格自動轉換</p>
-                </div>
+
             </div>
 
             {/* Mermaid 模式警告 */}
@@ -323,11 +328,11 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
             ) : (
                 <>
                     {/* Tab 切換列 */}
-                    <div className=" relative shrink-0 px-3 py-2 text-center overflow-hidden ">
+                    <div className=" relative shrink-0 px-1 py-0.5 text-center overflow-hidden ">
                         {/* Tab 導航：玻璃滑軌，支援拖曳切換分頁 */}
                         <GlassRailSelector
                             options={[
-                                { label: '手動建立', value: 'manual', icon: <Table size={14} /> }, { label: '貼上匯入', value: 'paste', icon: <ClipboardPaste size={14} /> },
+                                { label: '建立', value: 'manual', icon: <Table size={14} /> }, { label: '貼上', value: 'paste', icon: <ClipboardPaste size={14} /> },
                             ]}
                             value={activeTab}
                             onChange={(v) => setActiveTab(v as 'manual' | 'paste')}

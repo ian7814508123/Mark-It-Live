@@ -20,7 +20,7 @@ interface ToolsModalProps {
     /** 將文字插入編輯器游標位置的回呼 */
     onInsertIntoDoc: (text: string) => void;
     /** 觸發檔案導入的回呼 */
-    onImportFile?: () => void;
+    onImportFiles?: (files: FileList | File[]) => void;
 }
 
 type ToolId = 'pdf-merge' | 'table-gen' | 'word-count' | 'image-upload' | 'file-import';
@@ -40,19 +40,19 @@ function renderToolPanel(
     currentDocContent: string,
     currentDocMode: 'markdown' | 'mermaid',
     onInsertIntoDoc: (t: string) => void,
-    onImportFile?: () => void
+    onImportFiles?: (files: FileList | File[]) => void
 ) {
     switch (id) {
         case 'pdf-merge': return <PdfMergeTool />;
         case 'table-gen': return <TableGeneratorTool currentDocMode={currentDocMode} onInsertIntoDoc={onInsertIntoDoc} />;
         case 'word-count': return <WordCountTool currentDocContent={currentDocContent} />;
         case 'image-upload': return <ImageUploaderTool currentDocContent={currentDocContent} onInsertIntoDoc={onInsertIntoDoc} />;
-        case 'file-import': return <FileImportTool onImportFile={onImportFile} />;
+        case 'file-import': return <FileImportTool onImportFiles={onImportFiles} />;
         default: return null;
     }
 }
 
-const ToolsModal: React.FC<ToolsModalProps> = ({ isOpen, onClose, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFile }) => {
+const ToolsModal: React.FC<ToolsModalProps> = ({ isOpen, onClose, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFiles }) => {
     const [activeTool, setActiveTool] = useState<ToolId>('pdf-merge');
 
     // 初始化 AdSense
@@ -161,7 +161,7 @@ const ToolsModal: React.FC<ToolsModalProps> = ({ isOpen, onClose, currentDocCont
                                 animation: 'toolPanelIn 0.28s cubic-bezier(0.2, 0, 0, 1) both',
                             }}
                         >
-                            {renderToolPanel(activeTool, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFile)}
+                            {renderToolPanel(activeTool, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFiles)}
                         </div>
                     </div>
                 </div>

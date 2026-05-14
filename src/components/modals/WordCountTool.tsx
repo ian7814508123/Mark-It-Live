@@ -174,25 +174,28 @@ const WordCountTool: React.FC<WordCountToolProps> = ({ currentDocContent }) => {
 
     return (
         <div className="flex flex-col gap-3 p-3 min-h-0">
-
             {/* ── 標題 ── */}
-            <div className="flex items-center gap-2 shrink-0">
-                <div className="w-7 h-7 bg-brand-secondary dark:bg-brand-primary/40 text-brand-primary rounded-2xl flex items-center justify-center">
-                    <BarChart2 size={15} />
-                </div>
-                <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">字數統計</p>
-                    <p className="text-[12px] text-slate-600 dark:text-slate-300">自動略過公式、圖表等特殊區塊</p>
+            <div className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2.5 mb-1">
+                    <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
+                        <BarChart2 size={16} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">字數統計</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                            自動略過公式、圖表等特殊區塊
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {/* ── 模式切換 Tab ── */}
 
-            <div className=" relative shrink-0 px-3 py-2 text-center overflow-hidden">
+            <div className=" relative shrink-0 px-1 py-0.5 text-center overflow-hidden [&_*]:whitespace-nowrap">
                 {/* Tab 導航：玻璃滑軌，支援拖曳切換分頁 */}
                 <GlassRailSelector
                     options={[
-                        { label: '目前文檔', value: 'current-doc', icon: <FileText size={12} /> }, { label: '貼上文字', value: 'paste', icon: <ClipboardPaste size={12} /> },
+                        { label: '目前文檔', value: 'current-doc', icon: <FileText size={14} /> }, { label: '貼上文字', value: 'paste', icon: <ClipboardPaste size={14} /> },
                     ]}
                     value={mode}
                     onChange={(v) => setMode(v as 'current-doc' | 'paste')}

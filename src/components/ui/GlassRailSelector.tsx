@@ -116,7 +116,7 @@ function GlassRailSelector<T extends string | number>({
             style={{ userSelect: 'none', cursor: 'pointer' }}
             className={[
                 // 軌道：磨砂玻璃底板
-                'relative flex rounded-full p-1.5 select-none',
+                'relative flex rounded-2xl p-1 select-none',
                 'bg-slate-100/70 dark:bg-slate-800/60',
                 'border border-slate-200/80 dark:border-slate-700/50',
                 'backdrop-blur-sm',
@@ -126,15 +126,23 @@ function GlassRailSelector<T extends string | number>({
             <div className="relative flex w-full h-full">
                 {/* 玻璃滑塊：用 animate 驅動 spring 位移 */}
                 <motion.div
-                    className="absolute top-0 bottom-0 px-1 py-0.5 rounded-full pointer-events-none z-0"
+                    className="absolute top-0 bottom-0 px-1 py-0.5 rounded-xl pointer-events-none z-0"
                     animate={{ left: sliderLeft }}
                     style={{ width: sliderWidth }}
                     transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.7 }}
                 >
-                    {/* 玻璃質感：白色半透明 + 模糊 + 動態陰影 */}
-                    <div className={`w-full h-full rounded-full bg-white/90 dark:bg-white/12 border border-white dark:border-white/15 backdrop-blur-sm transition-all duration-300 ${
-                        isPressed ? 'shadow-md dark:shadow-black/40 scale-100' : 'shadow-none scale-100'
-                    }`} />
+                    {/* 玻璃質感：模擬 Apple Liquid Glass 的多層光影 */}
+                    <div className={`
+                        w-full h-full rounded-xl transition-all duration-300
+                        bg-white/80 dark:bg-white/15 
+                        backdrop-blur-md
+                        border border-white/40 dark:border-white/20
+                        ring-1 ring-inset ring-white/50 dark:ring-white/10
+                        ${isPressed 
+                            ? 'shadow-[0_8px_20px_-4px_rgba(0,0,0,0.15),0_0_0_1px_rgba(0,0,0,0.02)] scale-[0.98]' 
+                            : 'shadow-[0_4px_12px_-2px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.02)]'
+                        }
+                    `} />
                 </motion.div>
 
                 {/* 選項文字層 */}

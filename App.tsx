@@ -1224,8 +1224,7 @@ const App: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  const handleProcessFiles = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
@@ -1248,6 +1247,12 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Failed to parse file", error);
       alert("匯入失敗，請檢查檔案格式是否正確");
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      await handleProcessFiles(e.target.files);
     }
     e.target.value = '';
   };
@@ -1362,7 +1367,7 @@ const App: React.FC = () => {
             onRenameFolder={renameFolder}
             onMoveDocument={moveDocument}
             onReorderDocuments={reorderDocuments}
-            onImportFile={handleTriggerImport}
+            onImportFiles={handleProcessFiles}
           />
 
           <input

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2, Upload } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 
 /** 使用者加入的合併項目 */
@@ -12,7 +12,7 @@ interface MergeItem {
 
 const PdfMergeTool: React.FC = () => {
     const [items, setItems] = useState<MergeItem[]>([]);
-    const [isDragOver, setIsDragOver] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const [isMerging, setIsMerging] = useState(false);
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
@@ -38,16 +38,18 @@ const PdfMergeTool: React.FC = () => {
     }, []);
 
     // ── 拖放到上傳區域 ──────────────────────────────────
-    const handleDropZoneDragOver = (e: React.DragEvent) => {
+    const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragOver(true);
+        setIsDragging(true);
     };
-    const handleDropZoneDragLeave = () => setIsDragOver(false);
-    const handleDropZoneDrop = (e: React.DragEvent) => {
+    const handleDragLeave = () => setIsDragging(false);
+    const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragOver(false);
-        if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
+        setIsDragging(false);
+        if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files);
     };
+
+    const openFilePicker = () => fileInputRef.current?.click();
 
     // ── 列表項目拖曳排序 ─────────────────────────────────
     const handleItemDragStart = (idx: number) => setDraggedIdx(idx);
@@ -125,65 +127,84 @@ const PdfMergeTool: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col gap-3 p-3">
-            {/* 標題 */}
-            <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-brand-secondary dark:bg-brand-primary/40 text-brand-primary rounded-xl flex items-center justify-center">
-                    <FilePlus2 size={15} />
-                </div>
-                <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">PDF 合併工具</p>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-300">PDF・PNG・JPG → 單一 PDF</p>
-                </div>
-            </div>
-
-            {/* 拖放上傳區 */}
-            <div
-                onDragOver={handleDropZoneDragOver}
-                onDragLeave={handleDropZoneDragLeave}
-                onDrop={handleDropZoneDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`
-                    flex flex-row items-center gap-2.5
-                    border-2 border-dashed rounded-2xl px-3 py-2.5 cursor-pointer
-                    transition-all duration-200 select-none
-                    ${isDragOver
-                        ? 'border-brand-primary bg-brand-secondary dark:bg-brand-primary/20 scale-[0.98]'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-brand-primary/60 dark:hover:border-brand-primary hover:bg-slate-50 dark:hover:bg-slate-800/50'}
-                `}
-            >
-                <FilePlus2 size={20} className={`shrink-0 ${isDragOver ? 'text-brand-primary' : 'text-slate-300 dark:text-slate-600'}`} />
-                <div className="flex flex-col min-w-0">
-                    <p className="text-[12px] font-medium text-slate-600 dark:text-slate-300">拖放或點擊選取</p>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-300">支援 PDF · PNG · JPG</p>
-                </div>
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    className="hidden"
-                    onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }}
-                />
-            </div>
-
-            {/* 已加入的檔案列表 */}
-            {items.length > 0 && (
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[12px] uppercase tracking-wider font-bold text-slate-600 dark:text-slate-300">
-                            合併順序（可拖曳調整）
+        <div className="flex flex-col h-full overflow-hidden">
+            {/* ── 標題 ── */}
+            <div className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2.5 mb-1">
+                    <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
+                        <FilePlus2 size={16} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">PDF 合併工具</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                            PDF・PNG・JPG → 單一 PDF
                         </p>
-                        <button
-                            onClick={() => setItems([])}
-                            className="text-[12px] text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors"
-                        >
-                            清除全部
-                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── 內容區域 ── */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
+                {/* 拖放上傳區域 */}
+                <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={openFilePicker}
+                    className={[
+                        'relative flex items-center justify-center border-2 border-dashed cursor-pointer transition-all duration-300 rounded-2xl',
+                        items.length > 0
+                            ? 'flex-row gap-3 p-3'
+                            : 'flex-col gap-2 p-8',
+                        isDragging
+                            ? 'border-brand-primary bg-brand-secondary dark:bg-brand-primary/20 scale-[1.01]'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-brand-primary/60 dark:hover:border-brand-primary hover:bg-brand-secondary/50 dark:hover:bg-brand-primary/10',
+                    ].join(' ')}
+                >
+                    <div className={`
+                        flex items-center justify-center rounded-xl transition-all duration-300
+                        ${items.length > 0 ? 'w-8 h-8' : 'w-10 h-10'}
+                        ${isDragging ? 'scale-110 bg-brand-secondary dark:bg-brand-primary/50 text-brand-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}
+                    `}>
+                        <Upload size={items.length > 0 ? 16 : 20} />
+                    </div>
+                    <div className={items.length > 0 ? 'text-left flex-1' : 'text-center'}>
+                        <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-100">
+                            {isDragging ? '放開以上傳' : items.length > 0 ? '繼續添加或拖放檔案' : '拖放或點擊上傳檔案'}
+                        </p>
+                        {items.length === 0 && (
+                            <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                支援 PDF · PNG · JPG
+                            </p>
+                        )}
                     </div>
 
-                    <div className="h-48 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden relative">
-                        <div className="absolute inset-0 overflow-y-auto custom-scrollbar p-1.5 flex flex-col gap-1">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        className="hidden"
+                        onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }}
+                    />
+                </div>
+
+                {/* 已加入的檔案列表 */}
+                {items.length > 0 && (
+                    <div className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">
+                                合併順序（可拖曳排序）
+                            </p>
+                            <button
+                                onClick={() => setItems([])}
+                                className="text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors"
+                            >
+                                清除全部
+                            </button>
+                        </div>
+
+                        <div className="space-y-1.5">
                             {items.map((item, idx) => (
                                 <div
                                     key={item.id}
@@ -193,50 +214,61 @@ const PdfMergeTool: React.FC = () => {
                                     onDragEnd={handleItemDragEnd}
                                     onDragOver={e => e.preventDefault()}
                                     className={`
-                                        flex items-center gap-2 px-2 py-1.5 rounded-xl
-                                        bg-slate-50 dark:bg-slate-800
+                                        group flex items-center gap-3 p-2.5 rounded-xl
+                                        bg-slate-50 dark:bg-slate-800/50
                                         border transition-all duration-150 cursor-grab active:cursor-grabbing
                                         ${dragOverIdx === idx && draggedIdx !== idx
-                                            ? 'border-brand-primary dark:border-brand-primary bg-brand-secondary dark:bg-brand-primary/20'
-                                            : 'border-slate-200 dark:border-slate-700'}
+                                            ? 'border-brand-primary ring-1 ring-brand-primary bg-brand-secondary dark:bg-brand-primary/20'
+                                            : 'border-slate-100 dark:border-slate-700/50 hover:border-slate-200 dark:hover:border-slate-600'}
                                         ${draggedIdx === idx ? 'opacity-40' : 'opacity-100'}
                                     `}
                                 >
-                                    <GripVertical size={13} className="text-slate-300 dark:text-slate-600 shrink-0" />
-                                    <div className="flex items-center justify-center w-6 h-6 rounded-lg shrink-0 bg-brand-secondary dark:bg-brand-primary/40 text-brand-primary">
-                                        {item.type === 'pdf' ? <FileText size={12} /> : <ImageIcon size={12} />}
+                                    <GripVertical size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors shrink-0" />
+                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-white dark:bg-slate-700 border border-slate-100 dark:border-slate-600 shadow-sm text-brand-primary">
+                                        {item.type === 'pdf' ? <FileText size={16} /> : <ImageIcon size={16} />}
                                     </div>
-                                    <span className="text-[11px] text-slate-600 dark:text-slate-300 truncate flex-1 min-w-0">
-                                        {item.file.name}
-                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[11px] font-medium text-slate-700 dark:text-slate-200 truncate">
+                                            {item.file.name}
+                                        </p>
+                                        <p className="text-[9px] text-slate-400 dark:text-slate-500">
+                                            {(item.file.size / 1024 / 1024).toFixed(2)} MB
+                                        </p>
+                                    </div>
                                     <button
-                                        onClick={() => removeItem(item.id)}
-                                        aria-label={`移除檔案 ${item.file.name}`}
-                                        className="md-ripple-root p-1 rounded-full text-slate-300 hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400 transition-colors shrink-0"
+                                        onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
+                                        className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0"
                                     >
-                                        <X size={12} />
+                                        <X size={14} />
                                     </button>
                                 </div>
                             ))}
                         </div>
                     </div>
+                )}
+            </div>
 
-                    {/* 合併按鈕 */}
-                    <RippleButton
-                        variant="filled"
-                        onClick={handleMerge}
-                        disabled={isMerging}
-                        className={`w-full justify-center bg-brand-primary hover:bg-brand-primary/90 ${isMerging ? 'opacity-60' : ''}`}
-                    >
-                        {isMerging
-                            ? <><Loader2 size={14} className="animate-spin" /> 合併中…</>
-                            : <><Download size={14} /> 合併並下載</>}
-                    </RippleButton>
-
-                    {/* 清除 unused import warning */}
-                    {false && <Trash2 size={0} />}
-                </div>
-            )}
+            {/* ── 底部操作 ── */}
+            <div className="px-4 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+                <RippleButton
+                    variant="filled"
+                    onClick={handleMerge}
+                    disabled={isMerging || items.length === 0}
+                    className={`w-full h-11 justify-center rounded-xl font-bold gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/20 ${isMerging || items.length === 0 ? 'opacity-50 cursor-not-allowed shadow-none' : ''}`}
+                >
+                    {isMerging ? (
+                        <>
+                            <Loader2 size={16} className="animate-spin" />
+                            <span>正在處理中...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Download size={16} />
+                            <span>合併並下載 PDF</span>
+                        </>
+                    )}
+                </RippleButton>
+            </div>
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Upload, Image as ImageIcon, Trash2, Copy, Check, AlertTriangle, Clock } from 'lucide-react';
+import { Upload, Image as ImageIcon, Trash2, Copy, Check, AlertTriangle, Clock, Image } from 'lucide-react';
 import { useImageStorage, formatExpiryDate, formatFileSize } from '../../hooks/useImageStorage';
 import RippleButton from '../ui/RippleButton';
 
@@ -84,12 +84,21 @@ const ImageUploaderTool: React.FC<ImageUploaderToolProps> = ({ currentDocContent
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            {/* 頂部資訊列 */}
-            <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] text-slate-900 dark:text-slate-100 uppercase tracking-wide font-semibold">
-                        圖片庫 · IndexedDB
-                    </span>
+            {/* ── 標題 ── */}
+            <div className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2.5 mb-1">
+                    <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
+                        <Image size={16} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">圖片庫</h3>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                            IMAGE UPLOADER
+                        </p>
+                    </div>
+
+                </div>
+                <div className="px-1.5 pt-1. pb-1.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
                     <span className={`text-[10px] font-bold ${isAtLimit ? 'text-red-500' : 'text-slate-900 dark:text-slate-100'}`}>
                         {images.length} / {maxImages} 張 · {totalSizeMB.toFixed(2)} MB
                     </span>
