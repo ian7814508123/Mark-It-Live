@@ -402,6 +402,36 @@
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%VITE_GOOGLE_ADSENSE_ID%"
     crossorigin="anonymous"></script>
+
+  <!-- MathJax v3 CDN 設定（必須在載入腳本之前宣告） -->
+  <!-- 使用 CDN 版本避免 Vite bundle 中的動態字型載入問題 -->
+  <script>
+    window.MathJax = {
+      loader: {
+        // 載入 mhchem（化學式）與 color（顏色指令）擴充套件
+        load: ['[tex]/mhchem', '[tex]/color']
+      },
+      tex: {
+        packages: { '[+]': ['mhchem', 'color'] },
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        // 初始自訂巨集（空白，由 React MathJaxService.reset() 動態更新）
+        macros: {},
+        tags: 'ams'
+      },
+      options: {
+        // 忽略 <script>、<pre>、<code> 等標籤內的數學內容，避免誤處理
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      },
+      startup: {
+        // 停用自動排版，改由 React MathJaxService 在內容渲染後手動呼叫
+        typeset: false
+      }
+    };
+  </script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
 </head>
 
 <body class="bg-slate-50 text-slate-900 overflow-hidden">

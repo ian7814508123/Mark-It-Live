@@ -2,12 +2,10 @@ import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import { MathJax } from 'better-react-mathjax';
 import rehypeRaw from 'rehype-raw';
-import mermaid from 'mermaid';
-import embed from 'vega-embed';
+import { mathJaxService } from '../../services/mathjax';
+// mermaid, vega-embed, smiles-drawer 改為動態匯入以優化效能
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import SmilesDrawer from 'smiles-drawer';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
@@ -36,6 +34,7 @@ interface MarkdownPreviewProps {
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     activeScale?: number;
+    customMacros?: Record<string, string | [string, number]>;
 }
 
 // 原有的輔助 Hook 與組件已抽離至 DiagramBlock.tsx 與 ResizableWrapper.tsx 處理
@@ -55,6 +54,7 @@ const cleanMermaidSvg = (svgHtml: string) => {
 
 const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; showPrintPreview?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, showPrintPreview, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        const { default: mermaid } = await import('mermaid');
         mermaid.initialize({
             theme: isDark ? 'dark' : 'neutral',
             fontFamily: 'Inter, system-ui, sans-serif',
@@ -87,6 +87,7 @@ const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: b
 
 const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; showPrintPreview?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, showPrintPreview, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        const { default: embed } = await import('vega-embed');
         const spec = JSON.parse(renderCode);
         container.innerHTML = '';
         await embed(container, spec, {
@@ -112,6 +113,7 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
 
 const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; showPrintPreview?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, showPrintPreview, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        const { default: SmilesDrawer } = await import('smiles-drawer');
         const drawer = new SmilesDrawer.SvgDrawer({
             width: 200,
             height: 100,
@@ -334,27 +336,30 @@ interface MemoizedMathJaxProps {
     isDarkMode: boolean;
 }
 
-const MemoizedMathJax: React.FC<MemoizedMathJaxProps> = React.memo(({ content, inline, isDarkMode }) => {
-    // 為數學公式加入內部 Debounce，避免公式隨著打字不斷抖動
-    const debouncedContent = useDebounce(content, 300);
-    const [isPending, setIsPending] = useState(false);
+const MemoizedMathJax: React.FC<MemoizedMathJaxProps> = React.memo(({ content, inline }) => {
+    const containerRef = React.useRef<HTMLSpanElement>(null);
+    const lastContent = React.useRef("");
 
-    useEffect(() => {
-        if (content !== debouncedContent) {
-            setIsPending(true);
-        } else {
-            setIsPending(false);
+    React.useEffect(() => {
+        if (containerRef.current && lastContent.current !== content) {
+            // 每次內容改變時，手動將原始 TeX 寫入容器。
+            // 這樣做的好處是：
+            // 1. React 只看到一個空的 span，後續 re-render 不會去碰裡面的 MathJax SVG。
+            // 2. 只有在 content 真正改變時才重新寫入 TeX 並等待 MathJax 下次 typeset。
+            containerRef.current.innerHTML = inline ? `\\(${content}\\)` : `\\[${content}\\]`;
+            lastContent.current = content;
         }
-    }, [content, debouncedContent]);
+    }, [content, inline]);
 
-    const Wrapper = inline ? 'span' : 'div';
-
+    // 返回一個沒有 children 的 span。
+    // 因為 JSX 中沒有子節點，React 的 virtual DOM 比對會忽略這個節點的內部內容（innerHTML），
+    // 從而保護了 MathJax 注入的複雜 SVG 結構不被還原成原始文字。
     return (
-        <Wrapper className={`transition-opacity duration-300 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
-            <MathJax inline={inline} dynamic hideUntilTypeset="every">
-                {inline ? `\\(${debouncedContent}\\)` : `\\[${debouncedContent}\\]`}
-            </MathJax>
-        </Wrapper>
+        <span
+            ref={containerRef}
+            className="tex2jax_process"
+            style={{ display: inline ? 'inline-block' : 'block' }}
+        />
     );
 });
 
@@ -445,25 +450,27 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
 // ─── 區塊判斷上下文：用於解決 react-markdown v10 移除 inline prop 後的辨識問題 ───────
 const IsInPreContext = React.createContext(false);
 
-const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ 
-    content, 
-    isDarkMode, 
-    documents = [], 
-    onSelectDocument, 
-    onCreateMissing, 
-    currentDocId, 
-    isPrinting, 
-    showPrintPreview, 
-    printSessionId = 0, 
-    isMergedPrint, 
+const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
+    content,
+    isDarkMode,
+    documents = [],
+    onSelectDocument,
+    onCreateMissing,
+    currentDocId,
+    isPrinting,
+    showPrintPreview,
+    printSessionId = 0,
+    isMergedPrint,
     previewTheme,
     isCommentMode = false,
     setIsCommentMode,
     onUpdateLineComment,
     activeScale = 1,
+    customMacros,
 }) => {
     const isActuallyPrinting = !!isPrinting || !!showPrintPreview;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
+    const previewRef = useRef<HTMLDivElement>(null);
     const processedContent = useMemo(() => {
         return content
             .replace(/\[\[(.*?)\]\]/g, '[$1](#wikilink-$1)')
@@ -476,8 +483,6 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
     const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
     const lineComments = currentDoc?.lineComments || {};
-
-    // 註解相關 state 已搬移至 LineCommentItem 組件內部自治管理
 
     const renderContextRef = useRef<any>(null);
 
@@ -524,9 +529,6 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         );
     }, [lineComments, isCommentMode, currentDocId, onUpdateLineComment]);
 
-    // 🛠️ 同步更新渲染上下文 (Ref)，確保 ReactMarkdown 中的 Memoized 子組件能讀取到最新狀態，
-    // 同時避免因為 components 物件 identity 改變而觸發整個 Markdown 樹重掛。
-    // 解決列印後輔助工具「狀態回退延遲」的關鍵在於不等待 useEffect，而是直接在渲染階段階段同步最新值。
     renderContextRef.current = {
         documents,
         currentDocId,
@@ -540,43 +542,20 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         printSessionId,
         isMergedPrint,
         previewTheme,
+        customMacros,
         getImage
     };
 
     // ─── URI 轉換：允許自定義協定通過 react-markdown 的過濾 ───────────────────────────
     const urlTransform = useCallback((uri: string) => {
-        // 放行我們的本地圖片協定
         if (uri.startsWith('img-local://')) return uri;
-
-        // 其他常見的安全協定
         const protocols = ['http', 'https', 'mailto', 'tel', '#'];
         for (const protocol of protocols) {
             if (uri.toLowerCase().startsWith(protocol)) return uri;
         }
-
-        // 相對路徑也放行
         if (uri.startsWith('/') || uri.startsWith('./') || uri.startsWith('../')) return uri;
-
-        return `about:blank`; // 過濾掉潛在不安全的連結
+        return `about:blank`;
     }, []);
-
-
-    const remarkRehypeOptions = useMemo(() => ({
-        handlers: {
-            math: (h: any, node: any) => ({
-                type: 'element' as const,
-                tagName: 'div',
-                properties: { className: ['math-display'] },
-                children: [{ type: 'text' as const, value: node.value }]
-            }),
-            inlineMath: (h: any, node: any) => ({
-                type: 'element' as const,
-                tagName: 'span',
-                properties: { className: ['math-inline'] },
-                children: [{ type: 'text' as const, value: node.value }]
-            })
-        }
-    }), []);
 
     const components = useMemo(() => ({
         pre: ({ children }: any) => <IsInPreContext.Provider value={true}>{children}</IsInPreContext.Provider>,
@@ -588,6 +567,22 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const codeString = String(children).replace(/\n$/, '');
             const stableKey = hashString(codeString);
             const line = node?.position?.start?.line;
+
+            if (className?.includes('math-inline')) {
+                return (
+                    <span className="math-inline tex2jax_process" style={{ whiteSpace: 'nowrap' }} data-line={line}>
+                        <MemoizedMathJax content={codeString} inline isDarkMode={ctx.shouldShowDark} />
+                    </span>
+                );
+            }
+            
+            if (className?.includes('math-display') || (isBlock && language === 'math')) {
+                return wrapWithComment(node, (
+                    <div className="math-display tex2jax_process my-4 overflow-x-auto" style={{ whiteSpace: 'nowrap' }} data-line={line}>
+                        <MemoizedMathJax content={codeString} isDarkMode={ctx.shouldShowDark} />
+                    </div>
+                ));
+            }
 
             if (isBlock) {
                 if (language === 'mermaid') return wrapWithComment(node, <div className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
@@ -609,7 +604,6 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             }
             return <code className={`${className || ''} inline-code`} {...props} data-line={line}>{children}</code>;
         },
-        // ─── 注入 Line Number 以實現精準同步捲動 ───────────────────────────────────
         p: ({ node, ...props }: any) => wrapWithComment(node, <div className="mb-4 last:mb-0" {...props} />),
         h1: ({ node, ...props }: any) => wrapWithComment(node, <h1 {...props} />),
         h2: ({ node, ...props }: any) => wrapWithComment(node, <h2 {...props} />),
@@ -622,31 +616,10 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
         blockquote: ({ node, ...props }: any) => wrapWithComment(node, <blockquote {...props} />),
         table: ({ node, ...props }: any) => wrapWithComment(node, <table {...props} />),
-        // ─────────────────────────────────────────────────────────────────────────
         div: ({ node, className, children, ...props }: any) => {
-            if (className?.includes('math-display')) {
-                const ctx = renderContextRef.current;
-                const mathContent = String(children);
-                const stableKey = hashString(mathContent);
-                return (
-                    <div key={stableKey} className="my-4 overflow-x-auto" style={{ whiteSpace: 'nowrap' }} data-line={node?.position?.start?.line}>
-                        <MemoizedMathJax content={mathContent} isDarkMode={ctx.shouldShowDark} />
-                    </div>
-                );
-            }
             return <div className={className} {...props} data-line={node?.position?.start?.line}>{children}</div>;
         },
         span: ({ node, className, children, ...props }: any) => {
-            if (className?.includes('math-inline')) {
-                const ctx = renderContextRef.current;
-                const mathContent = String(children);
-                const stableKey = hashString(mathContent);
-                return (
-                    <span key={stableKey} className="math-inline" style={{ whiteSpace: 'nowrap' }} data-line={node?.position?.start?.line}>
-                        <MemoizedMathJax content={mathContent} inline isDarkMode={ctx.shouldShowDark} />
-                    </span>
-                );
-            }
             return <span className={className} {...props} data-line={node?.position?.start?.line}>{children}</span>;
         },
         a: ({ node, href, children, ...props }: any) => {
@@ -669,7 +642,6 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             }
             return <a href={href} {...props} target="_blank" rel="noopener noreferrer" data-line={node?.position?.start?.line}>{children}</a>;
         },
-        // ─── 圖片解析：支援本地與遠端，並提供縮放工具 ──────────────────────────────────────────
         img: ({ node, src, alt, ...props }: any) => {
             if (!src) return null;
             const ctx = renderContextRef.current;
@@ -698,11 +670,30 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         return () => container.removeEventListener('load', handleImageLoad, true);
     }, [debouncedContent]);
 
+    // 監聽巨集變化以重置 MathJax
+    useEffect(() => {
+        mathJaxService.reset(customMacros || {});
+    }, [customMacros]);
+
+    // 在內容渲染後執行 MathJax 排版
+    useEffect(() => {
+        if (previewRef.current) {
+            mathJaxService.typeset(previewRef.current);
+        }
+    }, [debouncedContent, customMacros, isPrinting]);
+
+    const remarkRehypeOptions = useMemo(() => ({
+        allowDangerousHtml: true
+    }), []);
+
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
         <CommentProvider>
             <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0`}>
-                <div className={`prose max-w-none p-8 ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl prose-table:border-collapse prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:p-2 prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2 print:p-0 print:max-w-none print:bg-white relative z-10`}>
+                <div 
+                    ref={previewRef}
+                    className={`prose max-w-none p-8 ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl prose-table:border-collapse prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:p-2 prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2 print:p-0 print:max-w-none print:bg-white relative z-10`}
+                >
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeRaw]}

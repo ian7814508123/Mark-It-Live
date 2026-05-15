@@ -71,6 +71,7 @@ interface PrintPaperProps {
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     activeScale?: number;
+    customMacros?: Record<string, string | [string, number]>;
 }
 
 const PrintPaper: React.FC<PrintPaperProps> = ({
@@ -99,6 +100,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     setIsCommentMode,
     onUpdateLineComment,
     activeScale = 1,
+    customMacros,
 }) => {
     const [contentHeight, setContentHeight] = useState(0);
     const [manualBreaks, setManualBreaks] = useState<number[]>([]);
@@ -116,12 +118,14 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
 
         // 搜尋所有手動分頁元素，獲取相對於容器顶部的位移
         const breakElements = proseContainer.querySelectorAll('.page-break');
-        const positions: number[] = [];
+        const rects: number[] = [];
+        
+        // 批量讀取，避免交替讀寫
         breakElements.forEach((el: HTMLElement) => {
-            const elRect = el.getBoundingClientRect();
-            // 計算相對於 prose-container 頂部的距離
-            positions.push(elRect.top - containerRect.top);
+            rects.push(el.getBoundingClientRect().top);
         });
+
+        const positions = rects.map(top => top - containerRect.top);
         setManualBreaks(positions.sort((a, b) => a - b));
     };
 
@@ -188,6 +192,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     setIsCommentMode={setIsCommentMode}
                     onUpdateLineComment={onUpdateLineComment}
                     activeScale={activeScale}
+                    customMacros={customMacros}
                 />
                 {showPrintPreview && (
                     <PageBreaksOverlay
@@ -224,6 +229,7 @@ interface MarkdownPreviewSectionProps {
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
+    customMacros?: Record<string, string | [string, number]>;
 }
 
 const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
@@ -245,6 +251,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
     isCommentMode,
     setIsCommentMode,
     onUpdateLineComment,
+    customMacros,
 }) => {
     // 當前文件物件
     const currentDoc = documents?.find((d: any) => d.id === currentDocId);
@@ -481,6 +488,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                                     setIsCommentMode={setIsCommentMode}
                                     onUpdateLineComment={onUpdateLineComment}
                                     activeScale={activeScale}
+                                    customMacros={customMacros}
                                 />
                             );
                         })}
@@ -518,7 +526,7 @@ interface PreviewPanelProps {
     onSelectDocument?: (docId: string) => void;
     onCreateMissing?: (name: string) => void;
     currentDocId?: string | null;
-    // CSS 快取渲染用：所有已開啟分頁的 id 列表
+    // CSS 快取渲染用：所有已開啟分頁 of 列表
     openDocIds?: string[];
     printSettings: any;
     isPrinting?: boolean;
@@ -526,6 +534,7 @@ interface PreviewPanelProps {
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
+    customMacros?: Record<string, string | [string, number]>;
 }
 
 const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
@@ -560,6 +569,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     isCommentMode,
     setIsCommentMode,
     onUpdateLineComment,
+    customMacros,
 }, ref) => {
     const [isHUDExpanded, setIsHUDExpanded] = useState(false);
     const hudRef = useRef<HTMLDivElement>(null);
@@ -606,6 +616,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 isCommentMode={isCommentMode}
                 setIsCommentMode={setIsCommentMode}
                 onUpdateLineComment={onUpdateLineComment}
+                customMacros={customMacros}
             />
         );
     }
@@ -654,6 +665,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                         ${isHUDExpanded ? 'bg-slate-100/80 dark:bg-slate-800/80' : 'hover:bg-white/80 dark:hover:bg-slate-700/50'}
                     `}
                     title={isHUDExpanded ? "收合資訊" : "顯示詳情"}
+                    aria-label={isHUDExpanded ? "收合控制面板" : "展開控制面板"}
                 >
                     <div className={`
                         w-2.5 h-2.5 rounded-full transition-all duration-500
@@ -668,13 +680,19 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 <div className={`flex items-center gap-0.5 ${isHUDExpanded ? 'ml-1 pr-3 border-r border-slate-200 dark:border-white/10' : 'ml-0.5'}`}>
                     <button onClick={() => onZoom(25)}
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90"
-                        title="放大"><ZoomIn size={18} /></button>
+                        title="放大"
+                        aria-label="放大預覽"
+                    ><ZoomIn size={18} /></button>
                     <button onClick={() => onZoom(-25)}
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90"
-                        title="縮小"><ZoomOut size={18} /></button>
+                        title="縮小"
+                        aria-label="縮小預覽"
+                    ><ZoomOut size={18} /></button>
                     <button onClick={onResetNav}
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90"
-                        title="跳轉至中心"><Maximize size={18} /></button>
+                        title="跳轉至中心"
+                        aria-label="重置視圖至中心"
+                    ><Maximize size={18} /></button>
                 </div>
 
                 {/* 2. 展開區域 (純水平展開，維持高度穩定) */}
@@ -686,7 +704,9 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                     <div className="flex items-center gap-3">
                         <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">Zoom</span>
                         <div className="relative">
+                            <label htmlFor="zoom-input" className="sr-only">縮放比例</label>
                             <input
+                                id="zoom-input"
                                 type="text"
                                 value={`${Math.round(zoom)}%`}
                                 onChange={(e) => {

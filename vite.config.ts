@@ -4,6 +4,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => {
   // 本地開發：從專案根目錄的 .env 讀取
@@ -25,8 +26,12 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
-      viteCommonjs({
-        include: ['mathjax-full']
+      viteCommonjs(),
+      visualizer({
+        open: true,
+        filename: 'bundle-report.html',
+        gzipSize: true,
+        brotliSize: true,
       }),
       // 動態生成 Google 驗證檔案
       {
@@ -39,7 +44,7 @@ export default defineConfig(({ mode }) => {
           const verifyId = fromLoadEnv || fromProcessEnv;
 
           // Debug：確認環境變數注入狀況
-          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv  ? `"${fromLoadEnv}"` : '(empty)');
+          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv ? `"${fromLoadEnv}"` : '(empty)');
           console.log('[google-verify] process.env.VITE_GOOGLE_VERIFY_ID =', fromProcessEnv ? `"${fromProcessEnv}"` : '(empty)');
 
           if (verifyId) {
@@ -109,11 +114,6 @@ export default defineConfig(({ mode }) => {
       }
     },
     optimizeDeps: {
-      include: [
-        'mathjax-full',
-        'mathjax-full/js/components/version.js',
-        'rehype-mathjax'
-      ],
       esbuildOptions: {
         define: {
           global: 'globalThis'
@@ -130,7 +130,13 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             'vendor-mermaid': ['mermaid'],
             'vendor-vega': ['vega', 'vega-lite', 'vega-embed'],
-            'vendor-mathjax': ['better-react-mathjax', 'rehype-mathjax', 'mathjax-full'],
+            'vendor-markdown': [
+              'react-markdown',
+              'remark-gfm',
+              'rehype-raw',
+              'remark-math',
+              'react-syntax-highlighter'
+            ],
             'vendor-utils': ['xlsx', 'pdf-lib'],
             'vendor-ui': [
               'react',

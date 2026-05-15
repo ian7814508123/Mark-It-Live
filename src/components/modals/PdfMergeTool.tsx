@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { PDFDocument } from 'pdf-lib';
 import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2, Upload } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 
@@ -75,6 +74,8 @@ const PdfMergeTool: React.FC = () => {
         setIsMerging(true);
 
         try {
+            // 動態匯入 pdf-lib，僅在使用者點擊合併時才下載庫，優化初始載入速度
+            const { PDFDocument } = await import('pdf-lib');
             const merged = await PDFDocument.create();
 
             for (const item of items) {

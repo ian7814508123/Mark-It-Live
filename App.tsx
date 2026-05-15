@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
-import { MathJaxContext } from 'better-react-mathjax';
-import mermaid from 'mermaid';
+// MathJaxContext 與 mermaid 改為動態匯入或移至子組件
 
 import Header from './src/components/layout/Header';
 import Editor from './src/components/layout/Editor';
@@ -24,13 +23,7 @@ import './src/styles/themes/implementation-plan.css';
 
 type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 
-// Initialize Mermaid
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'neutral',
-  securityLevel: 'loose',
-  fontFamily: 'Inter',
-});
+// Mermaid 初始化將在第一次渲染時動態執行
 
 
 
@@ -284,16 +277,22 @@ const App: React.FC = () => {
     const containerRect = container.getBoundingClientRect();
     const scrollTop = container.scrollTop;
 
+    // 批量讀取位置資訊，避免在迴圈中交替讀寫觸發 Forced Reflow
     const newMap = new Map<number, number>();
+    const offsets: { line: number; top: number }[] = [];
+    
     elements.forEach((el) => {
       const line = parseInt(el.getAttribute('data-line') || '0');
       const rect = el.getBoundingClientRect();
-      const offset = rect.top - containerRect.top + scrollTop;
+      offsets.push({ line, top: rect.top });
+    });
+
+    offsets.forEach(({ line, top }) => {
+      const offset = top - containerRect.top + scrollTop;
       newMap.set(line, offset);
     });
 
     lineMap.current = newMap;
-    // console.log(`[ScrollSync] Map rebuilt: ${newMap.size} markers found`);
   }, [mode, currentDocId]);
 
   const debouncedRebuildMap = useMemo(() => debounce(rebuildLineMap, 200), [rebuildLineMap]);
@@ -379,7 +378,7 @@ const App: React.FC = () => {
 
     if (previewRef.current) {
       const map = lineMap.current;
-      const sortedLines = Array.from(map.keys()).sort((a, b) => a - b);
+      const sortedLines = (Array.from(map.keys()) as number[]).sort((a, b) => a - b);
 
       if (sortedLines.length === 0) {
         // 退回百分比模式
@@ -444,7 +443,7 @@ const App: React.FC = () => {
       const scrollTop = target.scrollTop;
 
       // 1. 尋找目前預覽區頂部包圍的映射點
-      const sortedLines = Array.from(map.keys()).sort((a, b) => a - b);
+      const sortedLines = (Array.from(map.keys()) as number[]).sort((a, b) => a - b);
       const offsets = sortedLines.map(line => ({ line, offset: map.get(line)! }));
 
       if (offsets.length === 0) {
@@ -573,7 +572,13 @@ const App: React.FC = () => {
     }
 
     try {
-      mermaid.initialize({ theme: currentTheme as any });
+      const { default: mermaid } = await import('mermaid');
+      mermaid.initialize({ 
+        theme: currentTheme as any,
+        startOnLoad: false,
+        securityLevel: 'loose',
+        fontFamily: 'Inter',
+      });
       const { svg } = await mermaid.render('mermaid-render-target', mermaidCode);
       setSvgContent(svg);
       setError(null);
@@ -904,13 +909,19 @@ const App: React.FC = () => {
     const diagramsToWait = diagramElements.length;
     const imagesToWait = document.querySelectorAll('.prose img').length;
 
-    // 追蹤已完成的圖表 ID
+    // 追蹤就緒狀態
     const completedDiagrams = new Set<string>();
     let completedImages = 0;
+    let isMathjaxReady = false;
+
+    // 判斷是否需要等待數學渲染
+    const mathElements = document.querySelectorAll('.math-inline, .math-display');
+    const mathToWait = mathElements.length > 0;
 
     const finalizePrint = () => {
       window.removeEventListener('diagram-render-complete', onDiagramReady);
       window.removeEventListener('content-layout-ready', onImageReady);
+      window.removeEventListener('mathjax-render-complete', onMathjaxReady);
 
       // 暫時更換標題以確保 PDF 檔名正確
       const prevTitle = document.title;
@@ -937,23 +948,27 @@ const App: React.FC = () => {
       checkAllReady();
     };
 
+    const onMathjaxReady = () => {
+      isMathjaxReady = true;
+      checkAllReady();
+    };
+
     const checkAllReady = () => {
-      // 判斷是否所有圖表與圖片都已就緒
-      // 注意：content-layout-ready 也會由 CodeBlock 觸發，所以 completedImages 可能會大於 imagesToWait
-      // 這裡採用較保守的檢查方式
       const allDiagramsReady = completedDiagrams.size >= diagramsToWait;
       const allImagesReady = completedImages >= imagesToWait;
+      const allMathReady = !mathToWait || isMathjaxReady;
 
-      if (allDiagramsReady && allImagesReady) {
+      if (allDiagramsReady && allImagesReady && allMathReady) {
         window.removeEventListener('diagram-render-complete', onDiagramReady);
         window.removeEventListener('content-layout-ready', onImageReady);
+        window.removeEventListener('mathjax-render-complete', onMathjaxReady);
         // 給渲染引擎一點時間完成 Paint
         setTimeout(finalizePrint, 500);
       }
     };
 
     // 如果沒有任何需要等待的內容，直接啟動列印
-    if (diagramsToWait === 0 && imagesToWait === 0) {
+    if (diagramsToWait === 0 && imagesToWait === 0 && !mathToWait) {
       setTimeout(finalizePrint, 100);
       return;
     }
@@ -961,6 +976,7 @@ const App: React.FC = () => {
     // 3. 註冊監聽器
     window.addEventListener('diagram-render-complete', onDiagramReady);
     window.addEventListener('content-layout-ready', onImageReady);
+    window.addEventListener('mathjax-render-complete', onMathjaxReady);
 
     // 安全閥：避免永遠卡住
     setTimeout(() => {
@@ -1258,55 +1274,8 @@ const App: React.FC = () => {
     e.target.value = '';
   };
 
-  const mathJaxConfig = {
-    loader: { load: ["[tex]/ams", "[tex]/html", "[tex]/mhchem", "ui/menu"] },
-    options: {
-      enableVersionWarnings: false
-    },
-    tex: {
-      packages: { "[+]": ["ams", "html", "mhchem"] },
-      inlineMath: [
-        ["$", "$"],
-        ["\\(", "\\)"]
-      ],
-      displayMath: [
-        ["$$", "$$"],
-        ["\\[", "\\]"]
-      ],
-      macros: {
-        ...settings.customMacros
-      }
-    },
-    chtml: {
-      scale: 1,
-      minScale: 0.5,
-      mtextInheritFont: false,
-      merrorInheritFont: true,
-      mathmlSpacing: false,
-      skipAttributes: {},
-      exFactor: 0.5,
-      displayAlign: 'center',
-      displayIndent: '0'
-    },
-    svg: {
-      scale: 1,
-      minScale: 0.5,
-      mtextInheritFont: false,
-      merrorInheritFont: true,
-      mathmlSpacing: false,
-      skipAttributes: {},
-      exFactor: 0.5,
-      displayAlign: 'center',
-      displayIndent: '0'
-    },
-    typesettingOptions: {
-      fn: 'tex2chtml'
-    }
-  };
-
   return (
-    <MathJaxContext config={mathJaxConfig}>
-      <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+    <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
         {/* ── Hybrid 列印 Loading Overlay ────────────────────────────────
          * 截圖 Annotation 期間顯示全螢幕蒙版，告知使用者請勿操作 
@@ -1455,6 +1424,7 @@ const App: React.FC = () => {
               isCommentMode={isCommentMode}
               setIsCommentMode={setIsCommentMode}
               onUpdateLineComment={updateLineComment}
+              customMacros={settings.customMacros}
             />
           </div>
         </main>
@@ -1481,7 +1451,6 @@ const App: React.FC = () => {
           onOpenIntro={() => setIsIntroModalOpen(true)}
         />
       </div>
-    </MathJaxContext>
   );
 };
 

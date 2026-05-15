@@ -277,7 +277,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                                     if (currentDoc?.folderId && expandedFolders.has(currentDoc.folderId)) {
                                         targetFolderId = currentDoc.folderId;
                                     } else {
-                                        targetFolderId = Array.from(expandedFolders).pop() || null;
+                                        targetFolderId = (Array.from(expandedFolders) as string[]).pop() || null;
                                     }
                                 }
                                 onCreateDocument(targetFolderId);
