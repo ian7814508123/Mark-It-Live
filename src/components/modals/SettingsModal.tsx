@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -326,7 +326,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             <li>使用<strong>\pagebreak</strong> , <strong>[page-break]</strong> , <strong>---pb---</strong> 指令強制換頁 (在預覽面板上可直接看到藍色虛線，列印時將自動在此處分頁)</li>
                                             <li>增強 WikiLink 匯出相容性：合併匯出時自動轉為內部跳轉錨點 (注意:列印時要選擇Save to PDF，而不是Print to PDF)，單檔匯出則自動降級為純文字以避免死連結。</li>
                                             <li>按鈕變得更Q彈了，可以試著長按並滑動他們。</li>
-
+                                        </ul>
+                                    </div>
+                                    <div className="p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 shadow-sm">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="p-2 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl">
+                                                <X size={18} />
+                                            </div>
+                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">取消項目</h4>
+                                        </div>
+                                        <ul className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 list-disc list-outside space-y-1.5 pl-4 opacity-90">
+                                            <li>
+                                                列印預覽功能在接下來的版本跟我們說bye bye了。
+                                                <ol>
+                                                    <li>列印時仍然優先選擇淺色主題。</li>
+                                                    <li>還是可以使用強制換頁來控制頁面分佈，這功能沒有影響。</li>
+                                                </ol>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
