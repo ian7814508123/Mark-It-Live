@@ -342,10 +342,11 @@ const MemoizedMathJax: React.FC<MemoizedMathJaxProps> = React.memo(({ content, i
 
     React.useEffect(() => {
         if (containerRef.current && lastContent.current !== content) {
-            // 每次內容改變時，手動將原始 TeX 寫入容器。
-            // 這樣做的好處是：
-            // 1. React 只看到一個空的 span，後續 re-render 不會去碰裡面的 MathJax SVG。
-            // 2. 只有在 content 真正改變時才重新寫入 TeX 並等待 MathJax 下次 typeset。
+            // 清除 MathJax 對此特定容器的快取，確保它能重新排版新內容
+            // 這解決了「公式變更後不會被重新渲染」的 bug，同時避免了全域 typesetClear 導致的閃爍
+            if (window.MathJax?.typesetClear) {
+                window.MathJax.typesetClear([containerRef.current]);
+            }
             containerRef.current.innerHTML = inline ? `\\(${content}\\)` : `\\[${content}\\]`;
             lastContent.current = content;
         }

@@ -6,18 +6,21 @@ FROM node:24.14.0-alpine AS builder
 # 設定工作目錄
 WORKDIR /app
 
-# 複製 package 檔案
-COPY package*.json ./
+# 安裝 pnpm
+RUN npm install -g pnpm
+
+# 複製 package 與 lock 檔案
+COPY package.json pnpm-lock.yaml* ./
 
 # 安裝依賴（利用 Docker 快取掛載加速）
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # 複製所有原始碼
 COPY . .
 
 # 執行生產構建
-RUN npm run build
+RUN pnpm run build
 
 # ====================================
 # Stage 2: 生產階段 (Production Stage)

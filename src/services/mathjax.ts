@@ -12,6 +12,8 @@ declare global {
 class MathJaxService {
     // 等待 CDN 腳本載入完成的 Promise（singleton，只建立一次）
     private readyPromise: Promise<void> | null = null;
+    // 建立排版佇列，防止並發呼叫 typesetPromise 導致 MathJax 拋出 "Typeset is already in progress" 錯誤
+    private typesetQueue: Promise<void> = Promise.resolve();
 
     /** 等待 MathJax CDN 腳本初始化完成 */
     private waitForReady(): Promise<void> {
@@ -41,17 +43,21 @@ class MathJaxService {
      * @param container - 要排版的 DOM 容器
      */
     async typeset(container: HTMLElement) {
-        try {
-            await this.waitForReady();
-            const mj = window.MathJax;
-            // 移除 typesetClear()！
-            // 在 v3 中，MathJax 會自動識別並跳過已經排版過的元素（帶有 mjx-container 的）。
-            // 呼叫 typesetClear 會強制刪除所有已排版結果，導致 React re-render 時出現強烈閃爍甚至內容消失。
-            await mj.typesetPromise([container]);
-            window.dispatchEvent(new CustomEvent('mathjax-render-complete'));
-        } catch (err) {
-            console.error('MathJax typeset failed:', err);
-        }
+        // 將新的排版任務加入佇列，確保不會與前一個排版任務並發執行
+        this.typesetQueue = this.typesetQueue.then(async () => {
+            try {
+                await this.waitForReady();
+                const mj = window.MathJax;
+                // 移除 typesetClear()！
+                // 在 v3 中，MathJax 會自動識別並跳過已經排版過的元素（帶有 mjx-container 的）。
+                // 呼叫 typesetClear 會強制刪除所有已排版結果，導致 React re-render 時出現強烈閃爍甚至內容消失。
+                await mj.typesetPromise([container]);
+                window.dispatchEvent(new CustomEvent('mathjax-render-complete'));
+            } catch (err) {
+                console.error('MathJax typeset failed:', err);
+            }
+        });
+        return this.typesetQueue;
     }
 
     /**
