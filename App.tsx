@@ -13,6 +13,7 @@ import SettingsModal from './src/components/modals/SettingsModal';
 import SEOContent from './src/components/markdown/SEOContent';
 import Footer from './src/components/layout/Footer';
 import IntroModal from './src/components/modals/IntroModal';
+import InteractiveLogo from './src/components/ui/InteractiveLogo';
 import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
 import { hashString, debounce } from './src/utils';
@@ -1270,10 +1271,7 @@ const App: React.FC = () => {
             aria-live="polite"
           >
             <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
-              <div className="relative w-12 h-12">
-                <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-800" />
-                <div className="absolute inset-0 rounded-full border-4 border-t-brand-primary border-r-transparent border-b-transparent border-l-transparent animate-spin" />
-              </div>
+              <InteractiveLogo size={48} loading={true} showBg={false} variant="v1" className="mb-2" />
               <div className="flex flex-col gap-1.5 mt-2">
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">正在最佳化 PDF 文件與圖表配置...</p>
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 leading-normal">這會暫時切換為適合閱讀與省墨水的淺色排版。完成後將自動為您開啟列印對話方塊。</p>

@@ -5,9 +5,11 @@ interface InteractiveLogoProps {
   className?: string;
   size?: number;
   variant?: 'v1' | 'v2';
+  loading?: boolean;
+  showBg?: boolean;
 }
 
-const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40, variant = 'v1' }) => {
+const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40, variant = 'v1', loading = false, showBg = true }) => {
   // 建立進度值，由 0 到 1
   const progress = useMotionValue(0);
 
@@ -30,7 +32,28 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
 
   const containerVariants: Variants = {
     initial: {},
+    animate: {},
     hover: {},
+    loading: showBg ? {
+      scale: [0.96, 1.04, 0.96],
+      boxShadow: [
+        "0 8px 32px 0 rgba(0, 0, 0, 0.15), 0 0 0px 0px rgba(56, 189, 248, 0)",
+        "0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 16px 4px rgba(56, 189, 248, 0.4)",
+        "0 8px 32px 0 rgba(0, 0, 0, 0.15), 0 0 0px 0px rgba(56, 189, 248, 0)"
+      ],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    } : {
+      scale: [0.96, 1.04, 0.96],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
   };
 
   const pathVariants: Variants = {
@@ -51,6 +74,15 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
         duration: 1.5,
         ease: "easeInOut",
       }
+    },
+    loading: {
+      pathLength: [0, 1, 0],
+      opacity: [0.6, 1, 0.6],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
     }
   };
 
@@ -69,8 +101,19 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
       transition: {
         duration: 0.3,
       }
+    },
+    loading: {
+      opacity: [0.4, 1, 0.4],
+      scale: [0.9, 1.1, 0.9],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
     }
   };
+
+  const strokeColor = showBg ? "var(--logo-stroke)" : "var(--brand-primary)";
 
   return (
     <motion.div
@@ -79,16 +122,16 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
       style={{
         width: size,
         height: size,
-        background: "var(--logo-bg)",
-        backdropFilter: "blur(var(--logo-blur))",
-        WebkitBackdropFilter: "blur(var(--logo-blur))",
-        border: "1px solid var(--logo-border)",
-        boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.1)",
+        background: showBg ? "var(--logo-bg)" : "transparent",
+        backdropFilter: showBg ? "blur(var(--logo-blur))" : "none",
+        WebkitBackdropFilter: showBg ? "blur(var(--logo-blur))" : "none",
+        border: showBg ? "1px solid var(--logo-border)" : "none",
+        boxShadow: showBg ? "0 8px 32px 0 rgba(0, 0, 0, 0.1)" : "none",
       }}
       initial="initial"
-      animate="animate"
-      whileHover="hover"
-      whileTap={{
+      animate={loading ? "loading" : "animate"}
+      whileHover={loading ? undefined : "hover"}
+      whileTap={loading ? undefined : {
         backdropFilter: "blur(calc(var(--logo-blur) / 2))",
         scale: 0.92
       }}
@@ -105,7 +148,7 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
         {/* 主路徑：負責畫線 */}
         <motion.path
           d={currentPaths.m}
-          stroke="var(--logo-stroke)"
+          stroke={strokeColor}
           strokeWidth="4"
           variants={pathVariants}
           onUpdate={(latest: any) => {
@@ -126,7 +169,7 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
         >
           <path
             d={currentPaths.arrow}
-            stroke="var(--logo-stroke)"
+            stroke={strokeColor}
             strokeWidth="4"
             fill="none"
           />

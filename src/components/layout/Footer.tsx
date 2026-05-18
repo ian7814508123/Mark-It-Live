@@ -61,13 +61,17 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
               {/* 技術規格 */}
               <div className="flex flex-col gap-2 min-w-[80px]">
                 <span className="text-[12px] font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">技術規格</span>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5 w-full">
                   {['Vite 6', 'React 19', 'Tailwind 4', 'IndexedDB'].map((tech) => (
-                    <span key={tech} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded text-[10px] text-slate-600 dark:text-slate-300 font-medium">
+                    <span
+                      key={tech}
+                      className="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded text-[10px] text-slate-600 dark:text-slate-300 font-medium text-center truncate"
+                    >
                       {tech}
                     </span>
                   ))}
                 </div>
+
               </div>
             </div>
           </div>
