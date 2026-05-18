@@ -21,6 +21,7 @@ import './src/styles/themes/academic.css';
 import './src/styles/themes/minimal.css';
 import './src/styles/themes/developer.css';
 import './src/styles/themes/implementation-plan.css';
+import './src/styles/themes/classical.css';
 
 type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 
@@ -144,15 +145,10 @@ const App: React.FC = () => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printSessionId, setPrintSessionId] = useState(0);
   const [isCommentMode, setIsCommentMode] = useState(false);
+  const printTimeoutRef = useRef<any>(null);
 
   const { settings, updateMacros, updatePrintSettings, restoreDefaults } = useAppSettings();
 
-  // 當列印預覽開啟時，強制退出註解模式
-  useEffect(() => {
-    if (settings.printSettings.showPrintPreview) {
-      setIsCommentMode(false);
-    }
-  }, [settings.printSettings.showPrintPreview]);
 
   // 從當前文檔取得 mode 和 code
   const mode = currentDocument?.mode || 'markdown';
@@ -893,25 +889,16 @@ const App: React.FC = () => {
     const currentPrintSessionId = printSessionRef.current + 1;
     printSessionRef.current = currentPrintSessionId;
 
+    if (printTimeoutRef.current) {
+      clearTimeout(printTimeoutRef.current);
+    }
+
     flushSync(() => {
       setPrintSessionId(currentPrintSessionId);
       setIsPrinting(true);
     });
 
-    // 2. 計算需要等待的目標數量 (圖表與圖片)
-    // 使用更精準的選擇器：所有具有 diagram-block-container 類別的容器
-    const diagramElements = document.querySelectorAll('.diagram-block-container');
-    const diagramsToWait = diagramElements.length;
-    const imagesToWait = document.querySelectorAll('.prose img').length;
-
-    // 追蹤已完成的圖表 ID
-    const completedDiagrams = new Set<string>();
-    let completedImages = 0;
-
     const finalizePrint = () => {
-      window.removeEventListener('diagram-render-complete', onDiagramReady);
-      window.removeEventListener('content-layout-ready', onImageReady);
-
       // 暫時更換標題以確保 PDF 檔名正確
       const prevTitle = document.title;
       document.title = sanitizeFileName(printFileName);
@@ -922,54 +909,22 @@ const App: React.FC = () => {
       document.title = prevTitle;
       setIsPrinting(false);
       document.getElementById('app-print-override')?.remove();
+      printTimeoutRef.current = null;
     };
 
-    const onDiagramReady = (event: Event) => {
-      const detail = (event as CustomEvent<{ blockId?: string; printSessionId?: number }>).detail;
-      if (!detail || detail.printSessionId !== currentPrintSessionId || !detail.blockId) return;
-
-      completedDiagrams.add(detail.blockId);
-      checkAllReady();
-    };
-
-    const onImageReady = () => {
-      completedImages++;
-      checkAllReady();
-    };
-
-    const checkAllReady = () => {
-      // 判斷是否所有圖表與圖片都已就緒
-      // 注意：content-layout-ready 也會由 CodeBlock 觸發，所以 completedImages 可能會大於 imagesToWait
-      // 這裡採用較保守的檢查方式
-      const allDiagramsReady = completedDiagrams.size >= diagramsToWait;
-      const allImagesReady = completedImages >= imagesToWait;
-
-      if (allDiagramsReady && allImagesReady) {
-        window.removeEventListener('diagram-render-complete', onDiagramReady);
-        window.removeEventListener('content-layout-ready', onImageReady);
-        // 給渲染引擎一點時間完成 Paint
-        setTimeout(finalizePrint, 500);
-      }
-    };
-
-    // 如果沒有任何需要等待的內容，直接啟動列印
-    if (diagramsToWait === 0 && imagesToWait === 0) {
-      setTimeout(finalizePrint, 100);
-      return;
-    }
-
-    // 3. 註冊監聽器
-    window.addEventListener('diagram-render-complete', onDiagramReady);
-    window.addEventListener('content-layout-ready', onImageReady);
-
-    // 安全閥：避免永遠卡住
-    setTimeout(() => {
-      if (isPrinting) {
-        console.warn('Print timeout: forcing print despite incomplete renders.');
-        finalizePrint();
-      }
-    }, 6000);
+    // 使用安全延遲 (1200ms) 以讓 DOM 重組並完成淺色主題與圖表非同步渲染，百分百防死鎖
+    printTimeoutRef.current = setTimeout(finalizePrint, 1200);
   }, [mode, settings.printSettings, isDarkMode, documents, folders, currentDocument]);
+
+  // 取消列印的受控回呼
+  const handleCancelPrint = useCallback(() => {
+    if (printTimeoutRef.current) {
+      clearTimeout(printTimeoutRef.current);
+      printTimeoutRef.current = null;
+    }
+    setIsPrinting(false);
+    document.getElementById('app-print-override')?.remove();
+  }, []);
 
   // 攔截 Ctrl + P (原生列印捷徑)
   useEffect(() => {
@@ -1308,21 +1263,30 @@ const App: React.FC = () => {
     <MathJaxContext config={mathJaxConfig}>
       <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
-        {/* ── Hybrid 列印 Loading Overlay ────────────────────────────────
-         * 截圖 Annotation 期間顯示全螢幕蒙版，告知使用者請勿操作 
-        {isFlattenPrinting && (
+        {/* ── premium 列印 Loading Overlay ──────────────────────────────── */}
+        {isPrinting && (
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm print:hidden"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300 print:hidden"
             aria-live="polite"
           >
-            <div className="flex flex-col items-center gap-3 px-8 py-6 bg-white rounded-2xl shadow-2xl border border-slate-100">
-              <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-sky-500 animate-spin" />
-              <p className="text-sm font-semibold text-slate-700">正在合成標註圖層...</p>
-              <p className="text-xs text-slate-400">完成後將自動開啟列印對話框</p>
+            <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-800" />
+                <div className="absolute inset-0 rounded-full border-4 border-t-brand-primary border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+              </div>
+              <div className="flex flex-col gap-1.5 mt-2">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">正在最佳化 PDF 文件與圖表配置...</p>
+                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 leading-normal">這會暫時切換為適合閱讀與省墨水的淺色排版。完成後將自動為您開啟列印對話方塊。</p>
+              </div>
+              <button
+                onClick={handleCancelPrint}
+                className="mt-2 px-5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all border border-slate-200 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-full active:scale-95"
+              >
+                取消列印
+              </button>
             </div>
           </div>
         )}
-        */}
         <Header
           mode={mode}
           // setMode={handleModeSwitch} // Removed from UI
@@ -1342,7 +1306,6 @@ const App: React.FC = () => {
           onUpdatePrintSettings={updatePrintSettings}
           isCommentMode={isCommentMode}
           setIsCommentMode={setIsCommentMode}
-          showPrintPreview={settings.printSettings.showPrintPreview}
           hasOpenDocuments={openDocIds.length > 0}
         />
 

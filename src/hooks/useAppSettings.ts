@@ -13,8 +13,6 @@ export interface PrintSettings {
     mergeVaultOnMdExport: boolean;
     /** 下載 PDF 時合併資料夾 */
     mergeVaultOnPdfExport: boolean;
-    /** 在預覽區顯示列印預覽（邊界與分頁線） */
-    showPrintPreview: boolean;
     /** Markdown 預覽主題 */
     previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan';
 }
@@ -31,7 +29,6 @@ const DEFAULT_PRINT_SETTINGS: PrintSettings = {
     margin: 'normal',
     mergeVaultOnMdExport: false,
     mergeVaultOnPdfExport: false,
-    showPrintPreview: false,
     previewTheme: 'default',
 };
 

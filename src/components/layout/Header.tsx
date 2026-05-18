@@ -26,8 +26,6 @@ interface HeaderProps {
     onUpdatePrintSettings?: (patch: any) => void;
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
-    /** 列印預覽是否開啟（只有開啟時才允許進入標註模式） */
-    showPrintPreview?: boolean;
     /** 是否有任何文件被打開 */
     hasOpenDocuments?: boolean;
 }
@@ -50,7 +48,6 @@ const Header: React.FC<HeaderProps> = ({
     onUpdatePrintSettings,
     isCommentMode,
     setIsCommentMode,
-    showPrintPreview = false,
     hasOpenDocuments = false,
 }) => {
     const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
@@ -347,20 +344,20 @@ const Header: React.FC<HeaderProps> = ({
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
 
-                    {/* 註解模式開關：在非列印預覽時使用，註解不隨文檔導出 */}
+                    {/* 註解模式開關：註解不隨文檔導出 */}
                     <MagneticButton
-                        onClick={() => hasOpenDocuments && !showPrintPreview && setIsCommentMode?.(!isCommentMode)}
-                        title={!hasOpenDocuments ? '請先開啟文件以使用註解模式' : (showPrintPreview ? '列印預覽中無法使用註解模式' : '開啟/關閉行號註解模式')}
-                        disabled={!hasOpenDocuments || showPrintPreview}
-                        style={{ position: 'relative', overflow: 'hidden', cursor: (hasOpenDocuments && !showPrintPreview) ? undefined : 'not-allowed' }}
+                        onClick={() => hasOpenDocuments && setIsCommentMode?.(!isCommentMode)}
+                        title={!hasOpenDocuments ? '請先開啟文件以使用註解模式' : '開啟/關閉行號註解模式'}
+                        disabled={!hasOpenDocuments}
+                        style={{ position: 'relative', overflow: 'hidden', cursor: hasOpenDocuments ? undefined : 'not-allowed' }}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none
-                            ${(showPrintPreview || !hasOpenDocuments)
+                            ${!hasOpenDocuments
                                 ? 'opacity-35 text-slate-400 dark:text-slate-600'
                                 : isCommentMode
                                     ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary shadow-sm ring-1 ring-brand-primary/10'
                                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}>
-                        <MessageSquare size={14} className={isCommentMode && !showPrintPreview && hasOpenDocuments ? 'animate-bounce' : ''} />
+                        <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? 'animate-bounce' : ''} />
                         註解模式
                     </MagneticButton>
 

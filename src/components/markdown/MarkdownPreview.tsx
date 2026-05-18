@@ -28,7 +28,6 @@ interface MarkdownPreviewProps {
     onCreateMissing?: (name: string) => void;
     currentDocId?: string | null;
     isPrinting?: boolean;
-    showPrintPreview?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
     previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan';
@@ -53,7 +52,7 @@ const cleanMermaidSvg = (svgHtml: string) => {
         .replace(/style="max-width:.*?"/i, 'style="max-width: 100%"');
 };
 
-const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; showPrintPreview?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, showPrintPreview, printSessionId = 0 }) => {
+const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         mermaid.initialize({
             theme: isDark ? 'dark' : 'neutral',
@@ -77,7 +76,6 @@ const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: b
             code={code}
             isDarkMode={isDarkMode}
             isPrinting={isPrinting}
-            showPrintPreview={showPrintPreview}
             printSessionId={printSessionId}
             render={render}
             errorTitle="Mermaid Syntax Error"
@@ -85,7 +83,7 @@ const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: b
     );
 });
 
-const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; showPrintPreview?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, showPrintPreview, printSessionId = 0 }) => {
+const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         const spec = JSON.parse(renderCode);
         container.innerHTML = '';
@@ -102,7 +100,6 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
             code={code}
             isDarkMode={isDarkMode}
             isPrinting={isPrinting}
-            showPrintPreview={showPrintPreview}
             printSessionId={printSessionId}
             render={render}
             errorTitle="Vega Render Error"
@@ -110,7 +107,7 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
     );
 });
 
-const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; showPrintPreview?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, showPrintPreview, printSessionId = 0 }) => {
+const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         const drawer = new SmilesDrawer.SvgDrawer({
             width: 200,
@@ -153,7 +150,6 @@ const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bo
             code={code}
             isDarkMode={isDarkMode}
             isPrinting={isPrinting}
-            showPrintPreview={showPrintPreview}
             printSessionId={printSessionId}
             render={render}
             errorTitle="⚗️ SMILES 語法錯誤"
@@ -235,13 +231,19 @@ const LocalImage: React.FC<LocalImageProps & { getImage: (id: string) => Promise
 interface ResizableImageProps {
     src: string;
     alt?: string;
+    line?: number;
+    currentDocId?: string | null;
     getImage: (id: string) => Promise<string | null>;
     isDarkMode: boolean;
 }
 
-const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, getImage, isDarkMode }) => {
-    // ─── 狀態持久化：從 LocalStorage 讀取初始設定 ───────────────────────────────────────
-    const storageKey = useMemo(() => `chart-size-img:${src}`, [src]);
+const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode }) => {
+    // ─── 狀態持久化：加上 currentDocId 和 line 避免同圖打架 ──────────────────────────────
+    const storageKey = useMemo(() => {
+        const docPrefix = currentDocId ? `doc:${currentDocId}` : 'global';
+        const lineSuffix = line !== undefined ? `:line:${line}` : '';
+        return `chart-size-img:${docPrefix}${lineSuffix}:${src}`;
+    }, [src, line, currentDocId]);
     const { width, align, updateWidth, updateAlign, reset } = usePersistentCanvasSettings(storageKey);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -260,7 +262,7 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, getImage, isD
         >
             <div
                 ref={containerRef}
-                className="relative rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900/20"
+                className={`relative rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900/20 flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
             >
                 {isLocal ? (
                     <LocalImage id={imgId} alt={alt} getImage={getImage} />
@@ -445,24 +447,23 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
 // ─── 區塊判斷上下文：用於解決 react-markdown v10 移除 inline prop 後的辨識問題 ───────
 const IsInPreContext = React.createContext(false);
 
-const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ 
-    content, 
-    isDarkMode, 
-    documents = [], 
-    onSelectDocument, 
-    onCreateMissing, 
-    currentDocId, 
-    isPrinting, 
-    showPrintPreview, 
-    printSessionId = 0, 
-    isMergedPrint, 
+const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
+    content,
+    isDarkMode,
+    documents = [],
+    onSelectDocument,
+    onCreateMissing,
+    currentDocId,
+    isPrinting,
+    printSessionId = 0,
+    isMergedPrint,
     previewTheme,
     isCommentMode = false,
     setIsCommentMode,
     onUpdateLineComment,
     activeScale = 1,
 }) => {
-    const isActuallyPrinting = !!isPrinting || !!showPrintPreview;
+    const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
     const processedContent = useMemo(() => {
         return content
@@ -536,7 +537,6 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         isActuallyPrinting,
         isDarkMode,
         isPrinting,
-        showPrintPreview,
         printSessionId,
         isMergedPrint,
         previewTheme,
@@ -590,10 +590,10 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const line = node?.position?.start?.line;
 
             if (isBlock) {
-                if (language === 'mermaid') return wrapWithComment(node, <div className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
-                if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
-                if (language === 'smiles') return wrapWithComment(node, <div className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div>);
-                if (language === 'abc') return wrapWithComment(node, <React.Suspense fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} showPrintPreview={ctx.showPrintPreview} printSessionId={ctx.printSessionId} /></div></React.Suspense>);
+                if (language === 'mermaid') return wrapWithComment(node, <div className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'smiles') return wrapWithComment(node, <div className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'abc') return wrapWithComment(node, <React.Suspense fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div></React.Suspense>);
 
                 return wrapWithComment(node, (
                     <div className="code-block-wrapper not-prose">
@@ -673,11 +673,14 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         img: ({ node, src, alt, ...props }: any) => {
             if (!src) return null;
             const ctx = renderContextRef.current;
+            const line = node?.position?.start?.line;
             return (
                 <ResizableImage
-                    key={src}
+                    key={`${src}-${line}`}
                     src={src}
                     alt={alt}
+                    line={line}
+                    currentDocId={ctx.currentDocId}
                     getImage={ctx.getImage}
                     isDarkMode={ctx.shouldShowDark}
                 />

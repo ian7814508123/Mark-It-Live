@@ -1,0 +1,225 @@
+/* Classical Theme: Traditional, Serif-based, Elegant, Cinnabar Red & Ink Black */
+
+.theme-classical {
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Songti SC", "STSong", "SimSun", "Georgia", "Times New Roman", serif;
+    --theme-line-height: 1.75;
+    --theme-text-align: justify;
+    --theme-text-color: #2c2a29; /* 徽墨暖黑，富含人文溫度 */
+    --theme-accent-color: #b22222; /* 經典硃砂紅 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Songti SC", "STSong", "SimSun", "Georgia", "Times New Roman", serif;
+    --theme-heading-color: #111111; /* 濃墨黑 */
+    --theme-heading-weight: 700;
+    --theme-h1-size: 2.6rem;
+    --theme-h2-size: 1.85rem;
+    --theme-h3-size: 1.45rem;
+    --theme-h4-size: 1.25rem;
+    --theme-h5-size: 1.15rem;
+    --theme-h6-size: 1.05rem;
+    --theme-h1-border: none;
+    --theme-h2-border: 1px dashed #b22222; /* 硃砂紅虛線底邊 */
+    --theme-h1-transform: none;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: transparent;
+    --theme-quote-border-left: 2pt solid #b22222; /* 硃砂紅左側實線 */
+    --theme-quote-text: #4a4a4a;
+    --theme-quote-font-style: italic;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #b22222;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: rgba(178, 34, 34, 0.05);
+    --theme-link-hover-border: #b22222;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: none; /* 古典表格無外框 */
+    --theme-table-header-bg: transparent;
+    --theme-table-header-color: #b22222;
+    --theme-table-header-border: 1px solid #b22222;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #b22222;
+    --brand-secondary: #faf6eb;
+    --brand-surface: #faf6eb; /* 宣紙暖米黃底色 */
+    --brand-accent: #c9423a;
+    --code-bg: #fdfbf7; /* 淡竹麻色代碼區背景 */
+    --code-border: #e6dfd3;
+}
+
+/* 深色模式下的變數覆蓋 (玄黑與玉白) */
+.dark .theme-classical {
+    --theme-text-color: #e5dfd3; /* 溫潤玉白 */
+    --theme-accent-color: #c9423a; /* 微亮硃砂紅 */
+
+    --theme-heading-color: #ffffff;
+    --theme-h2-border: 1px dashed #c9423a;
+
+    --theme-quote-border-left: 2pt solid #c9423a;
+    --theme-quote-text: #a8a297;
+
+    --theme-link-color: #c9423a;
+    --theme-link-hover-bg: rgba(201, 66, 58, 0.1);
+    --theme-link-hover-border: #c9423a;
+
+    --theme-table-header-color: #c9423a;
+    --theme-table-header-border: 1px solid #c9423a;
+
+    --brand-primary: #c9423a;
+    --brand-secondary: #20211d;
+    --brand-surface: #181916; /* 深邃玄黑底色 */
+    --brand-accent: #e5dfd3;
+    --code-bg: #20211d; /* 玄灰代碼背景 - 統一 diagram 與 code block */
+    --code-border: #33342e; /* 炭灰邊框 */
+}
+
+/* 樣式套用 (Prose Binding) */
+.theme-classical.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    max-width: 100%;
+}
+
+/* 標題階層強化 */
+.theme-classical.prose h1,
+.theme-classical.prose h2,
+.theme-classical.prose h3,
+.theme-classical.prose h4,
+.theme-classical.prose h5,
+.theme-classical.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+    border-bottom: none;
+    margin-top: 2.5rem;
+}
+
+.theme-classical.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-align: center; /* 標題居中，如古籍書名 */
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+    border-bottom: var(--theme-h1-border);
+}
+
+.theme-classical.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.4rem;
+    text-align: left;
+    margin-top: 3rem;
+}
+
+.theme-classical.prose h3 { font-size: var(--theme-h3-size); font-style: italic; }
+.theme-classical.prose h4 { font-size: var(--theme-h4-size); }
+.theme-classical.prose h5 { font-size: var(--theme-h5-size); }
+.theme-classical.prose h6 { font-size: var(--theme-h6-size); font-style: italic; }
+
+/* 引言區塊 */
+.theme-classical.prose blockquote {
+    font-style: var(--theme-quote-font-style);
+    border-left: var(--theme-quote-border-left);
+    background-color: var(--theme-quote-bg);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    color: var(--theme-quote-text);
+}
+
+/* 超連結 */
+.theme-classical.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    text-underline-offset: 4px;
+    transition: all 0.2s ease;
+}
+
+.theme-classical.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom: 2px solid var(--theme-link-hover-border);
+}
+
+/* 表格：雙橫線三線表古典樣式 (無任何直向分割線) */
+.theme-classical.prose table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 2px solid var(--theme-accent-color);
+    border-bottom: 2px solid var(--theme-accent-color);
+    border-left: var(--theme-table-border);
+    border-right: var(--theme-table-border);
+    margin: 2.5rem 0;
+}
+
+.theme-classical.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-bottom: var(--theme-table-header-border);
+    padding: 0.85rem 1rem;
+    font-weight: 700;
+    text-align: left;
+}
+
+.theme-classical.prose td {
+    padding: 0.85rem 1rem;
+    border-bottom: var(--theme-table-border);
+    color: var(--theme-text-color);
+}
+
+/* 列表階層微調 */
+.theme-classical.prose ul,
+.theme-classical.prose ol {
+    margin-left: 1.25rem;
+}
+
+.theme-classical.prose li::marker {
+    color: var(--theme-accent-color);
+}
+
+/* Print Specifics: 顏色洗淨原則 */
+@media print {
+    .theme-classical,
+    .dark .theme-classical {
+        --brand-primary: #000000 !important;
+        --brand-surface: #ffffff !important;
+        --code-bg: #f9fafb !important;
+        --code-border: #d1d5db !important;
+        
+        --theme-text-color: #000000 !important;
+        --theme-heading-color: #000000 !important;
+        --theme-accent-color: #000000 !important;
+    }
+
+    .theme-classical.prose {
+        background-color: white !important;
+        color: black !important;
+        font-size: 11pt !important;
+        line-height: 1.6 !important;
+    }
+
+    .theme-classical.prose h1 {
+        font-size: 22pt !important;
+    }
+
+    .theme-classical.prose h2 {
+        border-bottom: 1pt solid black !important;
+        font-size: 16pt !important;
+    }
+
+    .theme-classical.prose blockquote {
+        border-left: 2pt solid black !important;
+        color: black !important;
+    }
+
+    .theme-classical.prose table {
+        border-top: 2pt solid black !important;
+        border-bottom: 2pt solid black !important;
+    }
+
+    .theme-classical.prose th {
+        border-bottom: 1pt solid black !important;
+        color: black !important;
+    }
+}

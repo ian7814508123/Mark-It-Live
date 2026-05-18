@@ -1,78 +1,138 @@
 /* Implementation Plan Theme: Structured, Industrial, High Contrast, Blueprint-like */
 
 .theme-implementation-plan {
-    --plan-primary: #005B94;
-    --plan-secondary: #f0f9ff;
-    --plan-accent: #0366d6;
-    --plan-text: #334155;
-    --plan-heading: #0f172a;
-    --plan-border: #e2e8f0;
-    
-    /* 系統變數對接 */
-    --brand-primary: var(--plan-primary);
-    --brand-secondary: var(--plan-secondary);
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Inter", system-ui, -apple-system, sans-serif;
+    --theme-line-height: 1.7;
+    --theme-text-align: left;
+    --theme-text-color: #334155; /* Slate 700 */
+    --theme-accent-color: #005B94; /* Industrial Deep Blue */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Inter", system-ui, -apple-system, sans-serif;
+    --theme-heading-color: #0f172a; /* Slate 900 */
+    --theme-heading-weight: 900;
+    --theme-h1-size: 2.4rem;
+    --theme-h2-size: 1.8rem;
+    --theme-h3-size: 1.4rem;
+    --theme-h4-size: 1.2rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: 3px solid #005B94;
+    --theme-h2-border: none;
+    --theme-h1-transform: uppercase;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: #f8fafc;
+    --theme-quote-border-left: 4px solid #e2e8f0;
+    --theme-quote-text: #334155;
+    --theme-quote-font-style: normal;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #0366d6;
+    --theme-link-decoration: none;
+    --theme-link-hover-bg: transparent;
+    --theme-link-hover-border: #0366d6;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: 1px solid #e2e8f0;
+    --theme-table-header-bg: #f0f9ff;
+    --theme-table-header-color: #0f172a;
+    --theme-table-header-border: 2px solid #e2e8f0;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #005B94;
+    --brand-secondary: #f0f9ff;
     --brand-surface: #f8fafc;
-    --code-bg: #0f172a;
-    --code-border: #1e293b;
+    --brand-accent: #0366d6;
+    --code-bg: #f0f9ff; /* 統一 diagram 與 code block */
+    --code-border: #cbd5e1;
 }
 
-/* 深色模式變數覆蓋 */
+/* 深色模式下的變數覆蓋 */
 .dark .theme-implementation-plan {
-    --plan-primary: #38bdf8;
-    --plan-secondary: #0c4a6e;
-    --plan-text: #cbd5e1;
-    --plan-heading: #f1f5f9;
-    --plan-border: #334155;
-    
-    --brand-primary: var(--plan-primary);
-    --brand-secondary: var(--plan-secondary);
+    --theme-text-color: #cbd5e1;
+    --theme-heading-color: #f1f5f9;
+    --theme-accent-color: #38bdf8;
+
+    --theme-h1-border: 3px solid #38bdf8;
+
+    --theme-quote-bg: #0f172a;
+    --theme-quote-border-left: 4px solid #334155;
+    --theme-quote-text: #cbd5e1;
+
+    --theme-link-color: #38bdf8;
+    --theme-link-hover-border: #38bdf8;
+
+    --theme-table-border: 1px solid #334155;
+    --theme-table-header-bg: #0c4a6e;
+    --theme-table-header-color: #f1f5f9;
+    --theme-table-header-border: 2px solid #334155;
+
+    --brand-primary: #38bdf8;
+    --brand-secondary: #0c4a6e;
     --brand-surface: #0f172a;
+    --brand-accent: #38bdf8;
     --code-bg: #010409;
     --code-border: rgba(56, 189, 248, 0.2);
 }
 
 /* 主題基礎樣式 */
 .theme-implementation-plan.prose {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
-    color: var(--plan-text);
-    line-height: 1.7;
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
 }
 
 /* 標題設計：結構感與裝飾線 */
-.theme-implementation-plan.prose h1 {
-    color: var(--plan-heading);
-    border-bottom: 3px solid var(--plan-primary);
-    padding-bottom: 0.5rem;
-    margin-top: 2.5rem;
-    font-weight: 900;
-    text-transform: uppercase;
+.theme-implementation-plan.prose h1,
+.theme-implementation-plan.prose h2,
+.theme-implementation-plan.prose h3,
+.theme-implementation-plan.prose h4,
+.theme-implementation-plan.prose h5,
+.theme-implementation-plan.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
     letter-spacing: -0.02em;
 }
 
+.theme-implementation-plan.prose h1 {
+    font-size: var(--theme-h1-size);
+    border-bottom: var(--theme-h1-border);
+    padding-bottom: 0.5rem;
+    margin-top: 2.5rem;
+    text-transform: var(--theme-h1-transform);
+}
+
 .theme-implementation-plan.prose h2 {
-    color: var(--plan-heading);
-    border-left: 4px solid var(--plan-primary);
+    font-size: var(--theme-h2-size);
+    border-left: 4px solid var(--theme-accent-color);
+    border-bottom: var(--theme-h2-border);
     padding-left: 1rem;
     margin-top: 2rem;
-    font-weight: 800;
 }
 
 .theme-implementation-plan.prose h3 {
-    color: var(--plan-primary);
-    font-weight: 700;
+    font-size: var(--theme-h3-size);
+    color: var(--theme-accent-color);
     font-variant-caps: all-small-caps;
     letter-spacing: 0.05em;
 }
 
+.theme-implementation-plan.prose h4 { font-size: var(--theme-h4-size); }
+.theme-implementation-plan.prose h5 { font-size: var(--theme-h5-size); }
+.theme-implementation-plan.prose h6 { font-size: var(--theme-h6-size); }
+
 /* 引言區塊：自動適配 GitHub-style Alerts (NOTE, IMPORTANT 等) */
 .theme-implementation-plan.prose blockquote {
-    border-left: 4px solid var(--plan-border);
+    border-left: var(--theme-quote-border-left);
     background-color: var(--brand-surface);
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
     border-radius: 0 0.75rem 0.75rem 0;
-    font-style: normal;
-    color: var(--plan-text);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text);
 }
 
 /* 針對 Alert 的特定色彩 (透過 content 匹配) */
@@ -102,7 +162,7 @@
 
 /* 強調文字 */
 .theme-implementation-plan.prose strong {
-    color: var(--plan-heading);
+    color: var(--theme-heading-color);
     font-weight: 700;
 }
 
@@ -116,7 +176,7 @@
     appearance: none;
     width: 1.2rem;
     height: 1.2rem;
-    border: 2px solid var(--plan-primary);
+    border: 2px solid var(--brand-primary);
     border-radius: 4px;
     margin-right: 0.75rem;
     cursor: pointer;
@@ -127,7 +187,7 @@
 }
 
 .theme-implementation-plan.prose input[type="checkbox"]:checked {
-    background-color: var(--plan-primary);
+    background-color: var(--brand-primary);
 }
 
 .theme-implementation-plan.prose input[type="checkbox"]:checked::after {
@@ -151,46 +211,52 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid var(--plan-border);
+    border: var(--theme-table-border);
     border-radius: 0.75rem;
     overflow: hidden;
+    margin: 2rem 0;
 }
 
 .theme-implementation-plan.prose th {
-    background-color: var(--plan-secondary);
-    color: var(--plan-heading);
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
     font-weight: 800;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
     padding: 0.75rem 1rem;
-    border-bottom: 2px solid var(--plan-border);
+    border-bottom: var(--theme-table-header-border);
 }
 
 .theme-implementation-plan.prose td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--plan-border);
+    border-bottom: var(--theme-table-border);
+    color: var(--theme-text-color);
 }
 
 /* 連結 */
 .theme-implementation-plan.prose a {
-    color: var(--plan-accent);
-    text-decoration: none;
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s;
 }
 
 .theme-implementation-plan.prose a:hover {
-    border-bottom-color: var(--plan-accent);
+    border-bottom-color: var(--theme-link-hover-border);
 }
 
 /* Print Specifics */
 @media print {
     .theme-implementation-plan {
-        --plan-primary: #005B94 !important;
-        --plan-text: #000000 !important;
-        --plan-heading: #000000 !important;
-        --plan-border: #cbd5e1 !important;
+        --brand-primary: #005B94 !important;
+        --brand-surface: #ffffff !important;
+        --code-bg: #f8fafc !important;
+        --code-border: #cbd5e1 !important;
+        
+        --theme-text-color: #000000 !important;
+        --theme-heading-color: #000000 !important;
+        --theme-table-border: 1px solid #cbd5e1 !important;
     }
 
     .theme-implementation-plan.prose {
@@ -202,7 +268,7 @@
         border-bottom: 2pt solid #005B94 !important;
         font-size: 20pt !important;
     }
-    
+
     .theme-implementation-plan.prose blockquote {
         background-color: #f8fafc !important;
         border-left: 3pt solid #cbd5e1 !important;

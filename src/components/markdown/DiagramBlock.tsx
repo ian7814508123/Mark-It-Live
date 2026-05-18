@@ -9,7 +9,6 @@ interface DiagramBlockProps {
     type: string;
     isDarkMode: boolean;
     isPrinting?: boolean;
-    showPrintPreview?: boolean;
     printSessionId?: number;
     /** 渲染函數：由具體圖表類型提供 */
     render: (container: HTMLDivElement, code: string, isDark: boolean) => Promise<void> | void;
@@ -27,13 +26,12 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
     type,
     isDarkMode,
     isPrinting,
-    showPrintPreview,
     printSessionId = 0,
     render,
     errorTitle = 'Rendering Error',
     containerClassName = ''
 }) => {
-    const isActuallyPrinting = !!isPrinting || !!showPrintPreview;
+    const isActuallyPrinting = !!isPrinting;
     const isDark = isDarkMode && !isActuallyPrinting;
 
     const containerRef = useRef<HTMLDivElement>(null);

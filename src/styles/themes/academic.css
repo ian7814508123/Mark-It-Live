@@ -1,24 +1,84 @@
 /* Academic Theme: Formal, Serif-based, Professional */
 
 .theme-academic {
-    --academic-font-serif: "Times New Roman", Times, Baskerville, Georgia, serif;
-    --academic-line-height: 1.6;
-    --academic-text-color: #1a1a1a;
-    --academic-accent: #000;
-    
-    /* 系統變數對接：讓 UI 介面（按鈕、捲軸）也變為學術沉穩風格 */
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Times New Roman", Times, Baskerville, Georgia, serif;
+    --theme-line-height: 1.6;
+    --theme-text-align: justify;
+    --theme-text-color: #1a1a1a;
+    --theme-accent-color: #000000;
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Times New Roman", Times, Baskerville, Georgia, serif;
+    --theme-heading-color: #000000;
+    --theme-heading-weight: 700;
+    --theme-h1-size: 2.5rem;
+    --theme-h2-size: 1.75rem;
+    --theme-h3-size: 1.4rem;
+    --theme-h4-size: 1.2rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: none;
+    --theme-h2-border: 1px solid #1a1a1a;
+    --theme-h1-transform: uppercase;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: transparent;
+    --theme-quote-border-left: 2pt solid #1a1a1a;
+    --theme-quote-text: #374151;
+    --theme-quote-font-style: italic;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #1a1a1a;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: transparent;
+    --theme-link-hover-border: transparent;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: none;
+    --theme-table-header-bg: transparent;
+    --theme-table-header-color: #000000;
+    --theme-table-header-border: 1px solid #000000;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
     --brand-primary: #1a1a1a;
     --brand-secondary: #f3f4f6;
+    --brand-surface: #ffffff;
     --brand-accent: #4b5563;
+    --code-bg: #f9fafb;
     --code-border: #d1d5db;
 }
 
+/* 深色模式下的變數覆蓋 */
+.dark .theme-academic {
+    --theme-text-color: #e4e4e7; /* Zinc 200 */
+    --theme-accent-color: #ffffff;
+
+    --theme-heading-color: #ffffff;
+    --theme-h2-border: 1px solid #e4e4e7;
+
+    --theme-quote-border-left: 2pt solid #cbd5e1; /* Slate 300 */
+    --theme-quote-text: #a1a1aa; /* Zinc 400 */
+
+    --theme-link-color: #ffffff;
+
+    --theme-table-header-color: #ffffff;
+    --theme-table-header-border: 1px solid #e4e4e7;
+
+    --brand-primary: #e4e4e7;
+    --brand-secondary: #27272a; /* Zinc 800 */
+    --brand-surface: #18181b; /* Zinc 900 */
+    --brand-accent: #a1a1aa;
+    --code-bg: #27272a; /* Zinc 800 - 統一 diagram 與 code block */
+    --code-border: #3f3f46; /* Zinc 700 */
+}
+
 .theme-academic.prose {
-    font-family: var(--academic-font-serif);
-    color: var(--academic-text-color);
-    line-height: var(--academic-line-height);
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
     max-width: 100%;
-    text-align: justify;
 }
 
 /* 標題階層強化 (H1-H6) */
@@ -28,67 +88,80 @@
 .theme-academic.prose h4,
 .theme-academic.prose h5,
 .theme-academic.prose h6 {
-    font-family: var(--academic-font-serif);
-    color: var(--academic-accent);
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
     border-bottom: none;
     margin-top: 2.5rem;
 }
 
 .theme-academic.prose h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: var(--theme-h1-size);
     text-align: center; /* 標題居中 */
-    text-transform: uppercase;
+    text-transform: var(--theme-h1-transform);
     letter-spacing: 0.05em;
     margin-bottom: 2rem;
+    border-bottom: var(--theme-h1-border);
 }
 
 .theme-academic.prose h2 {
-    font-size: 1.75rem;
-    border-bottom: 1px solid #1a1a1a;
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
     padding-bottom: 0.3rem;
     text-align: left;
 }
 
-.theme-academic.prose h3 { font-size: 1.4rem; font-style: italic; }
-.theme-academic.prose h4 { font-size: 1.2rem; font-weight: 700; }
-.theme-academic.prose h5 { font-size: 1.1rem; font-weight: 700; }
-.theme-academic.prose h6 { font-size: 1rem; font-style: italic; }
+.theme-academic.prose h3 { font-size: var(--theme-h3-size); font-style: italic; }
+.theme-academic.prose h4 { font-size: var(--theme-h4-size); }
+.theme-academic.prose h5 { font-size: var(--theme-h5-size); }
+.theme-academic.prose h6 { font-size: var(--theme-h6-size); font-style: italic; }
 
 .theme-academic.prose blockquote {
-    font-style: italic;
-    border-left: 2pt solid #1a1a1a;
+    font-style: var(--theme-quote-font-style);
+    border-left: var(--theme-quote-border-left);
+    background-color: var(--theme-quote-bg);
     padding-left: 1.5rem;
     margin: 2rem 0;
-    color: #374151;
+    color: var(--theme-quote-text);
 }
 
 .theme-academic.prose a {
-    color: #1a1a1a;
-    text-decoration: underline;
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
     text-underline-offset: 4px;
     transition: opacity 0.2s;
 }
 
-.theme-academic.prose a:hover { opacity: 0.7; }
+.theme-academic.prose a:hover {
+    opacity: 0.7;
+    background-color: var(--theme-link-hover-bg);
+    border-bottom-color: var(--theme-link-hover-border);
+}
 
 /* 表格：學術三線表風格 */
 .theme-academic.prose table {
-    border-top: 2px solid #000;
-    border-bottom: 2px solid #000;
+    border-top: 2px solid var(--theme-heading-color);
+    border-bottom: 2px solid var(--theme-heading-color);
+    border-left: var(--theme-table-border);
+    border-right: var(--theme-table-border);
     width: 100%;
     margin: 2rem 0;
 }
 
 .theme-academic.prose th {
-    border-bottom: 1px solid #000;
+    border-bottom: var(--theme-table-header-border);
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
     text-transform: uppercase;
     font-size: 0.85rem;
     padding: 0.75rem;
     font-weight: 700;
 }
 
-.theme-academic.prose td { padding: 0.5rem 0.75rem; }
+.theme-academic.prose td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: var(--theme-table-border);
+}
 
 /* 清單階層優化 */
 .theme-academic.prose ul, 

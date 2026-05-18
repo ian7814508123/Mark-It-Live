@@ -1,20 +1,74 @@
 /* Developer Theme: Technical, Monospace, High Contrast, Responsive */
 
 .theme-developer {
-    --dev-font-mono: "Fira Code", "JetBrains Mono", "Cascadia Code", monospace;
-    --dev-accent: #10b981; /* Emerald 500 */
-    
-    /* 預設（淺色模式）下的系統變數對接 */
-    --brand-primary: #059669;    /* 深綠色 UI */
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Fira Code", "JetBrains Mono", "Cascadia Code", monospace;
+    --theme-line-height: 1.6;
+    --theme-text-align: left;
+    --theme-text-color: #334155; /* Slate 700 */
+    --theme-accent-color: #10b981; /* Emerald 500 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Fira Code", "JetBrains Mono", "Cascadia Code", monospace;
+    --theme-heading-color: #059669; /* 深綠色 UI */
+    --theme-heading-weight: 700;
+    --theme-h1-size: 2.2rem;
+    --theme-h2-size: 1.6rem;
+    --theme-h3-size: 1.3rem;
+    --theme-h4-size: 1.15rem;
+    --theme-h5-size: 1.05rem;
+    --theme-h6-size: 0.95rem;
+    --theme-h1-border: none;
+    --theme-h2-border: none;
+    --theme-h1-transform: lowercase;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: #ecfdf5; /* 極淡綠 */
+    --theme-quote-border-left: 4px solid #059669;
+    --theme-quote-text: #475569; /* Slate 600 */
+    --theme-quote-font-style: normal;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #059669;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: #ecfdf5;
+    --theme-link-hover-border: #059669;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: 1px solid #cbd5e1;
+    --theme-table-header-bg: #ecfdf5;
+    --theme-table-header-color: #059669;
+    --theme-table-header-border: 2px solid #059669;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #059669;
     --brand-secondary: #ecfdf5;
     --brand-surface: #f8fafc;
-    --code-bg: #1e293b;
-    --code-border: #334155;
+    --brand-accent: #10b981;
+    --code-bg: #f8fafc;
+    --code-border: #cbd5e1;
 }
 
 /* 深色模式下的變數覆蓋 */
 .dark .theme-developer {
-    --brand-primary: #34d399;    /* 亮綠色 UI */
+    --theme-text-color: #cbd5e1; /* Slate 300 */
+    --theme-heading-color: #34d399; /* 亮綠色 UI */
+    --theme-accent-color: #6ee7b7;
+
+    --theme-quote-bg: #064e3b; /* 深暗綠色背景 */
+    --theme-quote-border-left: 4px solid #34d399;
+    --theme-quote-text: #94a3b8; /* Slate 400 */
+
+    --theme-link-color: #34d399;
+    --theme-link-hover-bg: rgba(52, 211, 153, 0.1);
+    --theme-link-hover-border: #34d399;
+
+    --theme-table-border: 1px solid rgba(52, 211, 153, 0.3);
+    --theme-table-header-bg: #064e3b;
+    --theme-table-header-color: #34d399;
+    --theme-table-header-border: 2px solid #34d399;
+
+    --brand-primary: #34d399;
     --brand-secondary: #064e3b;
     --brand-surface: #0b1120;
     --brand-accent: #6ee7b7;
@@ -22,18 +76,11 @@
     --code-border: rgba(52, 211, 153, 0.3);
 }
 
-/* 列印預覽模擬 (Simulation) 模式：強制切換為淺色開發者風格 */
-.show-print-preview .theme-developer {
-    --brand-primary: #059669;
-    --brand-secondary: #ecfdf5;
-    --brand-surface: #ffffff;
-    --code-bg: #f8fafc;
-    --code-border: #cbd5e1;
-}
-
 .theme-developer.prose {
-    font-family: var(--dev-font-mono);
-    line-height: 1.6;
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
 }
 
 /* 標題階層：終端機風格 */
@@ -43,28 +90,52 @@
 .theme-developer.prose h4,
 .theme-developer.prose h5,
 .theme-developer.prose h6 {
-    color: var(--brand-primary);
-    text-transform: lowercase;
-    font-weight: 700;
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: none;
+    margin-top: 2.5rem;
 }
 
-.theme-developer.prose h1::before { content: "> "; opacity: 0.5; }
-.theme-developer.prose h2::before { content: ">> "; opacity: 0.5; }
-.theme-developer.prose h3::before { content: ">>> "; opacity: 0.5; }
+.theme-developer.prose h1::before {
+    content: "> ";
+    opacity: 0.5;
+}
+
+.theme-developer.prose h2::before {
+    content: ">> ";
+    opacity: 0.5;
+}
+
+.theme-developer.prose h3::before {
+    content: ">>> ";
+    opacity: 0.5;
+}
+
+.theme-developer.prose h1 { font-size: var(--theme-h1-size); border-bottom: var(--theme-h1-border); }
+.theme-developer.prose h2 { font-size: var(--theme-h2-size); border-bottom: var(--theme-h2-border); }
+.theme-developer.prose h3 { font-size: var(--theme-h3-size); }
+.theme-developer.prose h4 { font-size: var(--theme-h4-size); }
+.theme-developer.prose h5 { font-size: var(--theme-h5-size); }
+.theme-developer.prose h6 { font-size: var(--theme-h6-size); }
 
 .theme-developer.prose blockquote {
-    background-color: var(--brand-secondary);
-    border-left: 4px solid var(--brand-primary);
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
     padding: 1rem 1.5rem;
-    color: #64748b;
+    color: var(--theme-quote-text);
     border-radius: 0 4px 4px 0;
+    font-style: var(--theme-quote-font-style);
+    margin: 2rem 0;
 }
 
-.theme-developer.prose strong { color: #f59e0b; } /* Amber 強調 */
+.theme-developer.prose strong {
+    color: #f59e0b; /* Amber 強調 */
+}
 
 /* 程式碼區塊：對齊 index.css 變數 */
 .theme-developer.prose pre {
-    /* 不使用 !important，讓 index.css 的變數發揮作用 */
     border-left: 4px solid var(--brand-primary);
 }
 
@@ -75,24 +146,46 @@
     border-radius: 4px;
 }
 
+/* 連結 */
+.theme-developer.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+}
+
+.theme-developer.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom: 2px solid var(--theme-link-hover-border);
+}
+
 /* 表格：矩陣風格 */
 .theme-developer.prose table {
-    border: 1px solid var(--code-border);
+    border-collapse: collapse;
+    border: var(--theme-table-border);
     font-size: 0.9rem;
+    width: 100%;
+    margin: 2rem 0;
 }
 
 .theme-developer.prose th {
-    background-color: var(--brand-secondary);
-    border-bottom: 2px solid var(--brand-primary);
-    color: var(--brand-primary);
+    background-color: var(--theme-table-header-bg);
+    border-bottom: var(--theme-table-header-border);
+    color: var(--theme-table-header-color);
+    padding: 0.75rem 1rem;
+    font-weight: bold;
+    text-align: left;
 }
 
-.theme-developer.prose td { border: 1px solid var(--code-border); }
+.theme-developer.prose td {
+    border: var(--theme-table-border);
+    padding: 0.75rem 1rem;
+    color: var(--theme-text-color);
+}
 
 /* Print Specifics */
 @media print {
     /* 核心修正：強制重置深色模式變數，避免列印時出現深色背景或亮綠色 UI */
-    .theme-developer, .dark .theme-developer {
+    .theme-developer,
+    .dark .theme-developer {
         --brand-primary: #059669 !important;
         --brand-secondary: #ecfdf5 !important;
         --brand-surface: #ffffff !important;

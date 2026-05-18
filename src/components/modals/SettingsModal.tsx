@@ -41,30 +41,12 @@ const PdfSettingsPanel: React.FC<{
             {/* 分組 A：視覺化預覽 */}
             <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary"><FileText size={16} /></div>
-                    <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">預覽行為</p>
-                </div>
-
-                {/* DraggableSwitch：同時支援點擊切換與拖曳切換 */}
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">顯示列印預覽</span>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500">在編輯器旁模擬紙張邊界與分頁線</span>
-                    </div>
-                    <DraggableSwitch
-                        checked={settings.showPrintPreview}
-                        onChange={(v) => {
-                            const patch: Partial<PrintSettings> = { showPrintPreview: v };
-                            // 開啟預覽時預設切到 fit 模式，確保使用者看到完整紙張
-                            if (v) patch.scale = 'fit';
-                            onChange(patch);
-                        }}
-                    />
+                    <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary"><Palette size={16} /></div>
+                    <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">預覽風格 (Theme)</p>
                 </div>
 
                 {/* Markdown 主題選擇 */}
-                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700/50">
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">預覽風格 (Theme)</p>
+                <div className="space-y-3">
                     <ThemeGridSelector
                         options={[
                             {
@@ -96,6 +78,12 @@ const PdfSettingsPanel: React.FC<{
                                 icon: <ClipboardList size={16} />, color: '#005B94',
                                 previewImg: '/image/themes/plan.png',
                                 description: '工業化結構設計，適合展示開發方案與進度。'
+                            },
+                            {
+                                label: '古典宣紙', value: 'classical', hint: 'Classical',
+                                icon: <Feather size={16} />, color: '#b22222',
+                                previewImg: '/image/themes/classical.png',
+                                description: '模擬宣紙底色，徽墨與硃砂紅點綴，帶有古典三線表，充滿人文古意。'
                             },
                         ]}
                         value={settings.previewTheme}
@@ -335,7 +323,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             <li>內嵌圖表支援置中/置左/置右功能。</li>
                                             <li>![立即試試](./image/livelogo_v1.svg "還有 v2 可以玩玩看哦！")
                                                 <ol>(提醒：若匯出 PDF 等靜態格式，動圖將固定於特定幀，建議僅在數位展示環境下使用。)</ol></li>
-                                            <li>使用<strong>\pagebreak</strong> , <strong>[page-break]</strong> , <strong>---pb---</strong> 指令強制換頁 (開啟列印預覽下可以看到強制換頁線)</li>
+                                            <li>使用<strong>\pagebreak</strong> , <strong>[page-break]</strong> , <strong>---pb---</strong> 指令強制換頁 (在預覽面板上可直接看到藍色虛線，列印時將自動在此處分頁)</li>
                                             <li>增強 WikiLink 匯出相容性：合併匯出時自動轉為內部跳轉錨點 (注意:列印時要選擇Save to PDF，而不是Print to PDF)，單檔匯出則自動降級為純文字以避免死連結。</li>
                                             <li>按鈕變得更Q彈了，可以試著長按並滑動他們。</li>
 

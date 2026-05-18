@@ -2,53 +2,11 @@ import React, { forwardRef, useState, useEffect, useRef, useMemo } from 'react';
 import { AlertCircle, Trash2, RefreshCw, Sparkles, ZoomIn, ZoomOut, Maximize, Hand, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import MarkdownPreview from '../markdown/MarkdownPreview';
 
-/** ── PageBreaksOverlay ──────────────────────────────────────────────────
- * 根據內容高度與每頁可用高度，動態計算並繪製分頁線
- */
-const PageBreaksOverlay: React.FC<{
-    contentHeight: number;
-    pageHeightPx: number;
-    manualBreaks: number[];
-    isVisible: boolean;
-}> = ({ contentHeight, pageHeightPx, manualBreaks, isVisible }) => {
-    if (!isVisible) return null;
-
-    // 計算分頁指標：手動分頁會重置基準點
-    const indicators: number[] = [];
-    const segments = [0, ...manualBreaks, contentHeight];
-
-    for (let i = 0; i < segments.length - 1; i++) {
-        const start = segments[i];
-        const end = segments[i + 1];
-        const segmentHeight = end - start;
-
-        // 在目前的區段（從上一個分頁點到下一個分頁點）中，計算需要多少預估分頁線
-        const pagesInSegment = Math.floor((segmentHeight - 1) / pageHeightPx);
-        for (let p = 1; p <= pagesInSegment; p++) {
-            indicators.push(start + p * pageHeightPx);
-        }
-    }
-
-    return (
-        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-            {indicators.map((top, idx) => (
-                <div
-                    key={idx}
-                    className="page-break-indicator absolute left-0 right-0"
-                    style={{ top: `${top}px` }}
-                />
-            ))}
-        </div>
-    );
-};
-
 // ── PrintPaper ──────────────────────────────────────────────────────────────
-// 封裝每份紙張的渲染邏輯與獨立的高度監測
-// 確保在「合併列印」模式下，每份文件都能計算出正確的分頁參考線
+// 封裝每份紙張的渲染邏輯
 interface PrintPaperProps {
     docId: string;
     doc: any;
-    showPrintPreview: boolean;
     paperPx: { w: number, h: number };
     paperSize: string;
     orientation: string;
@@ -76,7 +34,6 @@ interface PrintPaperProps {
 const PrintPaper: React.FC<PrintPaperProps> = ({
     docId,
     doc,
-    showPrintPreview,
     paperPx,
     paperSize,
     orientation,
@@ -100,53 +57,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     onUpdateLineComment,
     activeScale = 1,
 }) => {
-    const [contentHeight, setContentHeight] = useState(0);
-    const [manualBreaks, setManualBreaks] = useState<number[]>([]);
     const paperRef = useRef<HTMLDivElement>(null);
-
-    // 重新計算手動分頁位置
-    const updateMetrics = () => {
-        if (!paperRef.current) return;
-        const proseContainer = paperRef.current.querySelector('.prose-container');
-        if (!proseContainer) return;
-
-        const containerRect = proseContainer.getBoundingClientRect();
-        // 更新總高度
-        setContentHeight(containerRect.height);
-
-        // 搜尋所有手動分頁元素，獲取相對於容器顶部的位移
-        const breakElements = proseContainer.querySelectorAll('.page-break');
-        const positions: number[] = [];
-        breakElements.forEach((el: HTMLElement) => {
-            const elRect = el.getBoundingClientRect();
-            // 計算相對於 prose-container 頂部的距離
-            positions.push(elRect.top - containerRect.top);
-        });
-        setManualBreaks(positions.sort((a, b) => a - b));
-    };
-
-    useEffect(() => {
-        if (!showPrintPreview) return;
-
-        const observer = new ResizeObserver(() => {
-            updateMetrics();
-        });
-
-        const proseContainer = paperRef.current?.querySelector('.prose-container');
-        if (proseContainer) {
-            observer.observe(proseContainer);
-        }
-
-        // 監聽特定渲染事件
-        window.addEventListener('content-layout-ready', updateMetrics);
-        window.addEventListener('preview-content-height-change', updateMetrics);
-
-        return () => {
-            observer.disconnect();
-            window.removeEventListener('content-layout-ready', updateMetrics);
-            window.removeEventListener('preview-content-height-change', updateMetrics);
-        };
-    }, [showPrintPreview, doc?.content]);
 
     return (
         <div
@@ -154,24 +65,23 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
             data-doc-id={docId}
             ref={node => {
                 (paperRef as any).current = node;
-                if (!showPrintPreview && isActive) {
+                if (isActive) {
                     if (typeof scrollRef === 'function') scrollRef(node);
                     else if (scrollRef) (scrollRef as any).current = node;
                 }
             }}
-            onScroll={!showPrintPreview && isActive ? onScroll : undefined}
+            onScroll={isActive ? onScroll : undefined}
             className={`
-                ${showPrintPreview || isPrinting
+                ${isPrinting
                     ? `print-paper bg-white shadow-2xl mx-auto paper-${paperSize.toLowerCase()} paper-${orientation} margin-${margin} relative`
                     : `flex-1 w-full h-full overflow-auto print:overflow-visible custom-scrollbar bg-white dark:bg-slate-900 transition-colors duration-200`}
                 ${isVisibleOnScreen ? 'block' : 'hidden'} 
                 ${!isVisibleOnScreen && isVisibleInPrint ? 'print:block' : 'print:hidden'} 
-                ${!isActive && (!showPrintPreview && !isVisibleInPrint) ? 'tab-inactive' : ''} 
-                ${isActive && showPrintPreview ? 'ring-4 ring-[#0284C7]' : ''}
+                ${!isActive && !isVisibleInPrint ? 'tab-inactive' : ''} 
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={showPrintPreview || isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
+            <div className={isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}
@@ -181,7 +91,6 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     onCreateMissing={onCreateMissing}
                     currentDocId={docId}
                     isPrinting={isPrinting}
-                    showPrintPreview={showPrintPreview}
                     printSessionId={printSessionId}
                     isMergedPrint={isMergedPrint}
                     isCommentMode={isCommentMode}
@@ -189,20 +98,12 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     onUpdateLineComment={onUpdateLineComment}
                     activeScale={activeScale}
                 />
-                {showPrintPreview && (
-                    <PageBreaksOverlay
-                        contentHeight={contentHeight}
-                        pageHeightPx={paperPx.h}
-                        manualBreaks={manualBreaks}
-                        isVisible={showPrintPreview}
-                    />
-                )}
             </div>
         </div>
     );
 };
 
-// 導入独立元件避免在 forwardRef 內部的條件分支中呼叫 hooks（違反 Rules of Hooks）
+// 導入獨立元件避免在 forwardRef 內部的條件分支中呼叫 hooks（違反 Rules of Hooks）
 // activatedDocIds 追蹤「已被用戶訪問過的 tab」，尚未訪問的 tab 不會在背景被渲染
 // 這就消除了 MathJax 在 display:none 容器中渲染時發生的 null DOM 錯誤
 interface MarkdownPreviewSectionProps {
@@ -248,49 +149,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
 }) => {
     // 當前文件物件
     const currentDoc = documents?.find((d: any) => d.id === currentDocId);
-    const { showPrintPreview, mergeVaultOnPdfExport, paperSize, orientation, margin, scale } = printSettings;
-
-    // 動態縮放邏輯 (用於 Fit 模式)
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [fitScale, setFitScale] = useState(1);
-
-    useEffect(() => {
-        if (!showPrintPreview || scale !== 'fit') return;
-
-        const calculateScale = () => {
-            if (!containerRef.current) return;
-            // 獲取容器實際可用寬度 (考慮到 padding)
-            const style = window.getComputedStyle(containerRef.current);
-            const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-            const containerWidth = containerRef.current.clientWidth - paddingX - 16; // 額外減去 16px 作為緩衝，避免邊界閃爍
-
-            // 紙張基準寬度 (mm)
-            let baseWidthMm = 210;
-            if (paperSize === 'A4') baseWidthMm = 210;
-            else if (paperSize === 'A3') baseWidthMm = 297;
-            else if (paperSize === 'Letter') baseWidthMm = 215.9;
-
-            if (orientation === 'landscape') {
-                if (paperSize === 'A4') baseWidthMm = 297;
-                else if (paperSize === 'A3') baseWidthMm = 420;
-                else if (paperSize === 'Letter') baseWidthMm = 279.4;
-            }
-
-            // 轉 px (1mm ≈ 3.7795px at 96dpi)
-            const baseWidthPx = baseWidthMm * 3.7795;
-            const ratio = Math.min(1, containerWidth / baseWidthPx);
-            setFitScale(ratio);
-        };
-
-        calculateScale();
-        // 使用 ResizeObserver 代替 window resize 以便更精確捕捉面板尺寸變化
-        const observer = new ResizeObserver(calculateScale);
-        if (containerRef.current) observer.observe(containerRef.current);
-
-        return () => observer.disconnect();
-    }, [showPrintPreview, scale, paperSize, orientation]);
-
-    const activeScale = scale === 'fit' ? fitScale : (typeof scale === 'number' ? scale / 100 : 1);
+    const { mergeVaultOnPdfExport, paperSize, orientation, margin } = printSettings;
 
     // 計算紙張的原始寬高 (px)
     const getPaperSizePx = () => {
@@ -322,88 +181,28 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
 
     // 決定要渲染的文件列表
     const docsToRenderIds = useMemo(() => {
-        const isMergedActive = (isPrinting || showPrintPreview) && mergeVaultOnPdfExport && currentDoc?.folderId;
+        const isMergedActive = isPrinting && mergeVaultOnPdfExport && currentDoc?.folderId;
 
-        // 修正：只有當開啟了「合併列印 (PDF)」且處於預覽/列印狀態時，才讀取整個資料夾的文件
+        // 修正：只有當開啟了「合併列印 (PDF)」且處於列印狀態時，才讀取整個資料夾的文件
         if (isMergedActive) {
             return (documents ?? [])
                 .filter((d: any) => d.folderId === currentDoc.folderId && (d.mode === 'markdown' || d.mode === 'mermaid'))
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.updatedAt - b.updatedAt)
                 .map((d: any) => d.id);
         }
-        
-        // 如果正在列印或開啟列印預覽，且非合併模式，則只渲染當前文件
-        if (isPrinting || showPrintPreview) {
+
+        // 如果正在列印，且非合併模式，則只渲染當前文件
+        if (isPrinting) {
             return [currentDocId].filter(Boolean) as string[];
         }
 
         // 否則，渲染所有已啟動的分頁（背景快取用）
         return markdownDocIds.filter(id => activatedDocIds.has(id));
-    }, [mergeVaultOnPdfExport, currentDoc?.folderId, documents, markdownDocIds, activatedDocIds, isPrinting, showPrintPreview, currentDocId]);
-
-    // 狀態鎖定：防止 Intentional Scroll 與 IntersectionObserver 產生衝突
-    const isManualScrolling = useRef(false);
-    const isHoveringInternal = useRef(false);
-    const lastSelectSource = useRef<'manual' | 'scroll' | null>(null);
-
-    // 主動偵測當前文件 (Bidirectional Sync)
-    useEffect(() => {
-        if (!showPrintPreview || !mergeVaultOnPdfExport || !currentDoc?.folderId) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                // 如果是正在進行手動捲動，或者滑鼠不在預覽板塊內，則跳過偵測
-                // 這樣編輯器捲動到底部時，不會因為預覽區位移而誤觸換頁
-                if (isManualScrolling.current || !isHoveringInternal.current) return;
-
-                const visibleEntries = entries.filter(e => e.isIntersecting);
-                if (visibleEntries.length > 0) {
-                    const topMost = visibleEntries.reduce((prev, curr) =>
-                        curr.boundingClientRect.top < prev.boundingClientRect.top ? curr : prev
-                    );
-                    const docId = topMost.target.getAttribute('data-doc-id');
-                    if (docId && docId !== currentDocId && onSelectDocument) {
-                        lastSelectSource.current = 'scroll';
-                        onSelectDocument(docId);
-                    }
-                }
-            },
-            { threshold: 0.3, root: containerRef.current }
-        );
-
-        const papers = document.querySelectorAll('.print-paper[data-doc-id]');
-        papers.forEach(p => observer.observe(p));
-
-        return () => observer.disconnect();
-    }, [showPrintPreview, mergeVaultOnPdfExport, documents, currentDoc?.folderId, currentDocId, onSelectDocument]);
-
-    // 自動導航：當 currentDocId 改變時，決定是否捲動
-    useEffect(() => {
-        if (!showPrintPreview) return;
-
-        const targetElement = document.querySelector(`.print-paper[data-doc-id="${currentDocId}"]`);
-
-        // 如果變動來源是預覽區捲動本身造成的，則不進行自動導航，避免跳動
-        if (lastSelectSource.current === 'scroll') {
-            lastSelectSource.current = null;
-            return;
-        }
-
-        if (targetElement && containerRef.current) {
-            isManualScrolling.current = true;
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-            const timer = setTimeout(() => {
-                isManualScrolling.current = false;
-            }, 800);
-
-            return () => clearTimeout(timer);
-        }
-    }, [currentDocId, showPrintPreview]);
+    }, [mergeVaultOnPdfExport, currentDoc?.folderId, documents, markdownDocIds, activatedDocIds, isPrinting, currentDocId]);
 
     return (
         <>
-            {(isPrinting || showPrintPreview) && (
+            {isPrinting && (
                 <style>
                     {`
                     @media print {
@@ -416,78 +215,56 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                 </style>
             )}
             <section
-                className={`flex-1 min-w-0 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto ${showPrintPreview ? 'show-print-preview' : ''}`}
-            onMouseEnter={() => {
-                isHoveringInternal.current = true;
-                if (onMouseEnter) onMouseEnter();
-            }}
-            onMouseLeave={() => {
-                isHoveringInternal.current = false;
-                if (onMouseLeave) onMouseLeave();
-            }}
-        >
-            <div
-                className={`flex-1 relative ${showPrintPreview ? 'overflow-auto custom-scrollbar p-12 bg-slate-200/40 dark:bg-black/20' : 'overflow-hidden'} print:overflow-visible print:h-auto print:static print:p-0`}
-                ref={showPrintPreview ? (node => { containerRef.current = node; if (typeof scrollRef === 'function') scrollRef(node); else if (scrollRef) (scrollRef as any).current = node; }) : undefined}
-                onScroll={showPrintPreview ? onScroll : undefined}
+                className="flex-1 min-w-0 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto"
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
             >
                 <div
-                    className={`mx-auto transition-all duration-300 origin-top-left ${showPrintPreview ? 'print-outer-wrapper py-8' : 'w-full h-full'}`}
-                    style={showPrintPreview ? {
-                        width: paperPx.w * activeScale,
-                        height: 'auto',
-                        minHeight: paperPx.h * activeScale * docsToRenderIds.length
-                    } : {}}
+                    className={`flex-1 relative ${isPrinting ? 'overflow-auto' : 'overflow-hidden'} print:overflow-visible print:h-auto print:static print:p-0`}
                 >
-                    <div
-                        className={showPrintPreview ? 'print-preview-container origin-top-left flex flex-col gap-8 print:block print:h-auto' : 'w-full h-full'}
-                        style={showPrintPreview ? {
-                            transform: `scale(${activeScale})`,
-                            width: paperPx.w,
-                        } : {}}
-                    >
-                        {docsToRenderIds.map(docId => {
-                            const doc = documents?.find((d: any) => d.id === docId);
-                            const isActive = docId === currentDocId;
-                            const isMergedMode = mergeVaultOnPdfExport && currentDoc?.folderId;
-                            const isVisibleOnScreen = showPrintPreview ? (isMergedMode || isActive) : isActive;
-                            const isVisibleInPrint = isMergedMode || isActive;
+                    <div className="w-full h-full">
+                        <div className={isPrinting ? 'print-preview-container flex flex-col gap-8 print:block print:h-auto' : 'w-full h-full'}>
+                            {docsToRenderIds.map(docId => {
+                                const doc = documents?.find((d: any) => d.id === docId);
+                                const isActive = docId === currentDocId;
+                                const isMergedMode = mergeVaultOnPdfExport && currentDoc?.folderId;
+                                const isVisibleOnScreen = isActive;
+                                const isVisibleInPrint = isMergedMode || isActive;
 
-                            return (
-                                <PrintPaper
-                                    key={docId}
-                                    docId={docId}
-                                    doc={doc}
-                                    showPrintPreview={showPrintPreview}
-                                    paperPx={paperPx}
-                                    paperSize={paperSize}
-                                    orientation={orientation}
-                                    margin={margin}
-                                    isActive={isActive}
-                                    isVisibleOnScreen={isVisibleOnScreen}
-                                    isVisibleInPrint={isVisibleInPrint}
-                                    isPrinting={isPrinting}
-                                    printSessionId={printSessionId}
-                                    isMergedPrint={isMergedMode}
-                                    previewTheme={printSettings.previewTheme}
-                                    theme={theme}
-                                    isDarkMode={isDarkMode}
-                                    documents={documents}
-                                    onSelectDocument={onSelectDocument}
-                                    onCreateMissing={onCreateMissing}
-                                    onScroll={onScroll}
-                                    scrollRef={scrollRef}
-                                    isCommentMode={isCommentMode}
-                                    setIsCommentMode={setIsCommentMode}
-                                    onUpdateLineComment={onUpdateLineComment}
-                                    activeScale={activeScale}
-                                />
-                            );
-                        })}
+                                return (
+                                    <PrintPaper
+                                        key={docId}
+                                        docId={docId}
+                                        doc={doc}
+                                        paperPx={paperPx}
+                                        paperSize={paperSize}
+                                        orientation={orientation}
+                                        margin={margin}
+                                        isActive={isActive}
+                                        isVisibleOnScreen={isVisibleOnScreen}
+                                        isVisibleInPrint={isVisibleInPrint}
+                                        isPrinting={isPrinting}
+                                        printSessionId={printSessionId}
+                                        isMergedPrint={isMergedMode}
+                                        previewTheme={printSettings.previewTheme}
+                                        theme={theme}
+                                        isDarkMode={isDarkMode}
+                                        documents={documents}
+                                        onSelectDocument={onSelectDocument}
+                                        onCreateMissing={onCreateMissing}
+                                        onScroll={onScroll}
+                                        scrollRef={scrollRef}
+                                        isCommentMode={isCommentMode}
+                                        setIsCommentMode={setIsCommentMode}
+                                        onUpdateLineComment={onUpdateLineComment}
+                                        activeScale={1}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
         </>
     );
 };
@@ -576,8 +353,8 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     }, []);
 
     // DIFFERENT LAYOUT STRATEGY BASED ON MODE
-    // 只有在「列印中」或「開啟列印預覽模式」時，才允許 Mermaid 模式進入合併文件佈局
-    const isMergedMode = (isPrinting || printSettings.showPrintPreview) && printSettings.mergeVaultOnPdfExport && !!currentDocId && !!documents?.find((d: any) => d.id === currentDocId)?.folderId;
+    // 只有在「列印中」時，才允許 Mermaid 模式進入合併文件佈局
+    const isMergedMode = isPrinting && printSettings.mergeVaultOnPdfExport && !!currentDocId && !!documents?.find((d: any) => d.id === currentDocId)?.folderId;
 
     if (mode === 'markdown' || isMergedMode) {
         const markdownDocIds = (openDocIds ?? [currentDocId].filter(Boolean) as string[])
