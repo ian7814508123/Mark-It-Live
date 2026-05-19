@@ -16,7 +16,7 @@ import IntroModal from './src/components/modals/IntroModal';
 import InteractiveLogo from './src/components/ui/InteractiveLogo';
 import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
-import { hashString, debounce } from './src/utils';
+import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollTop } from './src/utils';
 import { useAppSettings } from './src/hooks/useAppSettings';
 import './src/styles/themes/academic.css';
 import './src/styles/themes/minimal.css';
@@ -375,49 +375,22 @@ const App: React.FC = () => {
     const lineNumber = line.number;
 
     if (previewRef.current) {
-      const map = lineMap.current;
-      const sortedLines = Array.from(map.keys()).sort((a, b) => a - b);
-
-      if (sortedLines.length === 0) {
-        // 退回百分比模式
-        const percentage = scrollDOM.scrollTop / (scrollDOM.scrollHeight - scrollDOM.clientHeight || 1);
-        targetScrollTop.current = percentage * (previewRef.current.scrollHeight - previewRef.current.clientHeight);
-      } else {
-        // 尋找包圍當前行號的兩個標記點
-        let l1 = -1, l2 = -1;
-        for (let i = 0; i < sortedLines.length; i++) {
-          if (sortedLines[i] <= lineNumber) {
-            l1 = sortedLines[i];
-          } else {
-            l2 = sortedLines[i];
-            break;
-          }
+      const getEditorLineTop = (l: number) => {
+        try {
+          return editorView.lineBlockAt(editorView.state.doc.line(l).from).top;
+        } catch (e) {
+          return 0;
         }
+      };
 
-        if (l1 !== -1 && l2 !== -1) {
-          // 執行線性插值 (Linear Interpolation)
-          const p1 = map.get(l1)!;
-          const p2 = map.get(l2)!;
-
-          // 取得這兩行在編輯器中的 Y 座標
-          const h1 = editorView.lineBlockAt(editorView.state.doc.line(l1).from).top;
-          const h2 = editorView.lineBlockAt(editorView.state.doc.line(l2).from).top;
-
-          const ratio = (scrollDOM.scrollTop - h1) / (h2 - h1 || 1);
-          targetScrollTop.current = p1 + ratio * (p2 - p1);
-        } else if (l1 !== -1) {
-          // 只找到前面的標記點（接近末尾）
-          const p1 = map.get(l1)!;
-          // 額外加上與標記點的偏差
-          const h1 = editorView.lineBlockAt(editorView.state.doc.line(l1).from).top;
-          targetScrollTop.current = p1 + (scrollDOM.scrollTop - h1);
-        } else {
-          // 在第一個標記點之前
-          const p2 = map.get(sortedLines[0])!;
-          const h2 = editorView.lineBlockAt(editorView.state.doc.line(sortedLines[0]).from).top;
-          targetScrollTop.current = Math.max(0, p2 - (h2 - scrollDOM.scrollTop));
-        }
-      }
+      targetScrollTop.current = calculatePreviewScrollTop({
+        editorScrollTop: scrollDOM.scrollTop,
+        editorMaxScroll: scrollDOM.scrollHeight - scrollDOM.clientHeight,
+        previewMaxScroll: previewRef.current.scrollHeight - previewRef.current.clientHeight,
+        lineNumber,
+        lineMap: lineMap.current,
+        getEditorLineTop,
+      });
 
       if (!rafId.current) {
         currentScrollTop.current = previewRef.current.scrollTop;
@@ -437,44 +410,22 @@ const App: React.FC = () => {
 
     if (editorRef.current?.view) {
       const editorView = editorRef.current.view;
-      const map = lineMap.current;
-      const scrollTop = target.scrollTop;
 
-      // 1. 尋找目前預覽區頂部包圍的映射點
-      const sortedLines = Array.from(map.keys()).sort((a, b) => a - b);
-      const offsets = sortedLines.map(line => ({ line, offset: map.get(line)! }));
-
-      if (offsets.length === 0) {
-        const percentage = target.scrollTop / (target.scrollHeight - target.clientHeight || 1);
-        targetScrollTop.current = percentage * (editorView.scrollDOM.scrollHeight - editorView.scrollDOM.clientHeight);
-      } else {
-        let l1 = -1, l2 = -1;
-        for (let i = 0; i < offsets.length; i++) {
-          if (offsets[i].offset <= scrollTop) {
-            l1 = offsets[i].line;
-          } else {
-            l2 = offsets[i].line;
-            break;
-          }
+      const getEditorLineTop = (l: number) => {
+        try {
+          return editorView.lineBlockAt(editorView.state.doc.line(l).from).top;
+        } catch (e) {
+          return 0;
         }
+      };
 
-        if (l1 !== -1) {
-          if (l2 !== -1) {
-            // 插值計算編輯器位置
-            const p1 = map.get(l1)!;
-            const p2 = map.get(l2)!;
-            const h1 = editorView.lineBlockAt(editorView.state.doc.line(l1).from).top;
-            const h2 = editorView.lineBlockAt(editorView.state.doc.line(l2).from).top;
-
-            const ratio = (scrollTop - p1) / (p2 - p1 || 1);
-            targetScrollTop.current = h1 + ratio * (h2 - h1);
-          } else {
-            // 末尾部分
-            const h1 = editorView.lineBlockAt(editorView.state.doc.line(l1).from).top;
-            targetScrollTop.current = h1 + (scrollTop - map.get(l1)!);
-          }
-        }
-      }
+      targetScrollTop.current = calculateEditorScrollTop({
+        previewScrollTop: target.scrollTop,
+        previewMaxScroll: target.scrollHeight - target.clientHeight,
+        editorMaxScroll: editorView.scrollDOM.scrollHeight - editorView.scrollDOM.clientHeight,
+        lineMap: lineMap.current,
+        getEditorLineTop,
+      });
 
       if (!rafId.current) {
         currentScrollTop.current = editorView.scrollDOM.scrollTop || 0;

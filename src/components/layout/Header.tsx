@@ -134,7 +134,7 @@ const Header: React.FC<HeaderProps> = ({
     );
 
     return (
-        <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-50 shrink-0 shadow-sm transition-colors duration-200 select-none print:hidden">
+        <header className="h-15 flex items-center justify-between px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-50 shrink-0 shadow-sm transition-colors duration-200 select-none print:hidden">
 
             {/* Logo + 標題 */}
             <div className="flex items-center gap-3">

@@ -72,10 +72,11 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
             onMouseLeave={onMouseLeave}
         >
             {/* 整合後的 Tab Bar + 工具列 (精緻瀏覽器風格) */}
-            <div className="flex items-end border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 pl-0 pr-1 pt-1.5 sticky top-0 z-30 select-none" onMouseEnter={onMouseEnter}>
-                {/* 左側漢堡選單 */}
+            <div className="flex items-end border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 pl-0 pr-1 pt-1 sticky top-0 z-30 select-none" onMouseEnter={onMouseEnter}>
+
                 <div className="flex flex-nowrap items-end flex-1 min-w-0">
-                    <div className="flex items-center gap-1 px-2 mb-1.5 shrink-0">
+                    {/* 左側漢堡選單 */}
+                    <div className="flex items-center gap-1 px-1.5 mb-0.5 shrink-0">
                         <RippleButton
                             variant="icon"
                             onClick={onToggleSidebar}
@@ -100,13 +101,13 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                                     key={id}
                                     onClick={() => onSwitchTab?.(id)}
                                     className={`
-                                        flex items-center gap-2 px-3 text-[11px] font-medium cursor-pointer transition-all relative group
+                                        flex items-center gap-1 px-3 text-[10px] font-medium cursor-pointer transition-all relative group
                                         ${isActive
                                             ? 'bg-white dark:bg-slate-900 text-brand-primary rounded-t-xl shadow-[0_-4px_12px_rgba(0,0,0,0.05)] z-20 flex-[3_3_0%] min-w-[60px] h-9 mb-[-1px] mx-0.5'
                                             : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/90 rounded-lg flex-1 min-w-[35px] h-7 mb-[3px] mx-1'
                                         }
                                     `}
-                                    style={{ maxWidth: '200px' }}
+                                    style={{ maxWidth: '170px' }}
                                     title={doc.name}
                                 >
                                     {/* 垂直分隔線 */}
@@ -161,7 +162,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                 </div>
 
                 {/* 右側操作按鈕 */}
-                <div className="flex items-center gap-1 px-2 mb-1.5 shrink-0">
+                <div className="flex items-center gap-1 px-2 mb-0.5 shrink-0">
                     <RippleButton variant="icon" onClick={handleSearch}
                         aria-label="搜尋與取代 (Ctrl+F)"
                         title="搜尋 (Ctrl+F)" className="w-8 h-8 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800">
