@@ -1327,6 +1327,7 @@ const App: React.FC = () => {
               documents={documents}
               onSwitchTab={handleDocumentSwitch}
               onCloseTab={handleCloseTab}
+              hasOpenDocuments={openDocIds.length > 0}
             />
 
             <PreviewPanel

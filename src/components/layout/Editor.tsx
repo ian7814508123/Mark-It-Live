@@ -1,11 +1,12 @@
 
-import React, { forwardRef, useState, useMemo } from 'react';
+import React, { forwardRef, useState, useMemo, useEffect } from 'react';
 import { FileCode, Check, Copy, RefreshCw, Trash2, Menu, X, FileText, FileSearch } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import CodeMirrorEditor from './CodeMirrorEditor';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import IntroModal from '../modals/IntroModal';
 import { DocumentRecord } from '../../types';
+import MagneticButton from '../ui/MagneticButton';
 
 interface EditorProps {
     mode: 'mermaid' | 'markdown';
@@ -26,6 +27,8 @@ interface EditorProps {
     documents?: DocumentRecord[]; // 用來取得標題與模式
     onSwitchTab?: (docId: string) => void;
     onCloseTab?: (docId: string, e: React.MouseEvent) => void;
+    /** 是否有任何文件被打開 */
+    hasOpenDocuments?: boolean;
 }
 
 const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
@@ -46,6 +49,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
     documents = [],
     onSwitchTab,
     onCloseTab,
+    hasOpenDocuments = false,
 }, ref) => {
 
     const [isIntroOpen, setIsIntroOpen] = useState(false);
@@ -163,24 +167,64 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
 
                 {/* 右側操作按鈕 */}
                 <div className="flex items-center gap-1 px-2 mb-0.5 shrink-0">
-                    <RippleButton variant="icon" onClick={handleSearch}
+                    <RippleButton
+                        variant="icon"
+                        onClick={() => {
+                            if (hasOpenDocuments) handleSearch();
+                        }}
                         aria-label="搜尋與取代 (Ctrl+F)"
-                        title="搜尋 (Ctrl+F)" className="w-8 h-8 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800">
+                        title="搜尋 (Ctrl+F)"
+                        className={`w-8 h-8 text-slate-500 dark:text-slate-400
+                                    ${!hasOpenDocuments
+                                ? 'cursor-not-allowed opacity-40'
+                                : 'hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                        disabled={!hasOpenDocuments}
+                    >
                         <FileSearch size={14} />
                     </RippleButton>
-                    <RippleButton variant="icon" onClick={onCopy}
+                    <RippleButton
+                        variant="icon"
+                        onClick={() => {
+                            if (hasOpenDocuments) onCopy();
+                        }}
                         aria-label="複製內容"
-                        title="複製" className="w-8 h-8 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800">
+                        title="複製"
+                        className={`w-8 h-8 text-slate-500 dark:text-slate-400
+                                    ${!hasOpenDocuments
+                                ? 'cursor-not-allowed opacity-40'
+                                : 'hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                        disabled={!hasOpenDocuments}
+                    >
                         {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                     </RippleButton>
-                    <RippleButton variant="icon" onClick={onReset}
+                    <RippleButton
+                        variant="icon"
+                        onClick={() => {
+                            if (hasOpenDocuments) onReset();
+                        }}
                         aria-label="還原初始內容"
-                        title="重置" className="w-8 h-8 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800">
+                        title="重置"
+                        className={`w-8 h-8 text-slate-500 dark:text-slate-400
+                                    ${!hasOpenDocuments
+                                ? 'cursor-not-allowed opacity-40'
+                                : 'hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                        disabled={!hasOpenDocuments}
+                    >
                         <RefreshCw size={14} />
                     </RippleButton>
-                    <RippleButton variant="icon" onClick={onClear}
+                    <RippleButton
+                        variant="icon"
+                        onClick={() => {
+                            if (hasOpenDocuments) onClear();
+                        }}
                         aria-label="清空編輯器"
-                        title="清除" className="w-8 h-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        title="清除"
+                        className={`w-8 h-8 text-slate-400
+                                    ${!hasOpenDocuments
+                                ? 'cursor-not-allowed opacity-40'
+                                : 'hover:text-red-500 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                        disabled={!hasOpenDocuments}
+                    >
                         <Trash2 size={14} />
                     </RippleButton>
                 </div>
@@ -203,15 +247,15 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
 
                 {/* 空狀態覆蓋層 */}
                 <div className={`
-                    absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-8 space-y-6 bg-white dark:bg-slate-900 z-20 transition-all duration-700 ease-in-out
+                    absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-8 space-y-6 bg-white dark:bg-slate-900 z-20 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]
                     ${openDocIds.length > 0
-                        ? 'opacity-0 scale-[0.1] translate-x-[100%] translate-y-[100%] pointer-events-none blur-sm'
-                        : 'opacity-100 scale-100 translate-x-0 translate-y-0'
+                        ? 'opacity-0 translate-y-full pointer-events-none blur-sm'
+                        : 'opacity-100 translate-y-0'
                     }
                 `}>
                     <div className="relative">
-                        <div className="absolute -inset-4 bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-2xl animate-pulse"></div>
-                        <div className="relative p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
+                        <div className="absolute -inset-4"></div>
+                        <div className="relative p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xs border border-slate-200 dark:border-slate-700">
                             <FileSearch size={40} className="text-brand-primary" />
                         </div>
                     </div>
@@ -221,23 +265,25 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                             請在左側工具欄點選文件圖示，從「我的文檔」中選擇文件開始編輯。
                         </p>
                     </div>
-                    <button
-                        onClick={onToggleSidebar}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-bold text-sm shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 active:scale-95 transition-all"
-                    >
+
+                    <MagneticButton variant="filled" onClick={onToggleSidebar}
+                        aria-label="開啟側邊攔"
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-all select-none`}
+                        magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
                         <Menu size={15} />
-                        開啟側邊欄
-                    </button>
+                        <span>開啟側邊欄</span>
+                    </MagneticButton>
                     <div className="flex flex-col items-center gap-2">
                         <p className="text-sm leading-relaxed">
-                            不知道如何開始嗎?要不要看看
+                            不知道如何開始嗎？要不要看看
                         </p>
-                        <button
-                            onClick={() => setIsIntroOpen(true)}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-bold text-sm shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 active:scale-95 transition-all"
-                        >
-                            功能介紹
-                        </button>
+
+                        <MagneticButton variant="filled" onClick={() => setIsIntroOpen(true)}
+                            aria-label="開啟功能介紹"
+                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold transition-all select-none`}
+                            magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
+                            <span>功能介紹</span>
+                        </MagneticButton>
                     </div>
                 </div>
             </div>
