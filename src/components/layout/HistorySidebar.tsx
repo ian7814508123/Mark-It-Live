@@ -28,6 +28,7 @@ interface HistorySidebarProps {
     onMoveDocument: (docId: string, folderId: string | null) => void;
     onReorderDocuments: (docIds: string[]) => void;
     onImportFiles?: (files: FileList | File[]) => void;
+    onImportAsNewDoc?: (name: string, content: string, mode: 'markdown' | 'mermaid') => void;
 }
 
 const HistorySidebar: React.FC<HistorySidebarProps> = ({
@@ -51,6 +52,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     onMoveDocument,
     onReorderDocuments,
     onImportFiles,
+    onImportAsNewDoc,
 }) => {
     const [isToolsOpen, setIsToolsOpen] = useState(false);
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -534,6 +536,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 currentDocMode={currentDocMode}
                 onInsertIntoDoc={onInsertIntoDoc}
                 onImportFiles={onImportFiles}
+                onImportAsNewDoc={onImportAsNewDoc}
             />
         </>
     );

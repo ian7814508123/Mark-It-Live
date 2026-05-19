@@ -84,15 +84,43 @@ const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: b
 });
 
 const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
+    const { getDataFileByName } = useImageStorage();
+
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         const spec = JSON.parse(renderCode);
+
         container.innerHTML = '';
         await embed(container, spec, {
             actions: false,
             theme: isDark ? 'dark' : 'vox',
-            renderer: 'svg'
+            renderer: 'svg',
+            loader: {
+                // 1. 覆寫同步過濾器：對所有協定（包含 data-local://）同步放行，徹底消除 Sanitize failure 錯誤！
+                sanitize: (uri: string) => {
+                    return { href: uri };
+                },
+                // 2. 覆寫非同步載入器：在載入數據時進行攔截
+                load: async (uri: string) => {
+                    if (uri.startsWith('data-local://')) {
+                        const fileName = uri.replace('data-local://', '');
+                        const blob = await getDataFileByName(fileName);
+                        if (blob) {
+                            // 直接以純文字（JSON/CSV 字串）形式傳回，Vega 會自動接手解析！
+                            return await blob.text();
+                        }
+                        throw new Error(`本地數據庫中找不到檔案：${fileName}`);
+                    }
+                    
+                    // 對於一般網路的 http/https 請求，使用標準 fetch 加載
+                    const response = await fetch(uri);
+                    if (!response.ok) {
+                        throw new Error(`無法載入網路資源 ${uri}: ${response.statusText}`);
+                    }
+                    return await response.text();
+                }
+            } as any
         });
-    }, []);
+    }, [getDataFileByName]);
 
     return (
         <DiagramBlock
@@ -106,6 +134,7 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
         />
     );
 });
+
 
 const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {

@@ -1128,6 +1128,14 @@ const App: React.FC = () => {
     }
   };
 
+  // 新增：處理文字檔案導入為新文檔
+  const handleImportAsNewDoc = useCallback((name: string, content: string, importMode: 'markdown' | 'mermaid') => {
+    const newDocId = createDocument(importMode, content, name);
+    if (newDocId) {
+      handleDocumentSwitch(newDocId);
+    }
+  }, [createDocument, handleDocumentSwitch]);
+
   const handleTriggerImport = () => {
     fileInputRef.current?.click();
   };
@@ -1281,6 +1289,7 @@ const App: React.FC = () => {
             onMoveDocument={moveDocument}
             onReorderDocuments={reorderDocuments}
             onImportFiles={handleProcessFiles}
+            onImportAsNewDoc={handleImportAsNewDoc}
           />
 
           <input

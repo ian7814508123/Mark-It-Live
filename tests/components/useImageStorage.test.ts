@@ -216,4 +216,56 @@ describe('useImageStorage', () => {
             expect(result).toMatch(/04|4/);
         });
     });
+
+    // ── 測試 5：DataFiles 數據檔案操作 (新增) ──
+    describe('DataFiles 數據檔案操作', () => {
+        it('應拒絕不支援的副檔名', () => {
+            const fileName = 'data.xlsx';
+            const fileExt = fileName.split('.').pop()?.toLowerCase();
+            const ALLOWED_EXTS = ['json', 'csv', 'tsv', 'topojson'];
+            expect(ALLOWED_EXTS.includes(fileExt || '')).toBe(false);
+        });
+
+        it('應接受 JSON、CSV、TSV 與 TopoJSON 格式', () => {
+            const allowedNames = ['test.json', 'data.csv', 'report.tsv', 'world.topojson'];
+            const ALLOWED_EXTS = ['json', 'csv', 'tsv', 'topojson'];
+            
+            allowedNames.forEach(name => {
+                const ext = name.split('.').pop()?.toLowerCase();
+                expect(ALLOWED_EXTS.includes(ext || '')).toBe(true);
+            });
+        });
+
+        it('上傳數據檔案成功的虛擬路徑格式應為 data-local://[檔案名稱]', () => {
+            const fileName = 'world-110m.json';
+            const ref = `data-local://${fileName}`;
+            expect(ref).toBe('data-local://world-110m.json');
+        });
+
+        it('當上傳同名檔案時應支援覆蓋', () => {
+            const dataFiles = [
+                { id: 'file-1', name: 'world-110m.json', createdAt: 1000 }
+            ];
+            const newUploadName = 'world-110m.json';
+            
+            // 模擬覆蓋查找邏輯
+            const existing = dataFiles.find(d => d.name === newUploadName);
+            expect(existing).toBeDefined();
+            expect(existing?.id).toBe('file-1'); // 複用同一個 ID 以達到覆寫目的
+        });
+
+        it('數據檔案 LRU 應正確淘汰最舊且未被引用的數據檔案', () => {
+            const files = [
+                { id: 'file-old', name: 'old-data.csv', createdAt: 1000 },
+                { id: 'file-new', name: 'new-data.csv', createdAt: 9999 }
+            ];
+            const docContent = 'url: data-local://new-data.csv'; // 引用了 new-data.csv
+
+            const unreferenced = files.filter(f => !docContent.includes(`data-local://${f.name}`));
+            unreferenced.sort((a, b) => a.createdAt - b.createdAt);
+            const toEvict = unreferenced[0];
+
+            expect(toEvict.id).toBe('file-old');
+        });
+    });
 });

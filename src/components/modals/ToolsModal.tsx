@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Wrench, FileText, Table, BarChart2, Image, FileUp } from 'lucide-react';
+import { X, Wrench, FileText, Table, BarChart2, Database } from 'lucide-react';
 import PdfMergeTool from './PdfMergeTool';
 import TableGeneratorTool from './TableGeneratorTool';
 import WordCountTool from './WordCountTool';
-import ImageUploaderTool from './ImageUploaderTool';
-import FileImportTool from './FileImportTool';
+import DataMediaCenterTool from './DataMediaCenterTool';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import GlassRailSelector from '../ui/GlassRailSelector';
@@ -21,17 +20,18 @@ interface ToolsModalProps {
     onInsertIntoDoc: (text: string) => void;
     /** 觸發檔案導入的回呼 */
     onImportFiles?: (files: FileList | File[]) => void;
+    /** 導入為新文檔的回呼 */
+    onImportAsNewDoc?: (name: string, content: string, mode: 'markdown' | 'mermaid') => void;
 }
 
-type ToolId = 'pdf-merge' | 'table-gen' | 'word-count' | 'image-upload' | 'file-import';
+type ToolId = 'pdf-merge' | 'table-gen' | 'word-count' | 'data-media-center';
 
 /** 工具清單定義：未來新增工具只需在此擴充 */
 const TOOLS: { id: ToolId; label: string; desc: string; icon: React.ReactNode }[] = [
     { id: 'pdf-merge', label: 'PDF 合併', desc: '合併 PDF 與圖片為單一 PDF', icon: <FileText size={13} /> },
     { id: 'table-gen', label: 'MD 表格', desc: '視覺化產生 Markdown 表格', icon: <Table size={13} /> },
     { id: 'word-count', label: '字數統計', desc: '自動略過公式與圖表區塊', icon: <BarChart2 size={13} /> },
-    { id: 'image-upload', label: '圖片上傳', desc: '本地圖片上傳與即時預覽', icon: <Image size={13} /> },
-    { id: 'file-import', label: '檔案導入', desc: '導入 Markdown 或 Excel 檔案', icon: <FileUp size={13} /> },
+    { id: 'data-media-center', label: '數據與媒體中心', desc: '文檔導入、圖片及本地數據', icon: <Database size={13} /> },
 ];
 
 /** 根據 ToolId 渲染對應工具面板（新增工具只需在此 switch 加 case） */
@@ -40,19 +40,26 @@ function renderToolPanel(
     currentDocContent: string,
     currentDocMode: 'markdown' | 'mermaid',
     onInsertIntoDoc: (t: string) => void,
-    onImportFiles?: (files: FileList | File[]) => void
+    onImportFiles?: (files: FileList | File[]) => void,
+    onImportAsNewDoc?: (name: string, content: string, mode: 'markdown' | 'mermaid') => void
 ) {
     switch (id) {
         case 'pdf-merge': return <PdfMergeTool />;
         case 'table-gen': return <TableGeneratorTool currentDocMode={currentDocMode} onInsertIntoDoc={onInsertIntoDoc} />;
         case 'word-count': return <WordCountTool currentDocContent={currentDocContent} />;
-        case 'image-upload': return <ImageUploaderTool currentDocContent={currentDocContent} onInsertIntoDoc={onInsertIntoDoc} />;
-        case 'file-import': return <FileImportTool onImportFiles={onImportFiles} />;
+        case 'data-media-center': return (
+            <DataMediaCenterTool
+                currentDocContent={currentDocContent}
+                onInsertIntoDoc={onInsertIntoDoc}
+                onImportFiles={onImportFiles}
+                onImportAsNewDoc={onImportAsNewDoc}
+            />
+        );
         default: return null;
     }
 }
 
-const ToolsModal: React.FC<ToolsModalProps> = ({ isOpen, onClose, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFiles }) => {
+const ToolsModal: React.FC<ToolsModalProps> = ({ isOpen, onClose, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFiles, onImportAsNewDoc }) => {
     const [activeTool, setActiveTool] = useState<ToolId>('pdf-merge');
 
     // 初始化 AdSense
@@ -161,7 +168,7 @@ const ToolsModal: React.FC<ToolsModalProps> = ({ isOpen, onClose, currentDocCont
                                 animation: 'toolPanelIn 0.28s cubic-bezier(0.2, 0, 0, 1) both',
                             }}
                         >
-                            {renderToolPanel(activeTool, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFiles)}
+                            {renderToolPanel(activeTool, currentDocContent, currentDocMode, onInsertIntoDoc, onImportFiles, onImportAsNewDoc)}
                         </div>
                     </div>
                 </div>

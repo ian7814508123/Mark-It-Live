@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     Table, Copy, Check, AlignLeft, AlignCenter, AlignRight,
-    Plus, Minus, FileInput, AlertTriangle, ClipboardPaste, ArrowRight
+    Plus, Minus, FileInput, AlertTriangle, ClipboardPaste, ArrowRight, Info
 } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import GlassRailSelector from '../ui/GlassRailSelector';
+import ToolGuide from '../ui/ToolGuide';
+
 // ─────────────────────────────────────────────────────────────
 // 型別定義
 // ─────────────────────────────────────────────────────────────
@@ -75,6 +77,7 @@ function parseHTMLTable(html: string): ParsedTable | null {
     } catch { return null; }
 }
 
+// 解析 TSV
 function parseTSV(text: string): ParsedTable | null {
     const lines = text.trim().split('\n').filter(l => l.trim());
     if (!lines.length) return null;
@@ -82,6 +85,7 @@ function parseTSV(text: string): ParsedTable | null {
     return { headers: norm[0], rows: norm.slice(1) };
 }
 
+// 解析 CSV Line
 function parseCSVLine(line: string): string[] {
     const cells: string[] = [];
     let cur = '', inQ = false;
@@ -156,6 +160,9 @@ interface TableGeneratorToolProps {
 const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc, currentDocMode }) => {
     // ── Tab 狀態 ────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<'manual' | 'paste'>('manual');
+
+    // 指南頁面切換狀態
+    const [showInfoPopover, setShowInfoPopover] = useState(false);
 
     // ── 手動建立 狀態 ───────────────────────────────────────
     const [cols, setCols] = useState(DEFAULT_COLS);
@@ -291,24 +298,81 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
         return <AlignLeft size={11} />;
     };
 
+    // ── 指南分流渲染 ──
+    if (showInfoPopover) {
+        return (
+            <ToolGuide
+                title="MD 表格產生器 使用指南"
+                subtitle="USER GUIDE FOR MARKDOWN TABLE GENERATOR"
+                onClose={() => setShowInfoPopover(false)}
+            >
+                {/* 1. 視覺化建立 */}
+                <ToolGuide.Section title="1. 視覺化互動建立" icon="🎨">
+                    <div className="text-[12px] text-slate-555 dark:text-slate-400 space-y-1.5 leading-relaxed">
+                        <p>
+                            在<strong>「建立」</strong>分頁中，您可以透過加減按鈕彈性微調表格的<strong>欄數 (最寬 20)</strong> 與 <strong>列數 (最長 30)</strong>。
+                        </p>
+                        <p>
+                            點擊表頭上方的對齊按鈕，可一鍵循環切換該欄文字為 <strong>靠左、置中、或靠右對齊</strong>，底下的輸出框將為您即時生成對應的 Markdown 表格分隔符。
+                        </p>
+                    </div>
+                </ToolGuide.Section>
+
+                {/* 2. 貼上即轉換 */}
+                <ToolGuide.Section title="2. 智能外部表格轉換" icon="📋">
+                    <div className="text-[12px] text-slate-555 dark:text-slate-400 space-y-1.5 leading-relaxed">
+                        <p>
+                            切換至<strong>「貼上」</strong>分頁，您可以將從網頁、Word 或 <strong>Excel / Google Sheets</strong> 中複製的表格直接貼上。
+                        </p>
+                        <p>
+                            系統具備極佳的探測引擎，能自動識別 <strong>HTML 表格、TSV（以 Tab 分隔）與 CSV（以逗號分隔）</strong> 並瞬間將其解析重組為標準 Markdown，省去您手動重新打字的時間。
+                        </p>
+                    </div>
+                </ToolGuide.Section>
+
+                {/* 3. 混合式精細調整 */}
+                <ToolGuide.Section title="3. 載入編輯器二次精修" icon="🔄">
+                    <div className="text-[12px] text-slate-555 dark:text-slate-400 space-y-1.5 leading-relaxed">
+                        <p>
+                            當您貼上並成功解析表格後，除了可以直接「複製」或「插入」Markdown，還可以點擊<strong>「載入至編輯器」</strong>。
+                        </p>
+                        <p>
+                            這會將解析結果自動載入到手動「建立」的網格編輯器中，讓您可以繼續新增欄位、填補空白儲存格或調整欄位對齊方式，實現無縫的混合工作流程。
+                        </p>
+                    </div>
+                </ToolGuide.Section>
+            </ToolGuide>
+        );
+    }
+
     // ── Render ───────────────────────────────────────────────
     return (
         <div className="flex flex-col gap-2 p-3 min-h-0 h-full">
 
             {/* ── 標題 ── */}
             <div className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                <div className="flex items-center gap-2.5 mb-1">
-                    <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
-                        <Table size={16} />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Markdown 表格產生器</h3>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
-                            視覺化編輯，或貼上外部表格自動轉換
-                        </p>
+                <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
+                            <Table size={16} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-1.5">
+                                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Markdown 表格產生器</h3>
+                                <button
+                                    onClick={() => setShowInfoPopover(true)}
+                                    className="p-0.5 rounded-md transition-colors text-slate-400 hover:text-brand-primary hover:bg-slate-50 dark:hover:bg-slate-850"
+                                    title="顯示表格工具說明"
+                                >
+                                    <Info size={15} />
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                                視覺化編輯，或貼上外部表格自動轉換
+                            </p>
+                        </div>
                     </div>
                 </div>
-
             </div>
 
             {/* Mermaid 模式警告 */}
@@ -347,7 +411,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                             <div className="flex items-center justify-center gap-4 shrink-0">
                                 {/* 欄數 */}
                                 <div className="flex items-center gap-1.5 justify-center">
-                                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide w-5">欄</span>
+                                    <span className="text-[10px] font-semibold text-slate-550 dark:text-slate-400 uppercase tracking-wide w-5">欄</span>
                                     <button onClick={() => handleColChange(-1)} disabled={cols <= MIN_COLS} aria-label="減少欄數"
                                         className="w-6 h-6 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-brand-secondary dark:hover:bg-brand-primary/30 hover:text-brand-primary disabled:opacity-30 disabled:pointer-events-none transition-colors">
                                         <Minus size={11} />
@@ -361,7 +425,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                 <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
                                 {/* 列數 */}
                                 <div className="flex items-center gap-1.5 justify-center">
-                                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide w-5">列</span>
+                                    <span className="text-[10px] font-semibold text-slate-550 dark:text-slate-400 uppercase tracking-wide w-5">列</span>
                                     <button onClick={() => handleRowChange(-1)} disabled={rows <= MIN_ROWS} aria-label="減少列數"
                                         className="w-6 h-6 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-brand-secondary dark:hover:bg-brand-primary/30 hover:text-brand-primary disabled:opacity-30 disabled:pointer-events-none transition-colors">
                                         <Minus size={11} />
@@ -399,7 +463,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                                     <th key={ci} className="p-0 font-normal">
                                                         <input type="text" value={val} placeholder={`欄位 ${ci + 1}`}
                                                             onChange={e => handleCellChange(0, ci, e.target.value)}
-                                                            className="w-full px-2 py-1.5 text-[11px] font-semibold text-brand-primary dark:text-brand-primary bg-transparent placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:bg-brand-secondary/40 dark:focus:bg-brand-primary/20 transition-colors" />
+                                                            className="w-full px-2 py-1.5 text-[11px] font-semibold text-brand-primary dark:text-brand-primary bg-transparent placeholder:text-slate-350 dark:placeholder:text-slate-600 focus:outline-none focus:bg-brand-secondary/40 dark:focus:bg-brand-primary/20 transition-colors" />
                                                     </th>
                                                 ))}
                                             </tr>
@@ -411,7 +475,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                                         <td key={ci} className={`p-0 ${ci < cols - 1 ? 'border-r border-slate-100 dark:border-slate-800' : ''} ${ri < rows - 1 ? 'border-b border-slate-100 dark:border-slate-800' : ''}`}>
                                                             <input type="text" value={val} placeholder="—"
                                                                 onChange={e => handleCellChange(ri + 1, ci, e.target.value)}
-                                                                className="w-full px-2 py-1.5 text-[11px] text-slate-600 dark:text-slate-300 bg-transparent placeholder:text-slate-200 dark:placeholder:text-slate-700 focus:outline-none focus:bg-brand-secondary/40 dark:focus:bg-brand-primary/10 transition-colors" />
+                                                                className="w-full px-2 py-1.5 text-[11px] text-slate-650 dark:text-slate-300 bg-transparent placeholder:text-slate-200 dark:placeholder:text-slate-750 focus:outline-none focus:bg-brand-secondary/40 dark:focus:bg-brand-primary/20 transition-colors" />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -431,13 +495,13 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                             {inserted ? <><Check size={12} />已插入！</> : <><FileInput size={12} />插入文件</>}
                                         </RippleButton>
                                         <RippleButton variant="tonal" onClick={handleCopy}
-                                            className={`text-[11px] h-7 px-2.5 gap-1 transition-all ${copied ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            className={`text-[11px] h-7 px-2.5 gap-1 transition-all ${copied ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-655 dark:text-slate-300'}`}>
                                             {copied ? <><Check size={12} />已複製</> : <><Copy size={12} />複製</>}
                                         </RippleButton>
                                     </div>
                                 </div>
                                 <div className="min-h-[100px] max-h-[160px] rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden relative">
-                                    <pre className="absolute inset-0 text-[10.5px] leading-relaxed font-mono text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3 overflow-auto custom-scrollbar whitespace-pre">
+                                    <pre className="absolute inset-0 text-[10.5px] leading-relaxed font-mono text-slate-650 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3 overflow-auto custom-scrollbar whitespace-pre">
                                         {markdown}
                                     </pre>
                                 </div>
@@ -455,7 +519,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                     value={pasteInput}
                                     onChange={e => setPasteInput(e.target.value)}
                                     placeholder={`在此貼上表格內容，自動識別以下格式：\n\n• HTML 表格（從網頁 / Word / Excel 複製）\n• TSV（從 Excel / Google Sheets 複製）\n• CSV（逗號分隔文字）\n• Markdown 表格語法`}
-                                    className="w-full h-full min-h-[130px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-[11px] font-mono text-slate-600 dark:text-slate-300 p-3 pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/50 transition-all custom-scrollbar placeholder:text-slate-300 dark:placeholder:text-slate-600 placeholder:font-sans"
+                                    className="w-full h-full min-h-[130px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-[11px] font-mono text-slate-650 dark:text-slate-300 p-3 pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/50 transition-all custom-scrollbar placeholder:text-slate-300 dark:placeholder:text-slate-600 placeholder:font-sans"
                                     spellCheck={false}
                                 />
                                 {/* 格式徽章 */}
@@ -487,7 +551,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
 
                                     {/* Markdown 預覽 */}
                                     <div className="min-h-[80px] max-h-[150px] rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden relative">
-                                        <pre className="absolute inset-0 text-[10.5px] leading-relaxed font-mono text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3 overflow-auto custom-scrollbar whitespace-pre">
+                                        <pre className="absolute inset-0 text-[10.5px] leading-relaxed font-mono text-slate-650 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3 overflow-auto custom-scrollbar whitespace-pre">
                                             {pastedMarkdown}
                                         </pre>
                                     </div>
@@ -495,7 +559,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                     {/* 操作按鈕 */}
                                     <div className="flex items-center gap-1.5 justify-end">
                                         <RippleButton variant="tonal" onClick={handleLoadToEditor}
-                                            className="text-[11px] h-7 px-2.5 gap-1 text-slate-600 dark:text-slate-300"
+                                            className="text-[11px] h-7 px-2.5 gap-1 text-slate-650 dark:text-slate-300"
                                             title="載入至手動編輯器後可進一步調整">
                                             <ArrowRight size={12} />載入至編輯器
                                         </RippleButton>
@@ -504,7 +568,7 @@ const TableGeneratorTool: React.FC<TableGeneratorToolProps> = ({ onInsertIntoDoc
                                             {pasteInserted ? <><Check size={12} />已插入！</> : <><FileInput size={12} />插入文件</>}
                                         </RippleButton>
                                         <RippleButton variant="tonal" onClick={handlePasteCopy}
-                                            className={`text-[11px] h-7 px-2.5 gap-1 transition-all ${pasteCopied ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            className={`text-[11px] h-7 px-2.5 gap-1 transition-all ${pasteCopied ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-655 dark:text-slate-300'}`}>
                                             {pasteCopied ? <><Check size={12} />已複製</> : <><Copy size={12} />複製</>}
                                         </RippleButton>
                                     </div>

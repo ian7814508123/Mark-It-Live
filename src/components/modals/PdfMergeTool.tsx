@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2, Upload } from 'lucide-react';
+import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2, Upload, Info } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
+import ToolGuide from '../ui/ToolGuide';
 
 /** 使用者加入的合併項目 */
 interface MergeItem {
@@ -17,6 +18,9 @@ const PdfMergeTool: React.FC = () => {
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // 指南頁面切換狀態
+    const [showInfoPopover, setShowInfoPopover] = useState(false);
 
     /** 接受 File 列表並加入 items */
     const addFiles = useCallback((files: FileList | File[]) => {
@@ -126,19 +130,79 @@ const PdfMergeTool: React.FC = () => {
         }
     };
 
+    // ── 指南分流渲染 ──
+    if (showInfoPopover) {
+        return (
+            <ToolGuide
+                title="PDF 合併 使用指南"
+                subtitle="USER GUIDE FOR PDF MERGING"
+                onClose={() => setShowInfoPopover(false)}
+            >
+                {/* 1. 多格式上傳 */}
+                <ToolGuide.Section title="1. 支援合併多種檔案格式" icon="">
+                    <div className="text-[12px] text-slate-555 dark:text-slate-400 space-y-1.5 leading-relaxed">
+                        <p>
+                            您可以同時將多個 <strong>PDF 文件</strong>或是 <strong>PNG、JPG、JPEG</strong> 格式的圖片拖放或上傳至系統中。
+                        </p>
+                        <p>
+                            不管是多頁 PDF 的重組，還是把多張會議記錄、簽名圖片彙整成單一 PDF，此工具皆能完美搞定。
+                        </p>
+                    </div>
+                </ToolGuide.Section>
+
+                {/* 2. 拖曳排序 */}
+                <ToolGuide.Section title="2. 直覺式拖曳排序" icon="">
+                    <div className="text-[12px] text-slate-555 dark:text-slate-400 space-y-1.5 leading-relaxed">
+                        <p>
+                            檔案上傳後會列在下方清單中。您可以點選各檔案左側的<strong>「拖曳手把」</strong>，上下拉動即可動態變更合併順序。
+                        </p>
+                        <p>
+                            輸出後的 PDF 將完全遵循您在此清單中所擺放的順序進行封裝。
+                        </p>
+                    </div>
+                </ToolGuide.Section>
+
+                {/* 3. A4 等比縮放 */}
+                <ToolGuide.Section title="3. A4 等比縮放與隱私安全" icon="">
+                    <div className="text-[12px] text-slate-555 dark:text-slate-400 space-y-1.5 leading-relaxed">
+                        <p>
+                            <strong>A4 等比縮放：</strong>
+                            針對您上傳的圖片，系統會以標準 <code>A4 (595 × 842 pt)</code> 頁面尺寸為基準，自動進行等比例縮放並居中嵌入，絕不拉伸變形。
+                        </p>
+                        <p className="border-t border-slate-100 dark:border-slate-800/50 pt-1.5 mt-1.5">
+                            <strong>100% 本地處理：</strong>
+                            所有合併邏輯完全在您當前的瀏覽器中<strong>離線進行</strong>，您的隱私文件絕對不會被上傳到任何外部伺服器，保證資訊安全無虞。
+                        </p>
+                    </div>
+                </ToolGuide.Section>
+            </ToolGuide>
+        );
+    }
+
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex flex-col gap-2 p-3 min-h-0 h-full">
             {/* ── 標題 ── */}
             <div className="px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                <div className="flex items-center gap-2.5 mb-1">
-                    <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
-                        <FilePlus2 size={16} />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">PDF 合併工具</h3>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
-                            PDF・PNG・JPG → 單一 PDF
-                        </p>
+                <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-brand-secondary dark:bg-brand-primary/20 text-brand-primary rounded-xl flex items-center justify-center">
+                            <FilePlus2 size={16} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-1.5">
+                                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">PDF 合併工具</h3>
+                                <button
+                                    onClick={() => setShowInfoPopover(true)}
+                                    className="p-0.5 rounded-md transition-colors text-slate-400 hover:text-brand-primary hover:bg-slate-50 dark:hover:bg-slate-850"
+                                    title="顯示合併工具說明"
+                                >
+                                    <Info size={15} />
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                                PDF・PNG・JPG → 單一 PDF
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -249,12 +313,12 @@ const PdfMergeTool: React.FC = () => {
             </div>
 
             {/* ── 底部操作 ── */}
-            <div className="px-4 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+            <div className="px-4 py-1 border-t border-slate-100 dark:border-slate-800 shrink-0">
                 <RippleButton
                     variant="filled"
                     onClick={handleMerge}
                     disabled={isMerging || items.length === 0}
-                    className={`w-full h-11 justify-center rounded-xl font-bold gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/20 ${isMerging || items.length === 0 ? 'opacity-50 cursor-not-allowed shadow-none' : ''}`}
+                    className={`w-full h-10 justify-center rounded-xl font-bold gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/20 ${isMerging || items.length === 0 ? 'opacity-50 cursor-not-allowed shadow-none' : ''}`}
                 >
                     {isMerging ? (
                         <>
