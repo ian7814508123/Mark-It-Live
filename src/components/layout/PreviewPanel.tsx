@@ -81,7 +81,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto p-8 lg:p-12 min-h-full print:p-0 print:overflow-visible'}>
+            <div className={isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto px-8 pb-4 lg:pt-12 lg:px-12 lg:pb-6 min-h-full print:p-0'}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}

@@ -1221,7 +1221,7 @@ const App: React.FC = () => {
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300 print:hidden"
             aria-live="polite"
           >
-            <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
+            {/* <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
               <InteractiveLogo size={48} loading={true} showBg={false} variant="v1" className="mb-2" />
               <div className="flex flex-col gap-1.5 mt-2">
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">正在最佳化 PDF 文件與圖表配置...</p>
@@ -1233,7 +1233,7 @@ const App: React.FC = () => {
               >
                 取消列印
               </button>
-            </div>
+            </div> */}
           </div>
         )}
         <Header
