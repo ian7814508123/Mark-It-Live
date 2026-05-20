@@ -84,7 +84,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
 
     // 軌道分頁設定
     const tabOptions: GlassRailOption<'import' | 'data' | 'images'>[] = [
-        { label: '檔案導入', value: 'import', icon: <FileUp size={13} /> },
+        { label: '文檔', value: 'import', icon: <FileUp size={13} /> },
         { label: '檔案與數據', value: 'data', icon: <Database size={13} /> },
         { label: '圖片庫', value: 'images', icon: <ImageIcon size={13} /> }
     ];
@@ -388,7 +388,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                                     {activeTab === 'images'
                                         ? 'JPG · PNG · GIF · WebP · SVG'
                                         : activeTab === 'import'
-                                            ? 'Markdown · Excel · CSV · MMD'
+                                            ? 'Markdown · Excel · TXT · MMD'
                                             : 'JSON · CSV · TSV · TopoJSON'}
                                 </p>
                             </div>
@@ -403,7 +403,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                     accept={activeTab === 'images'
                         ? "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
                         : activeTab === 'import'
-                            ? ".xlsx,.xls,.csv,.md,.txt,.mmd"
+                            ? ".xlsx,.xls,.md,.txt,.mmd"
                             : ".json,.csv,.tsv,.topojson"}
                     className="hidden"
                     onChange={(e) => e.target.files && handleFiles(e.target.files)}
