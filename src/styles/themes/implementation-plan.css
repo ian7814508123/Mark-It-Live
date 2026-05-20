@@ -43,10 +43,11 @@
     /* 6. 系統 UI 對接 (System UI Bridge) */
     --brand-primary: #005B94;
     --brand-secondary: #f0f9ff;
-    --brand-surface: #f8fafc;
     --brand-accent: #0366d6;
     --code-bg: #f0f9ff; /* 統一 diagram 與 code block */
     --code-border: #cbd5e1;
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 91, 148, 0.05);
 }
 
 /* 深色模式下的變數覆蓋 */
@@ -75,6 +76,8 @@
     --brand-accent: #38bdf8;
     --code-bg: #010409;
     --code-border: rgba(56, 189, 248, 0.2);
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.35);
 }
 
 /* 主題基礎樣式 */

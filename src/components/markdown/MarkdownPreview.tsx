@@ -18,6 +18,7 @@ import { WrapText } from 'lucide-react';
 import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
+import { CodeBlockHeader } from './CodeBlockHeader';
 
 interface MarkdownPreviewProps {
     content: string;
@@ -408,6 +409,7 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
     // 預設需要換行的語言
     const defaultWrapLanguages = ['text', 'log', 'json', 'bash', 'sh', 'yaml', 'plaintext', 'markdown'];
     const [isWrapped, setIsWrapped] = useState(defaultWrapLanguages.includes(language));
+    const [isScrolled, setIsScrolled] = useState(false);
 
     // 列印模式為了防截斷，強制換行
     const effectiveWrapped = isActuallyPrinting || isWrapped;
@@ -417,45 +419,46 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
         window.dispatchEvent(new CustomEvent('content-layout-ready'));
     }, [effectiveWrapped]);
 
+    const handleScroll = useCallback((e: React.UIEvent<HTMLPreElement>) => {
+        const scrollLeft = e.currentTarget.scrollLeft;
+        setIsScrolled(scrollLeft > 0);
+    }, []);
+
+    // 動態計算最大位數，仿照 VS Code 做法，至少預留 2 位數空間
+    const maxDigits = useMemo(() => {
+        const lineCount = codeString.split('\n').length;
+        return Math.max(2, lineCount.toString().length);
+    }, [codeString]);
+
     return (
-        <div className="relative group/codeblock w-full my-6">
-            {/* 語言標籤 */}
-            {language && (
-                <div className="code-lang-label absolute top-0 left-0 px-3 py-1 text-[10px] font-mono tracking-wider uppercase text-slate-600 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-700/50 rounded-tl-lg rounded-br-lg z-10 pointer-events-none select-none">
-                    {language}
-                </div>
-            )}
-
-            {/* 切換換行的按鈕 (不給列印時顯示) */}
-            {!isActuallyPrinting && (
-                <button
-                    className={`absolute top-2 right-2 p-1.5 rounded-md transition-all duration-200 z-10 opacity-0 group-hover/codeblock:opacity-100 
-                        ${isWrapped
-                            ? 'bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/30 dark:text-brand-primary font-semibold'
-                            : 'bg-slate-100 text-slate-400 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}
-                    onClick={() => setIsWrapped(!isWrapped)}
-                    title={isWrapped ? "禁用自動換行" : "啟用自動換行"}
-                    aria-label="Toggle Word Wrap"
-                >
-                    <WrapText size={16} />
-                </button>
-            )}
-
+        <div 
+            className="relative group/codeblock w-full my-6"
+            style={{ '--code-max-digits': maxDigits } as React.CSSProperties}
+        >
             <div
-                className={`enhanced-codeblock ${effectiveWrapped ? 'code-block-wrap' : 'code-block-scroll'}`}
+                className={`enhanced-codeblock ${effectiveWrapped ? 'code-block-wrap' : 'code-block-scroll'} ${!effectiveWrapped && isScrolled ? 'has-scrolled' : ''}`}
                 data-theme-style={(isActuallyPrinting || !shouldShowDark) ? 'light' : 'dark'}
             >
+                {language && (
+                    <CodeBlockHeader 
+                        language={language}
+                        isWrapped={isWrapped}
+                        onToggleWrap={isActuallyPrinting ? undefined : () => setIsWrapped(!isWrapped)}
+                        showWrapButton={!isActuallyPrinting}
+                    />
+                )}
+
                 <SyntaxHighlighter
                     key={stableKey}
                     language={language || 'text'}
                     useInlineStyles={false}
                     customStyle={{
                         margin: '0',
-                        padding: '1.5rem 1rem 1rem 1rem',
+                        padding: language ? '1rem' : '1.2rem 1rem 1rem 1rem',
                         fontSize: '0.875rem',
                         lineHeight: '1.5',
-                        backgroundColor: 'transparent',
-                        borderRadius: '0.5rem',
+                        backgroundColor: 'var(--code-bg)',
+                        borderRadius: language ? '0 0 0.5rem 0.5rem' : '0.5rem',
                         border: '1px solid var(--code-border)',
                         overflowX: effectiveWrapped ? 'hidden' : 'auto',
                         tabSize: '2',
@@ -464,6 +467,9 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
                     wrapLines={true} /* 強制每一行編織成 span，作為 css counter 基準 */
                     lineProps={{
                         className: 'code-line'
+                    }}
+                    preTagProps={{
+                        onScroll: handleScroll
                     }}
                 >
                     {codeString}
@@ -619,13 +625,13 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const line = node?.position?.start?.line;
 
             if (isBlock) {
-                if (language === 'mermaid') return wrapWithComment(node, <div className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
-                if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
-                if (language === 'smiles') return wrapWithComment(node, <div className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
-                if (language === 'abc') return wrapWithComment(node, <React.Suspense fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div></React.Suspense>);
+                if (language === 'mermaid') return wrapWithComment(node, <div key={stableKey} className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div key={stableKey} className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'smiles') return wrapWithComment(node, <div key={stableKey} className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'abc') return wrapWithComment(node, <React.Suspense key={stableKey} fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div></React.Suspense>);
 
                 return wrapWithComment(node, (
-                    <div className="code-block-wrapper not-prose">
+                    <div key={stableKey} className="code-block-wrapper not-prose">
                         <EnhancedCodeBlock
                             language={language}
                             codeString={codeString}

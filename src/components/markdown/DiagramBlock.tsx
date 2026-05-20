@@ -51,13 +51,13 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
     }, [code]);
 
     const storageKey = useMemo(() => `chart-size-${type}:${hashString(code)}`, [type, code]);
-    
-    const { 
-        width, 
-        align, 
-        updateWidth, 
-        updateAlign, 
-        reset 
+
+    const {
+        width,
+        align,
+        updateWidth,
+        updateAlign,
+        reset
     } = usePersistentCanvasSettings(storageKey, initialWidth, initialAlign);
 
     const debouncedCode = useDebounce(code, 400);
@@ -75,6 +75,10 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
         }));
     }, []);
 
+    // 使用 Ref 儲存 render 函數以避免 callback 參考漂移觸發重繪
+    const renderRef = useRef(render);
+    renderRef.current = render;
+
     useEffect(() => {
         if (!renderCode) return;
 
@@ -85,7 +89,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
             if (!containerRef.current) return;
             isMounted.current = true;
             try {
-                await render(containerRef.current, renderCode, isDark);
+                await renderRef.current(containerRef.current, renderCode, isDark);
                 if (isMounted.current) {
                     lastValidHtml.current = containerRef.current.innerHTML;
                     setError(null);
@@ -111,7 +115,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
             isMounted.current = false;
             clearTimeout(timer);
         };
-    }, [renderCode, isDark, render, type, notifyReady, isActuallyPrinting]);
+    }, [renderCode, isDark, type, notifyReady, isActuallyPrinting]);
 
     // 列印模式：套用使用者調整的 width 與 align，確保列印結果與預覽一致
     if (isActuallyPrinting) {
@@ -119,14 +123,14 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
             <div
                 className={`chart-wrapper align-${align} ${containerClassName} relative`}
             >
-                <div 
+                <div
                     className="chart-content"
                     style={{ width }}
                 >
                     <div
                         data-diagram-id={storageKey}
                         className="diagram-block-container flex p-6 rounded-2xl border border-slate-200 relative"
-                        style={{ 
+                        style={{
                             backgroundColor: 'var(--code-bg)',
                             justifyContent: 'center',
                             printColorAdjust: 'exact',
@@ -154,9 +158,9 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
                 <div
                     data-diagram-id={storageKey}
                     className={`diagram-block-container flex p-6 rounded-2xl shadow-sm border overflow-hidden transition-opacity duration-300 relative ${isDark ? 'border-slate-700/50' : 'border-slate-200/50'} ${isPending ? 'opacity-50' : 'opacity-100'} ${containerClassName}`}
-                    style={{ 
-                        width: '100%', 
-                        height: 'auto', 
+                    style={{
+                        width: '100%',
+                        height: 'auto',
                         backgroundColor: 'var(--code-bg)',
                         justifyContent: 'center',
                         alignItems: 'center'

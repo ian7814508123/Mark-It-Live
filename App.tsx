@@ -845,6 +845,11 @@ const App: React.FC = () => {
       clearTimeout(printTimeoutRef.current);
     }
 
+    // 列印時防禦性地臨時移除 .dark，防止深色模式的主題變數在列印時被匹配並渲染
+    if (isDarkMode) {
+      document.documentElement.classList.remove('dark');
+    }
+
     flushSync(() => {
       setPrintSessionId(currentPrintSessionId);
       setIsPrinting(true);
@@ -860,6 +865,12 @@ const App: React.FC = () => {
       // 恢復原本的標題
       document.title = prevTitle;
       setIsPrinting(false);
+      
+      // 列印結束後恢復深色模式
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+      }
+      
       document.getElementById('app-print-override')?.remove();
       printTimeoutRef.current = null;
     };
@@ -875,8 +886,14 @@ const App: React.FC = () => {
       printTimeoutRef.current = null;
     }
     setIsPrinting(false);
+    
+    // 取消列印時同樣恢復深色模式
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+    
     document.getElementById('app-print-override')?.remove();
-  }, []);
+  }, [isDarkMode]);
 
   // 攔截 Ctrl + P (原生列印捷徑)
   useEffect(() => {

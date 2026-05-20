@@ -37,6 +37,8 @@
         /* 程式碼與圖表容器變數 (淺色預設) */
         --code-bg: #f8f9fa;
         --code-border: #e2e8f0;
+        --code-line-number-bg: var(--code-bg);
+        --code-line-number-shadow: rgba(0, 0, 0, 0.05);
 
         /* Mermaid 流程圖專用變數 (淺色預設) */
         --mermaid-node-bg: #f1f5f9;
@@ -87,6 +89,8 @@
         /* 程式碼與圖表變數 (深色預設) */
         --code-bg: #1e1e1e;
         --code-border: #334155;
+        --code-line-number-bg: var(--code-bg);
+        --code-line-number-shadow: rgba(0, 0, 0, 0.25);
 
         /* Mermaid 專用變數 (深色預設) */
         --mermaid-node-bg: #1e293b;
@@ -563,8 +567,10 @@
             color-adjust: exact !important;
             transition: none !important;
             animation: none !important;
-            text-shadow: none !important; /* 消除文字重影/疊影 */
-            box-shadow: none !important;  /* 消除容器陰影 */
+            text-shadow: none !important;
+            /* 消除文字重影/疊影 */
+            box-shadow: none !important;
+            /* 消除容器陰影 */
         }
 
         /* 2. 全域強制顏色與背景重置 (僅針對基礎容器) */
@@ -584,7 +590,8 @@
         /* 3. 在列印環境下重新宣告語法高亮變數（不依賴 .dark 類別）
          *    使用 VS Code Light+ 風格，確保在白紙上的對比度與可讀性。
          *    同時針對 .dark 類別強制重置，防止主題變數洩漏。 */
-        :root, .dark {
+        :root,
+        .dark {
             --code-bg: #f8f9fa !important;
             --code-border: #e2e8f0 !important;
             --code-token-comment: #008000 !important;
@@ -633,7 +640,8 @@
         .code-lang-label {
             color: #475569 !important;
             /* slate-600 */
-            background-color: #f1f5f9 !important; /* 不透明淺灰 */
+            background-color: #f1f5f9 !important;
+            /* 不透明淺灰 */
             border-bottom: 1px solid #cbd5e1;
             border-right: 1px solid #cbd5e1;
             text-shadow: none !important;
@@ -738,10 +746,21 @@
 
     /* 🌟 智能行號與斷行控制 (CSS Counters & Hanging Indent) */
 
+    /* 強制將 pre 的左內距歸零，防止水平滾動時在最左側與 sticky 行號之間產生「露出區」漏洞 */
+    .enhanced-codeblock pre {
+        padding-left: 0 !important;
+    }
+
     /* 增強型程式碼區塊：重設行號計數器 */
     .enhanced-codeblock code {
         counter-reset: code-line;
         display: block;
+    }
+
+    /* 橫向捲動模式下，強制 code 元素寬度為 max-content，以防止滾動時行號包含塊寬度不足，導致行號無法正確 sticky 固定在最左側 */
+    .enhanced-codeblock.code-block-scroll code {
+        width: max-content;
+        min-width: 100%;
     }
 
     /* 每一行程式碼的包裝 */
@@ -750,6 +769,8 @@
         display: block;
         padding-left: 0;
         text-indent: 0;
+        isolation: isolate;
+        /* 建立獨立的 Stacking Context，防禦性地確保行號偽元素絕對位於高亮 span 之上 */
     }
 
     /* 利用 ::before 偽元素呈現行號，並支援 Sticky 定位 */
@@ -760,14 +781,25 @@
         /* 當向右捲動查看長程式碼時，行號會吸附於左側 */
         left: 0;
         z-index: 10;
-        min-width: 2.5em;
+        box-sizing: content-box; /* 強制使用 content-box，使 width 僅代表數字寬度，不受 padding 影響 */
+        /* 仿照 CodeMirror 做法，依據當前程式碼區塊的總位數，動態計算行號寬度，每個等寬數字寬度約為 0.55em */
+        width: calc(var(--code-max-digits, 2) * 0.55em);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 強制等寬字體，確保寬度精確計算 */
         text-align: right;
+        padding-left: 1rem; /* 補回 pre 失去 the 左內距，並在水平滾動時作為不透明背景遮擋代碼的防禦牆 */
         padding-right: 0.75em;
         margin-right: 1.25em;
         border-right: 1px solid var(--code-border);
         font-style: italic;
         user-select: none;
         /* 行號不可選取，方便複製程式碼內文 */
+        background-color: var(--code-line-number-bg);
+        transition: box-shadow 0.2s var(--m3-easing-standard);
+    }
+
+    /* 當向右滾動時，在行數欄位的右邊緣動態加上一層淡淡的投影效果 */
+    .enhanced-codeblock.has-scrolled .code-line::before {
+        box-shadow: 4px 0 8px var(--code-line-number-shadow);
     }
 
     /* 深色模式下的行號顏色 */

@@ -47,6 +47,8 @@
     --brand-accent: #c9423a;
     --code-bg: #fdfbf7; /* 淡竹麻色代碼區背景 */
     --code-border: #e6dfd3;
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(44, 42, 41, 0.05);
 }
 
 /* 深色模式下的變數覆蓋 (玄黑與玉白) */
@@ -73,6 +75,8 @@
     --brand-accent: #e5dfd3;
     --code-bg: #20211d; /* 玄灰代碼背景 - 統一 diagram 與 code block */
     --code-border: #33342e; /* 炭灰邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.35);
 }
 
 /* 樣式套用 (Prose Binding) */

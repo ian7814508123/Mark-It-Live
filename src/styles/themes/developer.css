@@ -47,6 +47,8 @@
     --brand-accent: #10b981;
     --code-bg: #f8fafc;
     --code-border: #cbd5e1;
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(5, 150, 105, 0.06);
 }
 
 /* 深色模式下的變數覆蓋 */
@@ -74,6 +76,8 @@
     --brand-accent: #6ee7b7;
     --code-bg: #010409;
     --code-border: rgba(52, 211, 153, 0.3);
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.4);
 }
 
 .theme-developer.prose {
@@ -181,37 +185,19 @@
     color: var(--theme-text-color);
 }
 
-/* Print Specifics */
+/* Print Specifics: 僅微調列印版面尺寸與學術邊框，其餘變數會隨架構自動降級回淺色模式 */
 @media print {
-    /* 核心修正：強制重置深色模式變數，避免列印時出現深色背景或亮綠色 UI */
-    .theme-developer,
-    .dark .theme-developer {
-        --brand-primary: #059669 !important;
-        --brand-secondary: #ecfdf5 !important;
-        --brand-surface: #ffffff !important;
-        --code-bg: #f8fafc !important;
-        --code-border: #cbd5e1 !important;
-    }
-
     .theme-developer.prose {
-        background-color: white !important;
-        color: #0b1120 !important;
-        font-size: 10pt !important;
+        font-size: 10pt;
     }
 
     .theme-developer.prose h1,
     .theme-developer.prose h2,
     .theme-developer.prose h3 {
-        color: #059669 !important;
-        border-bottom: 1pt solid #059669;
+        border-bottom: 1pt solid var(--brand-primary);
     }
 
     .theme-developer.prose pre {
-        background-color: #f8fafc !important;
-        border: 1pt solid #cbd5e1 !important;
-        border-left: 3pt solid #10b981 !important;
-        color: #1e293b !important;
-        box-shadow: none !important;
-        text-shadow: none !important;
+        border-left: 3pt solid #10b981;
     }
 }
