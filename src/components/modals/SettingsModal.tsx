@@ -9,6 +9,7 @@ import { PrintSettings } from '../../hooks/useAppSettings';
 import pkg from '../../../package.json';
 import InteractiveLogo from '../ui/InteractiveLogo';
 import ThemeGridSelector, { ThemeOption } from '../ui/ThemeGridSelector';
+import { CHANGELOG_CARDS } from '../../data/changelogData';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -263,88 +264,61 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         showChangelog ? (
                             <div key="about-changelog" className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-                                    <RippleButton variant="icon" onClick={() => setShowChangelog(false)} className="w-8 h-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-full">
+                                    <MagneticButton variant="icon" onClick={() => setShowChangelog(false)} className="w-8 h-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-full">
                                         <ChevronLeft size={20} />
-                                    </RippleButton>
+                                    </MagneticButton>
                                     <div>
                                         <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">發行內容 (What's New)</h3>
                                         <p className="text-[10px] font-bold text-brand-primary lowercase tracking-widest mt-0.5">Version {version}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <div className="p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 shadow-sm">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-500 dark:text-indigo-400 rounded-2xl">
-                                                <PackagePlus size={18} />
+                                    {CHANGELOG_CARDS.map((card, idx) => {
+                                        const CardIcon = card.icon;
+                                        return (
+                                            <div key={idx} className={`p-5 bg-gradient-to-br ${card.cardBgGradient} rounded-2xl border ${card.cardBorderColor} shadow-sm`}>
+                                                {card.subSections ? (
+                                                    card.subSections.map((sub, sIdx) => {
+                                                        const SubIcon = sub.icon;
+                                                        return (
+                                                            <div key={sIdx} className="mb-5 last:mb-0">
+                                                                <div className="flex items-center gap-3 mb-3">
+                                                                    <div className={`p-2 ${card.iconBgColor} ${card.iconTextColor} rounded-2xl`}>
+                                                                        <SubIcon size={18} />
+                                                                    </div>
+                                                                    <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{sub.title}</h4>
+                                                                </div>
+                                                                {sub.details.map((detail, dIdx) => (
+                                                                    <p key={dIdx} className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 mb-2 last:mb-0">
+                                                                        {detail}
+                                                                    </p>
+                                                                ))}
+                                                                {sIdx < card.subSections.length - 1 && (
+                                                                    <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-5 ml-11" />
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <>
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <div className={`p-2 ${card.iconBgColor} ${card.iconTextColor} rounded-2xl`}>
+                                                                <CardIcon size={18} />
+                                                            </div>
+                                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{card.title}</h4>
+                                                        </div>
+                                                        {card.bullets && (
+                                                            <ul className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 list-disc list-outside space-y-1.5 pl-4 opacity-90">
+                                                                {card.bullets.map((bullet, bIdx) => (
+                                                                    <li key={bIdx}>{bullet}</li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
-                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">合併列印 Markdown & Mermaid</h4>
-                                        </div>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            在資料夾模式下,您可以開啟 <code className="px-1 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[10px] font-mono mx-1">合併列印PDF</code> 來同時列印多個markdown文件與Mermaid，文件中的圖表與圖片會保持高品質，wikilink也會自動轉換成超連結。
-                                        </p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            開啟 <code className="px-1 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[10px] font-mono mx-1">合併下載(Markdown)</code> 也會自動將Mermaid轉成code block樣式。
-                                        </p>
-                                        <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-5 ml-11" />
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-500 dark:text-indigo-400 rounded-2xl">
-                                                <Palette size={18} />
-                                            </div>
-                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">更多預覽風格</h4>
-                                        </div>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            開啟 <code className="px-1 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[10px] font-mono mx-1">偏好設定 &gt; 列印與匯出 &gt; 預覽風格</code> 套用不同風格。
-                                        </p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            (注意!: 此功能仍在測試中,如果某風格的排版不符合預期,<br />請暫時切換回預設風格或其他可行風格。)
-                                        </p>
-                                        <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-5 ml-11" />
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-500 dark:text-indigo-400 rounded-2xl">
-                                                <MessageSquare size={18} />
-                                            </div>
-                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">註解模式 (Beta) </h4>
-                                        </div>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            開啟頂列的註解模式,即可開始在預覽器中標記文字內容並添加註解。
-                                        </p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11">
-                                            (注意!: 此功能仍在測試中,目前註解不會用於輸出 Markdown 或 PDF,建議僅在數位展示環境下使用。)
-                                        </p>
-                                    </div>
-                                    <div className="p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 shadow-sm">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-2xl">
-                                                <Check size={18} />
-                                            </div>
-                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">體驗優化與修正</h4>
-                                        </div>
-                                        <ul className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 list-disc list-outside space-y-1.5 pl-4 opacity-90">
-                                            <li>內嵌圖表支援置中/置左/置右功能。</li>
-                                            <li>![立即試試](./image/livelogo_v1.svg "還有 v2 可以玩玩看哦！")
-                                                <ol>(提醒：若匯出 PDF 等靜態格式，動圖將固定於特定幀，建議僅在數位展示環境下使用。)</ol></li>
-                                            <li>使用<strong>\pagebreak</strong> , <strong>[page-break]</strong> , <strong>---pb---</strong> 指令強制換頁 (在預覽面板上可直接看到藍色虛線，列印時將自動在此處分頁)</li>
-                                            <li>增強 WikiLink 匯出相容性：合併匯出時自動轉為內部跳轉錨點 (注意:列印時要選擇Save to PDF，而不是Print to PDF)，單檔匯出則自動降級為純文字以避免死連結。</li>
-                                            <li>按鈕變得更Q彈了，可以試著長按並滑動他們。</li>
-                                        </ul>
-                                    </div>
-                                    <div className="p-5 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 shadow-sm">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="p-2 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl">
-                                                <X size={18} />
-                                            </div>
-                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">取消項目</h4>
-                                        </div>
-                                        <ul className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 list-disc list-outside space-y-1.5 pl-4 opacity-90">
-                                            <li>
-                                                列印預覽功能在接下來的版本跟我們說bye bye了。
-                                                <ol>
-                                                    <li>列印時仍然優先選擇淺色主題。</li>
-                                                    <li>還是可以使用強制換頁來控制頁面分佈，這功能沒有影響。</li>
-                                                </ol>
-                                            </li>
-                                        </ul>
-                                    </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ) : (
@@ -361,7 +335,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             <p className="text-1xl font-bold text-slate-600 dark:text-slate-300 capitalize tracking-widest">Version {version}</p>
                                             <button
                                                 onClick={() => setShowChangelog(true)}
-                                                className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F0F9FF] dark:bg-[#0C4A6E]/40 text-[#005B94] dark:text-[#0284C7] rounded-lg text-[10px] font-black hover:bg-[#E0F2FE] dark:hover:bg-[#0C4A6E]/60 transition-colors"
+                                                className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F0F9FF] dark:bg-[#0C4A6E]/40 text-[#005B94] dark:text-[#0284C7] rounded-lg text-[13px] font-black hover:bg-[#E0F2FE] dark:hover:bg-[#0C4A6E]/60 transition-colors"
 
 
 
@@ -378,7 +352,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         <FileText size={24} className="text-brand-primary/50 mb-3" />
                                         <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">想了解更多功能細節？</h5>
                                         <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4 text-center max-w-[250px]">前往功能導覽，學習如何使用快捷鍵、資料夾管理及更多高階與隱藏技巧。</p>
-                                        <RippleButton
+                                        <MagneticButton
                                             variant="outlined"
                                             className="px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-brand-primary"
                                             onClick={() => {
@@ -387,7 +361,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             }}
                                         >
                                             打開完整使用手冊
-                                        </RippleButton>
+                                        </MagneticButton>
                                     </div>
                                 </div>
 

@@ -8,13 +8,16 @@ import mermaid from 'mermaid';
 import embed from 'vega-embed';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import SmilesDrawer from 'smiles-drawer';
+import { remarkGithubAlerts } from './remarkGithubAlerts';
+import { remarkWikiLink } from './remarkWikiLink';
+import { remarkPageBreak } from './remarkPageBreak';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
 import { hashString } from '../../utils';
 import { useDebounce } from '../../hooks/useDebounce';
 import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSettings';
-import { WrapText } from 'lucide-react';
+import { WrapText, Info, AlertCircle, AlertTriangle, Lightbulb, Ban } from 'lucide-react';
 import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
@@ -190,6 +193,39 @@ const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bo
 
 
 const AbcBlock = React.lazy(() => import('./AbcBlock'));
+
+// ─── GitHub-style Alert 標註解析輔助 ──────────────────────────────────────────
+const alertConfig: Record<string, { icon: React.ReactNode; label: string; className: string }> = {
+    note: {
+        icon: <Info size={14} className="inline mr-1.5 shrink-0" />,
+        label: 'Note',
+        className: 'markdown-alert-note'
+    },
+    important: {
+        icon: <AlertCircle size={14} className="inline mr-1.5 shrink-0" />,
+        label: 'Important',
+        className: 'markdown-alert-important'
+    },
+    warning: {
+        icon: <AlertTriangle size={14} className="inline mr-1.5 shrink-0" />,
+        label: 'Warning',
+        className: 'markdown-alert-warning'
+    },
+    caution: {
+        icon: <Ban size={14} className="inline mr-1.5 shrink-0" />,
+        label: 'Caution',
+        className: 'markdown-alert-caution'
+    },
+    tip: {
+        icon: <Lightbulb size={14} className="inline mr-1.5 shrink-0" />,
+        label: 'Tip',
+        className: 'markdown-alert-tip'
+    }
+};
+
+
+
+
 
 // ─── 本地圖片元件：非同步從 IndexedDB 讀取 Data URL 並顯示 (按需載入) ──────────────────────
 interface LocalImageProps {
@@ -500,14 +536,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 }) => {
     const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
-    const processedContent = useMemo(() => {
-        return content
-            .replace(/\[\[(.*?)\]\]/g, '[$1](#wikilink-$1)')
-            .replace(/^\\pagebreak\s*$/gm, '<div class="page-break"></div>\n\n')
-            .replace(/^\[page-break\]\s*$/gm, '<div class="page-break"></div>\n\n')
-            .replace(/^---pb---\s*$/gm, '<div class="page-break"></div>\n\n');
-    }, [content]);
-    const debouncedContent = useDebounce(processedContent, 200);
+    const debouncedContent = useDebounce(content, 200);
     const { getImage } = useImageStorage();
 
     const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
@@ -655,7 +684,31 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         ul: ({ node, ...props }: any) => wrapWithComment(node, <ul {...props} />),
         ol: ({ node, ...props }: any) => wrapWithComment(node, <ol {...props} />),
         li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
-        blockquote: ({ node, ...props }: any) => wrapWithComment(node, <blockquote {...props} />),
+        blockquote: ({ node, children, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const alertType = node?.data?.alertType;
+
+            if (alertType) {
+                const config = alertConfig[alertType] || alertConfig.note;
+                return wrapWithComment(node, (
+                    <blockquote
+                        {...props}
+                        className={`markdown-alert ${config.className}`}
+                        data-line={line}
+                    >
+                        <div className="markdown-alert-title">
+                            {config.icon}
+                            <span>{config.label}</span>
+                        </div>
+                        <div className="markdown-alert-content">
+                            {children}
+                        </div>
+                    </blockquote>
+                ));
+            }
+
+            return wrapWithComment(node, <blockquote {...props}>{children}</blockquote>);
+        },
         table: ({ node, ...props }: any) => wrapWithComment(node, <table {...props} />),
         // ─────────────────────────────────────────────────────────────────────────
         div: ({ node, className, children, ...props }: any) => {
@@ -742,7 +795,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0`}>
                 <div className={`prose max-w-none px-8 pb-4  ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl prose-table:border-collapse prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:p-2 prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2 print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
+                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak]}
                         rehypePlugins={[rehypeRaw]}
                         remarkRehypeOptions={remarkRehypeOptions}
                         components={components}

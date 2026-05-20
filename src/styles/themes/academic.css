@@ -49,18 +49,53 @@
     --code-border: #d1d5db;
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.04);
+
+    /* 7. 語法高亮客製化 (嚴謹學術色調 - 去飽和度) */
+    --code-token-comment: #71717a;
+    /* 灰色註解 */
+    --code-token-keyword: #09090b;
+    /* 深黑關鍵字 */
+    --code-token-string: #27272a;
+    /* 深灰字串 */
+    --code-token-number: #18181b;
+    /* 深灰數字 */
+    --code-token-function: #09090b;
+    /* 深黑函數 */
+    --code-token-operator: #27272a;
+    --code-token-variable: #27272a;
+    --code-token-class: #09090b;
+
+    /* 8. 標註系統 (Alerts) */
+    --theme-alert-note-border: #64748b;
+    --theme-alert-note-bg: #f1f5f9;
+    --theme-alert-note-text: #334155;
+    --theme-alert-tip-border: #15803d;
+    --theme-alert-tip-bg: #f0fdf4;
+    --theme-alert-tip-text: #166534;
+    --theme-alert-important-border: #6d28d9;
+    --theme-alert-important-bg: #f5f3ff;
+    --theme-alert-important-text: #5b21b6;
+    --theme-alert-warning-border: #b45309;
+    --theme-alert-warning-bg: #fffbeb;
+    --theme-alert-warning-text: #92400e;
+    --theme-alert-caution-border: #b91c1c;
+    --theme-alert-caution-bg: #fef2f2;
+    --theme-alert-caution-text: #991b1b;
 }
 
 /* 深色模式下的變數覆蓋 */
 .dark .theme-academic {
-    --theme-text-color: #e4e4e7; /* Zinc 200 */
+    --theme-text-color: #e4e4e7;
+    /* Zinc 200 */
     --theme-accent-color: #ffffff;
 
     --theme-heading-color: #ffffff;
     --theme-h2-border: 1px solid #e4e4e7;
 
-    --theme-quote-border-left: 2pt solid #cbd5e1; /* Slate 300 */
-    --theme-quote-text: #a1a1aa; /* Zinc 400 */
+    --theme-quote-border-left: 2pt solid #cbd5e1;
+    /* Slate 300 */
+    --theme-quote-text: #a1a1aa;
+    /* Zinc 400 */
 
     --theme-link-color: #ffffff;
 
@@ -68,13 +103,44 @@
     --theme-table-header-border: 1px solid #e4e4e7;
 
     --brand-primary: #e4e4e7;
-    --brand-secondary: #27272a; /* Zinc 800 */
-    --brand-surface: #18181b; /* Zinc 900 */
+    --brand-secondary: #27272a;
+    /* Zinc 800 */
+    --brand-surface: #18181b;
+    /* Zinc 900 */
     --brand-accent: #a1a1aa;
-    --code-bg: #27272a; /* Zinc 800 - 統一 diagram 與 code block */
-    --code-border: #3f3f46; /* Zinc 700 */
+    --code-bg: #27272a;
+    /* Zinc 800 - 統一 diagram 與 code block */
+    --code-border: #3f3f46;
+    /* Zinc 700 */
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.22);
+
+    /* 7. 語法高亮客製化 (深色學術色調) */
+    --code-token-comment: #a1a1aa;
+    --code-token-keyword: #ffffff;
+    --code-token-string: #e4e4e7;
+    --code-token-number: #f4f4f5;
+    --code-token-function: #ffffff;
+    --code-token-operator: #e4e4e7;
+    --code-token-variable: #e4e4e7;
+    --code-token-class: #ffffff;
+
+    /* 8. 標註系統 (Alerts - 深色對焦) */
+    --theme-alert-note-border: #94a3b8;
+    --theme-alert-note-bg: rgba(148, 163, 184, 0.08);
+    --theme-alert-note-text: #e2e8f0;
+    --theme-alert-tip-border: #4ade80;
+    --theme-alert-tip-bg: rgba(74, 222, 128, 0.08);
+    --theme-alert-tip-text: #4ade80;
+    --theme-alert-important-border: #c084fc;
+    --theme-alert-important-bg: rgba(192, 132, 252, 0.08);
+    --theme-alert-important-text: #c084fc;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.08);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.08);
+    --theme-alert-caution-text: #f87171;
 }
 
 .theme-academic.prose {
@@ -101,7 +167,8 @@
 
 .theme-academic.prose h1 {
     font-size: var(--theme-h1-size);
-    text-align: center; /* 標題居中 */
+    text-align: center;
+    /* 標題居中 */
     text-transform: var(--theme-h1-transform);
     letter-spacing: 0.05em;
     margin-bottom: 2rem;
@@ -115,10 +182,23 @@
     text-align: left;
 }
 
-.theme-academic.prose h3 { font-size: var(--theme-h3-size); font-style: italic; }
-.theme-academic.prose h4 { font-size: var(--theme-h4-size); }
-.theme-academic.prose h5 { font-size: var(--theme-h5-size); }
-.theme-academic.prose h6 { font-size: var(--theme-h6-size); font-style: italic; }
+.theme-academic.prose h3 {
+    font-size: var(--theme-h3-size);
+    font-style: italic;
+}
+
+.theme-academic.prose h4 {
+    font-size: var(--theme-h4-size);
+}
+
+.theme-academic.prose h5 {
+    font-size: var(--theme-h5-size);
+}
+
+.theme-academic.prose h6 {
+    font-size: var(--theme-h6-size);
+    font-style: italic;
+}
 
 .theme-academic.prose blockquote {
     font-style: var(--theme-quote-font-style);
@@ -127,6 +207,75 @@
     padding-left: 1.5rem;
     margin: 2rem 0;
     color: var(--theme-quote-text);
+}
+
+/* Alert 標註自訂擴充 */
+.theme-academic.prose blockquote.markdown-alert {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.theme-academic.prose blockquote.markdown-alert .markdown-alert-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+}
+
+.theme-academic.prose blockquote.markdown-alert .markdown-alert-title svg {
+    margin-right: 0.375rem;
+}
+
+.theme-academic.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+
+.theme-academic.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-academic.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+
+.theme-academic.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-academic.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+
+.theme-academic.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-academic.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+
+.theme-academic.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-academic.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+
+.theme-academic.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
 }
 
 .theme-academic.prose a {
@@ -168,7 +317,7 @@
 }
 
 /* 清單階層優化 */
-.theme-academic.prose ul, 
+.theme-academic.prose ul,
 .theme-academic.prose ol {
     margin-left: 1rem;
 }

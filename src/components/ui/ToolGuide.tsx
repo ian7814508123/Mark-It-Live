@@ -41,11 +41,11 @@ const ToolGuide: React.FC<ToolGuideProps> & {
                         <ArrowLeft size={15} />
                     </button>
                     <div>
-                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
+                        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                             {title}
-                        </h3>
+                        </h2>
                         {subtitle && (
-                            <p className="text-[8px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
+                            <p className="text-[12px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
                                 {subtitle}
                             </p>
                         )}

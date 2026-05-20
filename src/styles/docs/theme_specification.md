@@ -64,16 +64,69 @@
 | `--code-border` | **代碼區塊與圖表 (Diagram) 共同邊框色** |
 | `--code-line-number-bg` | **程式碼行數欄位（Line Number Column）不透明背景色** (預設引用 `var(--code-bg)`) |
 | `--code-line-number-shadow` | **程式碼向右捲動時，行數欄位右邊緣的動態投影顏色/強度** |
+| **標註系統 (Alerts)** | |
+| `--theme-alert-note-border` / `-bg` / `-text` | Note 標註的邊框色、背景色與文字/圖示色 |
+| `--theme-alert-tip-border` / `-bg` / `-text` | Tip 標註的邊框色、背景色與文字/圖示色 |
+| `--theme-alert-important-border` / `-bg` / `-text` | Important 標註的邊框色、背景色與文字/圖示色 |
+| `--theme-alert-warning-border` / `-bg` / `-text` | Warning 標註的邊框色、背景色與文字/圖示色 |
+| `--theme-alert-caution-border` / `-bg` / `-text` | Caution 標註的邊框色、背景色與文字/圖示色 |
 
 ---
 
 ## 3. 圖表與程式碼背景統一規範 (Code & Diagram Unification) [NEW]
 
-本系統內嵌了增強型代碼區塊與動態圖表渲染元件 ([DiagramBlock.tsx](file:///c:/Users/User/Desktop/Markdown-live-previewer/src/components/markdown/DiagramBlock.tsx))。
-為了防止畫布底色與程式碼背景各異造成視覺破碎，請遵守以下規則：
+本系統內嵌了全新升級的「卡片式增強型代碼區塊」與「動態圖表渲染元件」。
+為了維持極致的視覺品質與防止畫布底色破碎，所有主題設計必須遵守以下規則：
 
+### 3.1 變數統一綁定原則
 1. **圖表背景自動對接**：系統圖表容器會自動讀取並渲染當前主題的 `var(--code-bg)` 背景色。
-2. **主題變數綁定**：每個主題**嚴禁**使用 `pre` 等硬編碼來改寫背景。必須一律將背景色寫入 `--code-bg`，邊框色寫入 `--code-border`。這能自動確保圖表（Mermaid 畫布）與代碼區塊達到 100% 完美的視覺融合。
+2. **禁止硬編碼**：每個主題**嚴禁**使用 `pre` 或 `.enhanced-codeblock` 等 CSS 選擇器來硬性覆寫背景與邊框。必須一律將背景色寫入 `--code-bg`，邊框色寫入 `--code-border`。這能自動確保圖表（Mermaid 畫布）與代碼區塊達到 100% 完美的視覺融合。
+
+### 3.2 全新卡片式 Code Block 樣式設計規定
+本系統的代碼區塊（Code Block）已全面升級為**無縫卡片拼接架構**，包含了獨立的標頭組件 (`CodeBlockHeader`) 與底部的代碼高亮區 (`SyntaxHighlighter`)。開發主題時需特別注意以下渲染機制，**切勿使用 CSS 破壞原有的動態佈局**：
+
+1. **動態圓角拼接機制 (Dynamic Border Radius)**：
+   - 當程式碼帶有語言標籤時，系統會自動生成 `CodeBlockHeader`，其具備頂部圓角 (`rounded-t-lg`)。
+   - 此時，下方的代碼區塊 (`pre`) 頂部圓角會自動歸零，並藉由取消標頭底框 (`border-b-0`) 的方式，讓 `pre` 原生的 `border-top` 完美化身為 1px 分割線。
+   - 主題設計者**不需（也不應）** 在 CSS 中強行覆蓋 `.enhanced-codeblock pre` 的 `border-radius` 或 `border` 屬性。
+2. **語言圖示與標題列**：
+   - `CodeBlockHeader` 內建了輕量級圖示與自適應的 Tailwind 色彩（用於各語言標籤分類）。
+   - 標題列的背景色固定使用稍微與代碼底色區分的系統色階，主題開發者只需確保 `--code-border` (外框線) 與 `--code-bg` (代碼底色) 與整體畫面協調，即能呈現具質感的「編輯器卡片」風格。
+   - 帶有標頭時，頂部內距為緊湊的 `1rem`；無標頭時，頂部自動擴展為 `1.2rem` 以保持視覺平衡。主題 CSS 絕對不得利用 `!important` 干預 `pre` 標籤的 `padding`。
+   
+### 3.3 語法高亮色階自訂 (Syntax Highlighting Customization) [OPTIONAL]
+系統在底層 (`index.css` 的 `:root`) 已經強制採用了工業級標準的 **VS Code Light / Dark+** 作為預設的語法高亮配色，這代表：
+只要您的 `--code-bg` 淺色維持高明度、深色維持低明度，系統預設的高亮配色就**絕對不會發生顏色衝突或對比度不足的問題**。
+
+但若為了追求極致的美學契合度（例如：在古典宣紙風格中，純藍色的關鍵字可能顯得過於科技感），開發者可以選擇性地在主題 CSS 中覆寫特定的 Token 顏色：
+
+```css
+/* 範例：古典風中微調語法高亮顏色以契合宣紙質感 */
+.theme-[name] {
+    --code-token-keyword: #1b315e; /* 藏青色取代純藍 */
+    --code-token-comment: #5c4a43; /* 枯茶色取代亮綠 */
+}
+```
+> `--code-token-comment`, `--code-token-keyword`, `--code-token-string`, `--code-token-number`, `--code-token-function`, `--code-token-operator`, `--code-token-variable`, `--code-token-constant`, `--code-token-builtin`, `--code-token-class`, `--code-token-attr-name`, `--code-token-tag`, `--code-token-punctuation`
+
+### 3.4 GitHub-style Alert 標註系統自訂 (Blockquote & Alerts) [NEW]
+本系統在 React 解析層級已完整對齊 GitHub 標準，會自動將 `<blockquote>` 內開頭含有 `[!NOTE]`, `[!WARNING]`, `[!IMPORTANT]`, `[!CAUTION]`, `[!TIP]`（包括不帶驚嘆號的 `[NOTE]` 等）的區塊解析為 Alert 標註。
+
+#### 🛠️ 解析後的 DOM 結構：
+```html
+<blockquote class="markdown-alert markdown-alert-[type]">
+  <div class="markdown-alert-title">
+    <!-- Lucide 向量圖示 (自動根據類別對齊) -->
+    <span>Note</span>
+  </div>
+  <div class="markdown-alert-content">
+    <!-- 去除標註字串後的 Markdown 內容 -->
+  </div>
+</blockquote>
+```
+
+#### 🎨 客製化樣式原則：
+主題開發者應透過定義標準的標註變數（如 `--theme-alert-note-*`）來控制各類型 Alert 的視覺外觀，以確保在深淺色模式下皆有符合 WCAG 規範的良好對比度。避免在 CSS 中直接寫死硬編碼顏色。若未自訂，系統會自動 Fallback 回各主題基礎的 `blockquote` 與 `--theme-accent-color` 配置。
 
 ---
 
@@ -135,6 +188,23 @@
     --code-border: #e2e8f0;
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.05);
+
+    /* 7. 標註系統 (Alerts) */
+    --theme-alert-note-border: #3b82f6;
+    --theme-alert-note-bg: rgba(59, 130, 246, 0.05);
+    --theme-alert-note-text: #2563eb;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.05);
+    --theme-alert-tip-text: #059669;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.05);
+    --theme-alert-important-text: #7c3aed;
+    --theme-alert-warning-border: #f59e0b;
+    --theme-alert-warning-bg: rgba(245, 158, 11, 0.05);
+    --theme-alert-warning-text: #d97706;
+    --theme-alert-caution-border: #ef4444;
+    --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
+    --theme-alert-caution-text: #dc2626;
 }
 
 /* --------------------------------------------------------------------------
@@ -166,6 +236,23 @@
     --code-border: #334155;
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.25);
+
+    /* 7. 標註系統 (Alerts - 深色模式對比優化) */
+    --theme-alert-note-border: #60a5fa;
+    --theme-alert-note-bg: rgba(96, 165, 250, 0.1);
+    --theme-alert-note-text: #60a5fa;
+    --theme-alert-tip-border: #34d399;
+    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #a78bfa;
+    --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
+    --theme-alert-important-text: #a78bfa;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
 }
 
 /* --------------------------------------------------------------------------
@@ -216,6 +303,69 @@
     color: var(--theme-quote-text);
     padding: 1.5rem 2rem;
     margin: 2rem 0;
+}
+
+/* Alert 標註自訂擴充 */
+.theme-[name].prose blockquote.markdown-alert {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin: 1.5rem 0;
+}
+
+.theme-[name].prose blockquote.markdown-alert .markdown-alert-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+.theme-[name].prose blockquote.markdown-alert .markdown-alert-title svg {
+    margin-right: 0.375rem;
+}
+
+.theme-[name].prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+.theme-[name].prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-[name].prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+.theme-[name].prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-[name].prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+.theme-[name].prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-[name].prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+.theme-[name].prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-[name].prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+.theme-[name].prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
 }
 
 .theme-[name].prose a {
@@ -276,15 +426,25 @@
 *   **降級機制**：所有主題的列印渲染，會自動、完美地 Fallback 回套用該主題 `.theme-xxxx` 中最基礎的 **「淺色模式變數」**。
 *   **開發者優勢**：開發者**完全不需**在客製化主題 CSS 檔案中，針對 `.dark` 狀態重複編寫繁重、冗餘、且帶有高權重 `!important` 的列印覆寫規則！
 
-### 6.2 簡明列印規格編寫指南 (選配)
-由於架構層已確保「列印時必定以降級的淺色模式渲染」，若該主題的淺色配色在白色紙張上已有優異的易讀性，開發者**甚至完全不需編寫任何 `@media print` 規則**！
+### 6.2 列印配色與樣式裁量準則 (Print Color & Style Decision Guide) [UPDATED]
+由於架構層已確保「列印時必定以降級的淺色模式渲染」，為了在「正式文件嚴謹度」與「主題設計感」之間取得平衡，系統採用以下**美學分流準則**。開發者在編寫主題的 `@media print` 規則時應遵循此規範：
 
-僅在有以下高度客製化的「學術/出版排版需求」時，才在主題內加上簡單的 `@media print` 微調：
-*   **表格線條黑白化**（例如：將亮灰色表格線轉化為實體黑色線條，以利黑白影印機複印）。
-*   **字體與排版微調**（例如：將字體大小精準調成 A4 紙張適合的 `10pt` 或 `11pt`，以及為學術風格調整行高）。
-*   **區塊間隔精緻化**（例如：為標題加上 `page-break-after: avoid` 避免標題單獨遺留在頁尾）。
+1. **嚴謹型主題 (如 Academic / Formal 主題)**
+   - **定位**：用於論文、公文、合約等需 100% 複印與嚴謹閱讀的場景。
+   - **規範**：必須在 `@media print` 中將顏色強行「黑白洗淨」。使用 `color: #000000 !important;` 確保最高對比度，並將表格邊框、引言左側線條等裝飾元素強制覆寫為純黑色或深灰色。
+   - **範例**：參見 `academic.css`。
 
-開發者在編寫這些微調時，只需寫針對淺色類別的樣式，**絕無任何 `!important` 與深色防禦代碼負擔**，極大簡化了 Debug 與後續維護！
+2. **創意與美學型主題 (如 Classical / Developer / Minimal 主題)**
+   - **定位**：用於個人網誌、創意日誌、代碼分享等強調個人格調或設計藍圖的場景。
+   - **規範**：**不應**在 `@media print` 內將顏色強行洗為純黑。直接利用系統降級後的「淺色模式變數」來渲染。開發者只需確保淺色模式的配色在白色背景紙張上具有 WCAG 對比度（如古典宣紙的硃砂紅標題、開發者主題的綠色邊框/語法高亮），即可直接以精美的彩色 PDF 導出，保留編輯器的豐富美學。
+   - **範例**：參見 `classical.css` 與 `developer.css`。
+
+### 6.3 簡明列印排版微調指南 (選配)
+當淺色配色已具備足夠對比度時，開發者**甚至不需要編寫任何顏色相關的 `@media print` 規則**。僅在有以下排版需求時，在主題內加上簡單的純結構性 `@media print` 微調：
+- **字體與排版尺寸**：將字體大小精準調成 A4 紙張適合 spacing 的 `10pt` 或 `11pt`，調整行高以利閱讀。
+- **分頁控制**：為標題加上 `page-break-after: avoid;` 或為表格、代碼區塊加上 `page-break-inside: avoid;`，防止內容被攔腰切斷。
+
+由於不需要考慮深色模式防禦，開發者在編寫這些微調時只需針對淺色狀態，**絕無任何 `!important` 負擔**！
 
 ---
 

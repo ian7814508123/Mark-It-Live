@@ -5,12 +5,15 @@
     --theme-font-family: "Inter", system-ui, -apple-system, sans-serif;
     --theme-line-height: 1.7;
     --theme-text-align: left;
-    --theme-text-color: #334155; /* Slate 700 */
-    --theme-accent-color: #005B94; /* Industrial Deep Blue */
+    --theme-text-color: #334155;
+    /* Slate 700 */
+    --theme-accent-color: #005B94;
+    /* Industrial Deep Blue */
 
     /* 2. 標題設計 (Headings) */
     --theme-heading-font: "Inter", system-ui, -apple-system, sans-serif;
-    --theme-heading-color: #0f172a; /* Slate 900 */
+    --theme-heading-color: #0f172a;
+    /* Slate 900 */
     --theme-heading-weight: 900;
     --theme-h1-size: 2.4rem;
     --theme-h2-size: 1.8rem;
@@ -43,11 +46,30 @@
     /* 6. 系統 UI 對接 (System UI Bridge) */
     --brand-primary: #005B94;
     --brand-secondary: #f0f9ff;
+    --brand-surface: #ffffff;
     --brand-accent: #0366d6;
-    --code-bg: #f0f9ff; /* 統一 diagram 與 code block */
+    --code-bg: #f0f9ff;
+    /* 統一 diagram 與 code block */
     --code-border: #cbd5e1;
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 91, 148, 0.05);
+
+    /* 7. 標註系統 (Alerts) */
+    --theme-alert-note-border: #3b82f6;
+    --theme-alert-note-bg: rgba(59, 130, 246, 0.05);
+    --theme-alert-note-text: #2563eb;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.05);
+    --theme-alert-tip-text: #059669;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.05);
+    --theme-alert-important-text: #7c3aed;
+    --theme-alert-warning-border: #f59e0b;
+    --theme-alert-warning-bg: rgba(245, 158, 11, 0.05);
+    --theme-alert-warning-text: #d97706;
+    --theme-alert-caution-border: #ef4444;
+    --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
+    --theme-alert-caution-text: #dc2626;
 }
 
 /* 深色模式下的變數覆蓋 */
@@ -78,6 +100,23 @@
     --code-border: rgba(56, 189, 248, 0.2);
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.35);
+
+    /* 7. 標註系統 (Alerts - 深色對焦) */
+    --theme-alert-note-border: #60a5fa;
+    --theme-alert-note-bg: rgba(96, 165, 250, 0.1);
+    --theme-alert-note-text: #60a5fa;
+    --theme-alert-tip-border: #34d399;
+    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #a78bfa;
+    --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
+    --theme-alert-important-text: #a78bfa;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
 }
 
 /* 主題基礎樣式 */
@@ -123,9 +162,17 @@
     letter-spacing: 0.05em;
 }
 
-.theme-implementation-plan.prose h4 { font-size: var(--theme-h4-size); }
-.theme-implementation-plan.prose h5 { font-size: var(--theme-h5-size); }
-.theme-implementation-plan.prose h6 { font-size: var(--theme-h6-size); }
+.theme-implementation-plan.prose h4 {
+    font-size: var(--theme-h4-size);
+}
+
+.theme-implementation-plan.prose h5 {
+    font-size: var(--theme-h5-size);
+}
+
+.theme-implementation-plan.prose h6 {
+    font-size: var(--theme-h6-size);
+}
 
 /* 引言區塊：自動適配 GitHub-style Alerts (NOTE, IMPORTANT 等) */
 .theme-implementation-plan.prose blockquote {
@@ -138,29 +185,72 @@
     color: var(--theme-quote-text);
 }
 
-/* 針對 Alert 的特定色彩 (透過 content 匹配) */
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[NOTE]")),
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!NOTE]")) {
-    border-left-color: #3b82f6;
-    background-color: rgba(59, 130, 246, 0.05);
+/* 針對 Alert 的特定色彩 (透過標準變數對接) */
+.theme-implementation-plan.prose blockquote.markdown-alert {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    margin: 1.5rem 0;
 }
 
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[IMPORTANT]")),
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!IMPORTANT]")) {
-    border-left-color: #8b5cf6;
-    background-color: rgba(139, 92, 246, 0.05);
+.theme-implementation-plan.prose blockquote.markdown-alert .markdown-alert-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
 }
 
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[WARNING]")),
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!WARNING]")) {
-    border-left-color: #f59e0b;
-    background-color: rgba(245, 158, 11, 0.05);
+.theme-implementation-plan.prose blockquote.markdown-alert .markdown-alert-title svg {
+    margin-right: 0.375rem;
 }
 
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[CAUTION]")),
-.theme-implementation-plan.prose blockquote:has(p:first-child:contains("[!CAUTION]")) {
-    border-left-color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.05);
+.theme-implementation-plan.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+
+.theme-implementation-plan.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
 }
 
 /* 強調文字 */
@@ -256,7 +346,7 @@
         --brand-surface: #ffffff !important;
         --code-bg: #f8fafc !important;
         --code-border: #cbd5e1 !important;
-        
+
         --theme-text-color: #000000 !important;
         --theme-heading-color: #000000 !important;
         --theme-table-border: 1px solid #cbd5e1 !important;

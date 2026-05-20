@@ -5,12 +5,15 @@
     --theme-font-family: "Fira Code", "JetBrains Mono", "Cascadia Code", monospace;
     --theme-line-height: 1.6;
     --theme-text-align: left;
-    --theme-text-color: #334155; /* Slate 700 */
-    --theme-accent-color: #10b981; /* Emerald 500 */
+    --theme-text-color: #334155;
+    /* Slate 700 */
+    --theme-accent-color: #10b981;
+    /* Emerald 500 */
 
     /* 2. 標題設計 (Headings) */
     --theme-heading-font: "Fira Code", "JetBrains Mono", "Cascadia Code", monospace;
-    --theme-heading-color: #059669; /* 深綠色 UI */
+    --theme-heading-color: #059669;
+    /* 深綠色 UI */
     --theme-heading-weight: 700;
     --theme-h1-size: 2.2rem;
     --theme-h2-size: 1.6rem;
@@ -23,9 +26,11 @@
     --theme-h1-transform: lowercase;
 
     /* 3. 引言區塊 (Blockquote) */
-    --theme-quote-bg: #ecfdf5; /* 極淡綠 */
+    --theme-quote-bg: #e7fff4;
+    /* 極淡綠 */
     --theme-quote-border-left: 4px solid #059669;
-    --theme-quote-text: #475569; /* Slate 600 */
+    --theme-quote-text: #475569;
+    /* Slate 600 */
     --theme-quote-font-style: normal;
 
     /* 4. 超連結 (Links) */
@@ -49,17 +54,50 @@
     --code-border: #cbd5e1;
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(5, 150, 105, 0.06);
+
+    /* 7. 語法高亮客製化 (技術終端色調) */
+    --code-token-comment: #64748b;
+    /* 灰色註解 */
+    --code-token-keyword: #059669;
+    /* 終端綠關鍵字 */
+    --code-token-string: #d97706;
+    /* 琥珀橘字串 */
+    --code-token-number: #2563eb;
+    /* 科技藍數字 */
+    --code-token-function: #0d9488;
+    /* 青色函式 */
+
+    /* 8. 標註系統 (Alerts) */
+    --theme-alert-note-border: #3b82f6;
+    --theme-alert-note-bg: #eff6ff;
+    --theme-alert-note-text: #1d4ed8;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: #ecfdf5;
+    --theme-alert-tip-text: #047857;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: #f5f3ff;
+    --theme-alert-important-text: #6d28d9;
+    --theme-alert-warning-border: #f59e0b;
+    --theme-alert-warning-bg: #fffbeb;
+    --theme-alert-warning-text: #b45309;
+    --theme-alert-caution-border: #ef4444;
+    --theme-alert-caution-bg: #fef2f2;
+    --theme-alert-caution-text: #b91c1c;
 }
 
 /* 深色模式下的變數覆蓋 */
 .dark .theme-developer {
-    --theme-text-color: #cbd5e1; /* Slate 300 */
-    --theme-heading-color: #34d399; /* 亮綠色 UI */
+    --theme-text-color: #cbd5e1;
+    /* Slate 300 */
+    --theme-heading-color: #34d399;
+    /* 亮綠色 UI */
     --theme-accent-color: #6ee7b7;
 
-    --theme-quote-bg: #064e3b; /* 深暗綠色背景 */
+    --theme-quote-bg: #064e3b;
+    /* 深暗綠色背景 */
     --theme-quote-border-left: 4px solid #34d399;
-    --theme-quote-text: #94a3b8; /* Slate 400 */
+    --theme-quote-text: #94a3b8;
+    /* Slate 400 */
 
     --theme-link-color: #34d399;
     --theme-link-hover-bg: rgba(52, 211, 153, 0.1);
@@ -78,6 +116,38 @@
     --code-border: rgba(52, 211, 153, 0.3);
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.4);
+
+    /* 7. 語法高亮客製化 (深色霓虹終端色調) */
+    --code-token-comment: #475569;
+    /* 深灰 */
+    --code-token-keyword: #34d399;
+    /* 亮綠 */
+    --code-token-string: #fbbf24;
+    /* 亮黃/琥珀 */
+    --code-token-number: #60a5fa;
+    /* 亮藍 */
+    --code-token-function: #2dd4bf;
+    /* 亮青 */
+    --code-token-operator: #cbd5e1;
+    /* 淺灰 */
+    --code-token-variable: #cbd5e1;
+
+    /* 8. 標註系統 (Alerts - 深色霓虹對焦) */
+    --theme-alert-note-border: #60a5fa;
+    --theme-alert-note-bg: rgba(96, 165, 250, 0.1);
+    --theme-alert-note-text: #60a5fa;
+    --theme-alert-tip-border: #34d399;
+    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #a78bfa;
+    --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
+    --theme-alert-important-text: #a78bfa;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
 }
 
 .theme-developer.prose {
@@ -117,12 +187,31 @@
     opacity: 0.5;
 }
 
-.theme-developer.prose h1 { font-size: var(--theme-h1-size); border-bottom: var(--theme-h1-border); }
-.theme-developer.prose h2 { font-size: var(--theme-h2-size); border-bottom: var(--theme-h2-border); }
-.theme-developer.prose h3 { font-size: var(--theme-h3-size); }
-.theme-developer.prose h4 { font-size: var(--theme-h4-size); }
-.theme-developer.prose h5 { font-size: var(--theme-h5-size); }
-.theme-developer.prose h6 { font-size: var(--theme-h6-size); }
+.theme-developer.prose h1 {
+    font-size: var(--theme-h1-size);
+    border-bottom: var(--theme-h1-border);
+}
+
+.theme-developer.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+}
+
+.theme-developer.prose h3 {
+    font-size: var(--theme-h3-size);
+}
+
+.theme-developer.prose h4 {
+    font-size: var(--theme-h4-size);
+}
+
+.theme-developer.prose h5 {
+    font-size: var(--theme-h5-size);
+}
+
+.theme-developer.prose h6 {
+    font-size: var(--theme-h6-size);
+}
 
 .theme-developer.prose blockquote {
     background-color: var(--theme-quote-bg);
@@ -134,14 +223,79 @@
     margin: 2rem 0;
 }
 
-.theme-developer.prose strong {
-    color: #f59e0b; /* Amber 強調 */
+/* Alert 標註自訂擴充 */
+.theme-developer.prose blockquote.markdown-alert {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    margin: 1.5rem 0;
 }
 
-/* 程式碼區塊：對齊 index.css 變數 */
-.theme-developer.prose pre {
-    border-left: 4px solid var(--brand-primary);
+.theme-developer.prose blockquote.markdown-alert .markdown-alert-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
 }
+
+.theme-developer.prose blockquote.markdown-alert .markdown-alert-title svg {
+    margin-right: 0.375rem;
+}
+
+.theme-developer.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+
+.theme-developer.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-developer.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+
+.theme-developer.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-developer.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+
+.theme-developer.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-developer.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+
+.theme-developer.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-developer.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+
+.theme-developer.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
+.theme-developer.prose strong {
+    color: #f59e0b;
+    /* Amber 強調 */
+}
+
 
 .theme-developer.prose code:not(pre code) {
     background-color: var(--brand-secondary);
@@ -197,7 +351,4 @@
         border-bottom: 1pt solid var(--brand-primary);
     }
 
-    .theme-developer.prose pre {
-        border-left: 3pt solid #10b981;
-    }
 }

@@ -64,7 +64,13 @@ export const CodeBlockHeader: React.FC<CodeHeaderProps> = ({
   const IconComponent = config.icon;
 
   return (
-    <div className="flex items-center justify-between px-4 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 border-b-0 h-10 select-none rounded-t-lg">
+    <div 
+      className="flex items-center justify-between px-4 border border-b-0 h-10 select-none rounded-t-lg"
+      style={{ 
+        backgroundColor: 'var(--code-header-bg, var(--code-bg))',
+        borderColor: 'var(--code-border)'
+      }}
+    >
       {/* 左側：Icon + 語言名稱 */}
       <div className="flex items-center gap-2">
         <span className={`flex items-center justify-center w-5 h-5 rounded border ${config.color} p-0.5 transition-colors`}>
