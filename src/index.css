@@ -377,170 +377,6 @@
     }
 }
 
-/* ── Markdown 內容樣式增強 (放置於 @layer base 之外以確保優先權) ── */
-
-/* 1. 標題階層強化：解決 Tailwind Typography 預設 H5/H6 視覺上過於接近的問題 */
-.prose h1 {
-    font-size: 2.25rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    line-height: 1.2;
-}
-
-.prose h2 {
-    font-size: 1.875rem;
-    margin-top: 1.75rem;
-    margin-bottom: 0.75rem;
-}
-
-.prose h3 {
-    font-size: 1.5rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-}
-
-.prose h4 {
-    font-size: 1.25rem;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
-}
-
-/* H5：加粗以強化層次感 */
-.prose h5 {
-    font-size: 1.1rem;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    font-weight: 700;
-}
-
-/* H6：稍微降低透明度，使其與 H5 有明顯區隔 */
-.prose h6 {
-    font-size: 1rem;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    font-weight: 700;
-    opacity: 0.8;
-}
-
-/* 2. 列表樣式與階層修復 (Ordered & Unordered Lists) */
-.prose ol,
-.prose ul {
-    padding-left: 1.5rem !important;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-}
-
-.prose li {
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-}
-
-/* 有序列階層 (Ordered List Levels)：提供多層次符號 (數字 -> 大寫英文字母 -> 小寫英文字母 ...) */
-.prose ol {
-    list-style-type: decimal !important;
-    /* Level 1: 1, 2, 3 */
-    padding-left: 1.5rem !important;
-}
-
-.prose ol ol {
-    list-style-type: upper-alpha !important;
-    /* Level 2: A, B, C */
-}
-
-.prose ol ol ol {
-    list-style-type: lower-alpha !important;
-    /* Level 3: a, b, c */
-    padding-left: 1.5rem !important;
-}
-
-.prose ol ol ol ol {
-    list-style-type: upper-roman !important;
-    /* Level 4: I, II, III */
-    padding-left: 1.5rem !important;
-}
-
-.prose ol ol ol ol ol {
-    list-style-type: lower-roman !important;
-    /* Level 5: i, ii, iii */
-    padding-left: 1.5rem !important;
-}
-
-.prose ol ol ol ol ol ol {
-    list-style-type: lower-greek !important;
-    /* Level 6: α, β, γ */
-    padding-left: 1.5rem !important;
-}
-
-/* 無序列階層 (Unordered List Levels)：提供多層次符號 (實心圓 -> 空心圓 -> 方塊 ...) */
-.prose ul {
-    list-style-type: disc !important;
-    /* Level 1: 實心圓 */
-}
-
-.prose ul ul {
-    list-style-type: circle !important;
-    /* Level 2: 空心圓 */
-    padding-left: 1.5rem !important;
-}
-
-.prose ul ul ul {
-    list-style-type: square !important;
-    /* Level 3: 方塊 */
-    padding-left: 1.5rem !important;
-}
-
-.prose ul ul ul ul {
-    list-style-type: '\25A1\00a0\00a0' !important;
-    /* Level 4: 空心方塊 */
-    padding-left: 1.5rem !important;
-}
-
-.prose ul ul ul ul ul {
-    list-style-type: disclosure-closed !important;
-    /* Level 5: 實心三角 */
-    padding-left: 1.5rem !important;
-}
-
-.prose ul ul ul ul ul ul {
-    list-style-type: '▷ ' !important;
-    /* Level 6: 空心三角 */
-    padding-left: 1.5rem !important;
-}
-
-/* 3. 行內程式碼樣式 (Inline Code) */
-.prose .inline-code {
-    background-color: #f1f5f9;
-    color: var(--brand-primary);
-    padding: 0.2rem 0.4rem;
-    border-radius: 6px;
-    font-size: 0.9em;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    border: 1px solid #e2e8f0;
-    word-break: break-word;
-    display: inline;
-}
-
-/* 深色模式下的行內程式碼樣式 */
-.dark .prose .inline-code {
-    background-color: #1e293b;
-    /* slate-800 */
-    color: var(--brand-primary);
-    border-color: #334155;
-}
-
-/* 4. 移除 Tailwind Typography 預設幫 code 標籤添加的反引號 (backticks) */
-.prose code::before,
-.prose code::after {
-    content: "" !important;
-}
-
-/* 防止在 .not-prose 區域（不需要 Markdown 樣式的地方）受到影響 */
-.not-prose .inline-code {
-    background: transparent;
-    border: none;
-    padding: 0;
-}
-
 @layer base {
 
     /* MathJax Override for Production Build */
@@ -587,11 +423,10 @@
             color-scheme: light !important;
         }
 
-        /* 3. 在列印環境下重新宣告語法高亮變數（不依賴 .dark 類別）
-         *    使用 VS Code Light+ 風格，確保在白紙上的對比度與可讀性。
-         *    同時針對 .dark 類別強制重置，防止主題變數洩漏。 */
-        :root,
-        .dark {
+        /* 3. 預設主題 (DEFAULT) 專屬列印洗淨變數與樣式 (.prose:not([class*="theme-"]))
+         *    將預設主題渲染為極致清晰的高對比黑白，適用於商務與學術論文正規列印 */
+        .prose:not([class*="theme-"]),
+        .prose:not([class*="theme-"]) .enhanced-codeblock {
             --code-bg: #f8f9fa !important;
             --code-border: #e2e8f0 !important;
             --code-token-comment: #008000 !important;
@@ -609,7 +444,94 @@
             --code-token-punctuation: #393A34 !important;
         }
 
-        /* 4. 程式碼與圖表容器：不再需要與 prose 激烈爭奪，回歸標準定義 */
+        .prose:not([class*="theme-"]) a {
+            color: black !important;
+            text-decoration: underline !important;
+        }
+
+        /* DEFAULT 主題的 Alerts 標註黑白洗淨：強制洗為無彩色的優雅灰白 */
+        .prose:not([class*="theme-"]) blockquote.markdown-alert {
+            background-color: #f8fafc !important;
+            border-left-color: #94a3b8 !important;
+            color: #334155 !important;
+        }
+
+        .prose:not([class*="theme-"]) blockquote.markdown-alert .markdown-alert-title {
+            color: #0f172a !important;
+        }
+
+        .prose:not([class*="theme-"]) blockquote.markdown-alert .markdown-alert-title svg {
+            fill: currentColor !important;
+        }
+
+        /* DEFAULT 主題的行內程式碼黑白洗淨 */
+        .prose:not([class*="theme-"]) :not(pre)>code {
+            background-color: #f1f5f9 !important;
+            color: black !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+
+        /* 4. 特色主題 (.prose[class*="theme-"]) 列印背景與文字色透傳
+         *    解決原生列印時因 body 強制白色而使特色背景（如 Classical 宣紙黃 #faf6eb）流失的 Bug */
+        .prose[class*="theme-"] {
+            background-color: var(--brand-surface) !important;
+            color: var(--theme-text-color) !important;
+        }
+
+        /* 特色主題的 Alerts 標註列印高保真保護：防禦性對抗任何第三方或瀏覽器黑白覆寫，強制還原彩色 */
+        .prose[class*="theme-"] blockquote.markdown-alert {
+            color: inherit !important;
+        }
+        .prose[class*="theme-"] blockquote.markdown-alert .markdown-alert-title svg {
+            fill: currentColor !important;
+        }
+
+        .prose[class*="theme-"] blockquote.markdown-alert-note {
+            background-color: var(--theme-alert-note-bg) !important;
+            border-left-color: var(--theme-alert-note-border) !important;
+            color: var(--theme-alert-note-text) !important;
+        }
+        .prose[class*="theme-"] blockquote.markdown-alert-note .markdown-alert-title {
+            color: var(--theme-alert-note-text) !important;
+        }
+
+        .prose[class*="theme-"] blockquote.markdown-alert-tip {
+            background-color: var(--theme-alert-tip-bg) !important;
+            border-left-color: var(--theme-alert-tip-border) !important;
+            color: var(--theme-alert-tip-text) !important;
+        }
+        .prose[class*="theme-"] blockquote.markdown-alert-tip .markdown-alert-title {
+            color: var(--theme-alert-tip-text) !important;
+        }
+
+        .prose[class*="theme-"] blockquote.markdown-alert-important {
+            background-color: var(--theme-alert-important-bg) !important;
+            border-left-color: var(--theme-alert-important-border) !important;
+            color: var(--theme-alert-important-text) !important;
+        }
+        .prose[class*="theme-"] blockquote.markdown-alert-important .markdown-alert-title {
+            color: var(--theme-alert-important-text) !important;
+        }
+
+        .prose[class*="theme-"] blockquote.markdown-alert-warning {
+            background-color: var(--theme-alert-warning-bg) !important;
+            border-left-color: var(--theme-alert-warning-border) !important;
+            color: var(--theme-alert-warning-text) !important;
+        }
+        .prose[class*="theme-"] blockquote.markdown-alert-warning .markdown-alert-title {
+            color: var(--theme-alert-warning-text) !important;
+        }
+
+        .prose[class*="theme-"] blockquote.markdown-alert-caution {
+            background-color: var(--theme-alert-caution-bg) !important;
+            border-left-color: var(--theme-alert-caution-border) !important;
+            color: var(--theme-alert-caution-text) !important;
+        }
+        .prose[class*="theme-"] blockquote.markdown-alert-caution .markdown-alert-title {
+            color: var(--theme-alert-caution-text) !important;
+        }
+
+        /* 5. 程式碼與圖表容器：不再需要與 prose 激烈爭奪，回歸標準定義 */
         .diagram-block-container,
         .code-block-wrapper pre,
         pre[style] {
@@ -624,19 +546,7 @@
             white-space: pre-wrap;
         }
 
-        /* 6. 行內程式碼列印樣式：強制背景色與抽色（黑色），確保正式文件觀感 */
-        .prose :not(pre)>code {
-            background-color: #f1f5f9 !important;
-            /* 淺灰色底，標註這是代碼 */
-            color: black !important;
-            /* 抽色：正式文件不建議在正文內使用藍色代碼 */
-            border: 1px solid #cbd5e1;
-            /* 微細邊框增加識別度 */
-            padding: 0.125rem 0.4rem;
-            border-radius: 4px;
-        }
-
-        /* 7. 語言標籤列印樣式：強制使用淺色風格，改為不透明以消除與底層邊框的疊影 */
+        /* 6. 語言標籤列印樣式：強制使用淺色風格，改為不透明以消除與底層邊框的疊影 */
         .code-lang-label {
             color: #475569 !important;
             /* slate-600 */
@@ -744,23 +654,10 @@
         /* 內部容器始終填滿 Content 區域 */
     }
 
-    /* 🌟 智能行號與斷行控制 (CSS Counters & Hanging Indent) */
-
-    /* 強制將 pre 的左內距歸零，防止水平滾動時在最左側與 sticky 行號之間產生「露出區」漏洞 */
-    .enhanced-codeblock pre {
-        padding-left: 0 !important;
-    }
-
     /* 增強型程式碼區塊：重設行號計數器 */
     .enhanced-codeblock code {
         counter-reset: code-line;
         display: block;
-    }
-
-    /* 橫向捲動模式下，強制 code 元素寬度為 max-content，以防止滾動時行號包含塊寬度不足，導致行號無法正確 sticky 固定在最左側 */
-    .enhanced-codeblock.code-block-scroll code {
-        width: max-content;
-        min-width: 100%;
     }
 
     /* 每一行程式碼的包裝 */
@@ -773,33 +670,21 @@
         /* 建立獨立的 Stacking Context，防禦性地確保行號偽元素絕對位於高亮 span 之上 */
     }
 
-    /* 利用 ::before 偽元素呈現行號，並支援 Sticky 定位 */
+    /* 利用 ::before 偽元素呈現行號 */
     .enhanced-codeblock .code-line::before {
         content: counter(code-line);
         display: inline-block;
-        position: sticky;
-        /* 當向右捲動查看長程式碼時，行號會吸附於左側 */
-        left: 0;
-        z-index: 10;
         box-sizing: content-box; /* 強制使用 content-box，使 width 僅代表數字寬度，不受 padding 影響 */
-        /* 仿照 CodeMirror 做法，依據當前程式碼區塊的總位數，動態計算行號寬度，每個等寬數字寬度約為 0.55em */
+        /* 依據當前程式碼區塊的總位數，動態計算行號寬度，每個等寬數字寬度約為 0.55em */
         width: calc(var(--code-max-digits, 2) * 0.55em);
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 強制等寬字體，確保寬度精確計算 */
         text-align: right;
-        padding-left: 1rem; /* 補回 pre 失去 the 左內距，並在水平滾動時作為不透明背景遮擋代碼的防禦牆 */
         padding-right: 0.75em;
         margin-right: 1.25em;
         border-right: 1px solid var(--code-border);
         font-style: italic;
         user-select: none;
         /* 行號不可選取，方便複製程式碼內文 */
-        background-color: var(--code-line-number-bg);
-        transition: box-shadow 0.2s var(--m3-easing-standard);
-    }
-
-    /* 當向右滾動時，在行數欄位的右邊緣動態加上一層淡淡的投影效果 */
-    .enhanced-codeblock.has-scrolled .code-line::before {
-        box-shadow: 4px 0 8px var(--code-line-number-shadow);
     }
 
     /* 深色模式下的行號顏色 */
@@ -835,11 +720,8 @@
             overflow: visible !important;
         }
 
-        /* 列印時的行號處理：移除 Sticky 定位與背景效果 */
+        /* 列印時的行號處理 */
         .enhanced-codeblock .code-line::before {
-            position: static;
-            box-shadow: none;
-            background-color: var(--code-bg) !important;
             border-right: 1px solid #e2e8f0;
             color: #94a3b8 !important;
         }
@@ -971,195 +853,7 @@
         stroke: var(--mermaid-line) !important;
     }
 
-    /* ── 列印預覽模擬（.show-print-preview class）專屬全域樣式 ── */
 
-    /* ── 列印預覽模擬與 A4 紙張樣式 ── */
-
-    /* 預覽面板背景：在模擬模式下設為透明，以便顯示外層的灰底 */
-    .show-print-preview.preview-panel {
-        background-color: transparent !important;
-    }
-
-    /* 隱藏非當前分頁的文件 */
-    .tab-inactive {
-        display: none !important;
-    }
-
-    /* 預覽容器基礎配置 */
-    .prose-container {
-        padding: 0;
-        margin: 0;
-        max-width: 100%;
-        transition: all 0.3s ease;
-    }
-
-    /* 強制文件分頁：WikiLink 對應的文件在新頁面開始 */
-    [id^="wikilink-"] {
-        page-break-before: always !important;
-    }
-
-    @media print {
-
-        /* 列印時隱藏非內容元素 */
-        footer,
-        .page-break-indicator {
-            display: none !important;
-        }
-
-        /* 隱藏捲軸 */
-        * {
-            scrollbar-width: none !important;
-        }
-
-        ::-webkit-scrollbar {
-            display: none !important;
-        }
-    }
-
-    /* 模擬預覽模式下的強制色彩修正 */
-    .show-print-preview .print-paper,
-    .show-print-preview .prose-container {
-        background-color: white !important;
-        color: black !important;
-    }
-
-    /* 預覽模式下的行內程式碼：改為適合白紙的淺灰底黑字 */
-    .show-print-preview .prose .inline-code {
-        background-color: #f1f5f9 !important;
-        color: #1e293b !important;
-        border-color: #e2e8f0 !important;
-    }
-
-    /* 預覽模式下的程式碼區塊變數：強制套用淺色高亮主題 */
-    .show-print-preview {
-        --code-bg: #f8f9fa !important;
-        --code-border: #e2e8f0 !important;
-        --code-token-comment: #008000 !important;
-        --code-token-keyword: #0000FF !important;
-        --code-token-string: #A31515 !important;
-        --code-token-number: #098658 !important;
-        --code-token-function: #795E26 !important;
-        --code-token-operator: #000000 !important;
-        --code-token-variable: #001080 !important;
-        --code-token-constant: #0000FF !important;
-        --code-token-builtin: #267F99 !important;
-        --code-token-class: #267F99 !important;
-        --code-token-attr-name: #E50000 !important;
-        --code-token-tag: #800000 !important;
-        --code-token-punctuation: #393A34 !important;
-    }
-
-    /* 模擬實體紙張樣式 (A4/A3/Letter) */
-    .print-paper {
-        background: white !important;
-        color: black !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        position: relative;
-        border: none !important;
-        overflow: hidden;
-        display: block !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    @media print {
-
-        /* 列印時移除模擬陰影與邊距，佔滿整張實體紙張 */
-        .print-paper {
-            box-shadow: none !important;
-            border: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            max-width: none !important;
-        }
-    }
-
-    /* 分頁指示線：在預覽模式下視覺化顯示分頁位置 */
-    .page-break-indicator {
-        height: 1px;
-        border-top: 2px dashed #0284C7;
-        z-index: 50;
-        pointer-events: none;
-        opacity: 1;
-        /* (D,1) 修正：增加不透明度，確保在白色紙張預覽時清晰可見 */
-        position: absolute;
-        left: 0;
-        right: 0;
-    }
-
-    /* 分頁指示標籤 */
-    .page-break-indicator::after {
-        content: "PAGE BREAK";
-        position: absolute;
-        right: 1.5rem;
-        top: -11px;
-        font-size: 10px;
-        font-weight: 900;
-        background: #0284C7;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 6px;
-        letter-spacing: 0.05em;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    /* 不同尺寸的容器寬度定義 */
-    .paper-a4 {
-        width: 210mm;
-        min-height: 297mm;
-    }
-
-    .paper-a3 {
-        width: 297mm;
-        min-height: 420mm;
-    }
-
-    .paper-letter {
-        width: 215.9mm;
-        min-height: 279.4mm;
-    }
-
-    /* 橫向模式 (Landscape) */
-    .paper-landscape.paper-a4 {
-        width: 297mm;
-    }
-
-    .paper-landscape.paper-a3 {
-        width: 420mm;
-    }
-
-    .paper-landscape.paper-letter {
-        width: 279.4mm;
-    }
-
-    /* 模擬不同的邊距 (Margins) */
-    .margin-normal .prose-container {
-        padding: 15mm !important;
-    }
-
-    .margin-narrow .prose-container {
-        padding: 5mm !important;
-    }
-
-    .margin-none .prose-container {
-        padding: 0 !important;
-    }
-
-    /* 深色模式下的紙張陰影調整 */
-    .dark .print-paper {
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    }
-
-    /* 預覽模式背景：外層顯示灰底以凸顯白色紙張 */
-    .show-print-preview .preview-panel>div.flex-1 {
-        background-color: #f1f5f9;
-    }
-
-    .dark .show-print-preview .preview-panel>div.flex-1 {
-        background-color: #0f172a;
-    }
 
     /* ── 自訂 abcjs 樂譜樣式：深淺色與列印適應 ── */
     .dark .abcjs-inner-container svg path,
@@ -1343,8 +1037,6 @@
 
         /* 最終列印純淨化：確保移除所有陰影、圓角與邊框 (D,1 殘留修正)
            同時強制移除 transition，避免瀏覽器在切換列印佈局時捕捉到過渡中的陰影 */
-        .print-paper,
-        .prose-container,
         .preview-panel {
             box-shadow: none !important;
             border: none !important;

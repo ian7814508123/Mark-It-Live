@@ -184,32 +184,8 @@
     background-color: var(--theme-quote-bg);
     border-left: var(--theme-quote-border-left);
     border-radius: 0 8px 8px 0;
-    padding: 1.5rem 2rem;
     font-style: var(--theme-quote-font-style);
     color: var(--theme-quote-text);
-}
-
-/* Alert 標註自訂擴充 */
-.theme-minimal.prose blockquote.markdown-alert {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    margin: 1.5rem 0;
-}
-
-.theme-minimal.prose blockquote.markdown-alert .markdown-alert-title {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.35rem;
-    font-weight: 700;
-}
-
-.theme-minimal.prose blockquote.markdown-alert .markdown-alert-title svg {
-    margin-right: 0.375rem;
 }
 
 .theme-minimal.prose blockquote.markdown-alert-note {
@@ -284,26 +260,17 @@
 
 /* 表格：簡約現代風 */
 .theme-minimal.prose table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
     border: var(--theme-table-border);
     border-radius: 8px;
-    overflow: hidden;
-    margin: 2rem 0;
 }
 
 .theme-minimal.prose th {
     background-color: var(--theme-table-header-bg);
     color: var(--theme-table-header-color);
     border-bottom: var(--theme-table-header-border);
-    padding: 1rem;
-    font-weight: 600;
-    text-align: left;
 }
 
 .theme-minimal.prose td {
-    padding: 1rem;
     border-top: var(--theme-table-border);
     color: var(--theme-text-color);
 }
@@ -313,28 +280,9 @@
     color: var(--theme-accent-color);
 }
 
-/* Print Specifics */
+/* Print Specifics: 極簡排版列印微調 */
 @media print {
     .theme-minimal.prose {
-        background-color: white !important;
-        color: #1e293b !important;
-        line-height: 1.6 !important;
-    }
-
-    .theme-minimal.prose blockquote {
-        background-color: #f8fafc !important;
-        border-radius: 0 !important;
-        border: 1px solid #e2e8f0 !important;
-        border-left: 4pt solid #3b82f6 !important;
-    }
-
-    .theme-minimal.prose hr {
-        background: #e2e8f0 !important;
-        height: 0.5pt !important;
-    }
-
-    .theme-minimal.prose a {
-        color: #1e293b !important;
-        text-decoration: underline !important;
+        line-height: 1.6;
     }
 }

@@ -148,96 +148,55 @@
     color: var(--theme-text-color);
     line-height: var(--theme-line-height);
     text-align: var(--theme-text-align);
-    max-width: 100%;
 }
 
-/* 標題階層強化 (H1-H6) */
-.theme-academic.prose h1,
-.theme-academic.prose h2,
-.theme-academic.prose h3,
-.theme-academic.prose h4,
-.theme-academic.prose h5,
-.theme-academic.prose h6 {
+/* 標題設計：學術特有字型與粗細 */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
     font-family: var(--theme-heading-font);
     color: var(--theme-heading-color);
     font-weight: var(--theme-heading-weight);
-    border-bottom: none;
-    margin-top: 2.5rem;
 }
 
 .theme-academic.prose h1 {
-    font-size: var(--theme-h1-size);
-    text-align: center;
-    /* 標題居中 */
-    text-transform: var(--theme-h1-transform);
+    text-align: center; /* 標題居中 */
     letter-spacing: 0.05em;
-    margin-bottom: 2rem;
     border-bottom: var(--theme-h1-border);
 }
 
 .theme-academic.prose h2 {
-    font-size: var(--theme-h2-size);
     border-bottom: var(--theme-h2-border);
     padding-bottom: 0.3rem;
-    text-align: left;
 }
 
 .theme-academic.prose h3 {
-    font-size: var(--theme-h3-size);
     font-style: italic;
 }
 
-.theme-academic.prose h4 {
-    font-size: var(--theme-h4-size);
-}
-
-.theme-academic.prose h5 {
-    font-size: var(--theme-h5-size);
-}
-
 .theme-academic.prose h6 {
-    font-size: var(--theme-h6-size);
     font-style: italic;
 }
 
 .theme-academic.prose blockquote {
-    font-style: var(--theme-quote-font-style);
     border-left: var(--theme-quote-border-left);
     background-color: var(--theme-quote-bg);
-    padding-left: 1.5rem;
-    margin: 2rem 0;
     color: var(--theme-quote-text);
+    font-style: var(--theme-quote-font-style);
 }
 
-/* Alert 標註自訂擴充 */
+/* Alert 標註客製化與色彩注入 */
 .theme-academic.prose blockquote.markdown-alert {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    margin: 1.5rem 0;
-    border-radius: 0 4px 4px 0;
-}
-
-.theme-academic.prose blockquote.markdown-alert .markdown-alert-title {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.35rem;
-    font-weight: 700;
-}
-
-.theme-academic.prose blockquote.markdown-alert .markdown-alert-title svg {
-    margin-right: 0.375rem;
+    border-radius: 0 4px 4px 0; /* 右側微圓角 */
 }
 
 .theme-academic.prose blockquote.markdown-alert-note {
     border-left-color: var(--theme-alert-note-border);
     background-color: var(--theme-alert-note-bg);
 }
-
 .theme-academic.prose blockquote.markdown-alert-note .markdown-alert-title {
     color: var(--theme-alert-note-text);
 }
@@ -246,7 +205,6 @@
     border-left-color: var(--theme-alert-tip-border);
     background-color: var(--theme-alert-tip-bg);
 }
-
 .theme-academic.prose blockquote.markdown-alert-tip .markdown-alert-title {
     color: var(--theme-alert-tip-text);
 }
@@ -255,7 +213,6 @@
     border-left-color: var(--theme-alert-important-border);
     background-color: var(--theme-alert-important-bg);
 }
-
 .theme-academic.prose blockquote.markdown-alert-important .markdown-alert-title {
     color: var(--theme-alert-important-text);
 }
@@ -264,7 +221,6 @@
     border-left-color: var(--theme-alert-warning-border);
     background-color: var(--theme-alert-warning-bg);
 }
-
 .theme-academic.prose blockquote.markdown-alert-warning .markdown-alert-title {
     color: var(--theme-alert-warning-text);
 }
@@ -273,7 +229,6 @@
     border-left-color: var(--theme-alert-caution-border);
     background-color: var(--theme-alert-caution-bg);
 }
-
 .theme-academic.prose blockquote.markdown-alert-caution .markdown-alert-title {
     color: var(--theme-alert-caution-text);
 }
@@ -282,7 +237,6 @@
     color: var(--theme-link-color);
     text-decoration: var(--theme-link-decoration);
     text-underline-offset: 4px;
-    transition: opacity 0.2s;
 }
 
 .theme-academic.prose a:hover {
@@ -291,14 +245,13 @@
     border-bottom-color: var(--theme-link-hover-border);
 }
 
-/* 表格：學術三線表風格 */
+/* 表格：學術經典「三線表」風格（覆寫預設骨架） */
 .theme-academic.prose table {
     border-top: 2px solid var(--theme-heading-color);
     border-bottom: 2px solid var(--theme-heading-color);
     border-left: var(--theme-table-border);
     border-right: var(--theme-table-border);
-    width: 100%;
-    margin: 2rem 0;
+    border-radius: 0;
 }
 
 .theme-academic.prose th {
@@ -307,26 +260,16 @@
     color: var(--theme-table-header-color);
     text-transform: uppercase;
     font-size: 0.85rem;
-    padding: 0.75rem;
     font-weight: 700;
 }
 
 .theme-academic.prose td {
-    padding: 0.5rem 0.75rem;
     border-bottom: var(--theme-table-border);
 }
 
-/* 清單階層優化 */
-.theme-academic.prose ul,
-.theme-academic.prose ol {
-    margin-left: 1rem;
-}
-
-/* Print Specifics: 嚴謹的學術列印規範 */
+/* Print Specifics: 學術排版尺寸與間距微調，色彩自訂度完美保留 */
 @media print {
     .theme-academic.prose {
-        background-color: white !important;
-        color: black !important;
         font-size: 11pt !important;
         line-height: 1.5 !important;
         text-align: justify;
@@ -339,19 +282,12 @@
     }
 
     .theme-academic.prose h2 {
-        border-bottom: 1pt solid black !important;
+        border-bottom: 1pt solid var(--theme-heading-color) !important;
         font-size: 16pt !important;
         margin-top: 20pt !important;
     }
 
     .theme-academic.prose blockquote {
-        border-left: 2pt solid black !important;
         font-style: italic !important;
-        color: black !important;
-    }
-
-    .theme-academic.prose a {
-        text-decoration: none !important;
-        color: black !important;
     }
 }

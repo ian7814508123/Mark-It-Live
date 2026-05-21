@@ -3,11 +3,12 @@
 為了確保未來新增的主題 (Themes) 能夠與系統（包含列印、深色模式、標註系統、圖表元件）完美相容，並降低維護成本，所有位於 `src/styles/themes` 目錄下的新增主題必須遵守以下規範。
 
 > [!IMPORTANT]
-> **核心設計哲學：對齊與服從 `index.css` 框架**
-> 本規範的最大目的是**確保主題的改動不超出系統的排版設計框架**。
-> - `index.css` 負責**核心邏輯**：如列印預覽的紙張模擬、邊界歸零策略 (`@page`)、標註系統的絕對座標系、斷行換頁邏輯等。
-> - `theme-*.css` 負責**視覺呈現 (Cosmetics)**：如字體、顏色、框線、行高。
-> 任何主題**嚴禁**修改或覆蓋與核心框架相關的設定（例如 `margin`, `padding`, `width`, `position`，除非僅針對 Markdown 內容本身如標題與表格）。主題只是穿在系統外的一件衣服，不能改變骨架。
+> **核心設計哲學：全新「三層樣式架構 (Three-Tier Style Architecture)」**
+> 本規範的最大目的是**確保 Markdown 預覽區樣式在優雅關注點分離 (SoC) 的原則下，達到極致的輕量化與高可維護性**。
+> - **第一層：App 全域介面樣式 (`index.css`)**：負責應用程式外殼佈局（如 Tailwind 核心導入、彈窗、搜尋面板、動效、View Transitions 圓形擴散動效、全域 Webkit/Firefox 捲軸美化）。**不直接干預** Markdown 預覽區 (`.prose`) 內部元素的視覺。
+> - **第二層：Markdown 排版骨架 (`markdown-base.css`)**：統一負責與色彩、字型無關的 Markdown 結構排版（如無序與有序列表 6 級縮排符號、Alerts 的 Flex 佈局、表格基礎佈局、Inline Code 等寬字型等）。
+> - **第三層：客製化主題樣式 (`src/styles/themes/theme-*.css`)**：僅負責主題專屬的色彩變數、深色模式色彩覆蓋、以及該主題特定的美學覆寫（如學術三線表、硃砂紅 marker、命令列終端前綴等）。
+> 任何主題**嚴禁**修改或覆蓋與第一層核心框架相關的設定（例如系統外框 `margin`, `padding`，除非僅針對 Markdown Prose 內容本身如標題與表格）。主題只是穿在系統外的一件衣服，不能改變骨架。
 
 ---
 
@@ -256,7 +257,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Markdown 基礎元素綁定 (Prose Binding)
+   Markdown 基礎元素與特色客製 (Prose Binding & Customizations)
    -------------------------------------------------------------------------- */
 .theme-[name].prose {
     font-family: var(--theme-font-family);
@@ -275,8 +276,6 @@
     font-family: var(--theme-heading-font);
     color: var(--theme-heading-color);
     font-weight: var(--theme-heading-weight);
-    border-bottom: none;
-    margin-top: 2.5rem;
 }
 
 .theme-[name].prose h1 {
@@ -301,33 +300,13 @@
     border-left: var(--theme-quote-border-left);
     font-style: var(--theme-quote-font-style);
     color: var(--theme-quote-text);
-    padding: 1.5rem 2rem;
-    margin: 2rem 0;
 }
 
-/* Alert 標註自訂擴充 */
-.theme-[name].prose blockquote.markdown-alert {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    margin: 1.5rem 0;
-}
+/* 註：Alert 標註系統、列表 (ul/ol) 縮排階層、表格寬度、Inline-code 骨架等
+   已在 `markdown-base.css` 統一處理，主題 CSS 不需重複撰寫。
+   如果主題對 Alerts 顏色、表格特定邊框或超連結有客製需求，可按需加入以下客製： */
 
-.theme-[name].prose blockquote.markdown-alert .markdown-alert-title {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.35rem;
-    font-weight: 600;
-}
-
-.theme-[name].prose blockquote.markdown-alert .markdown-alert-title svg {
-    margin-right: 0.375rem;
-}
-
+/* 若需要覆寫 Alerts 邊框與背景（選配） */
 .theme-[name].prose blockquote.markdown-alert-note {
     border-left-color: var(--theme-alert-note-border);
     background-color: var(--theme-alert-note-bg);
@@ -335,73 +314,31 @@
 .theme-[name].prose blockquote.markdown-alert-note .markdown-alert-title {
     color: var(--theme-alert-note-text);
 }
+/* 其他 Alerts (tip, important, warning, caution) 依此類推 */
 
-.theme-[name].prose blockquote.markdown-alert-tip {
-    border-left-color: var(--theme-alert-tip-border);
-    background-color: var(--theme-alert-tip-bg);
-}
-.theme-[name].prose blockquote.markdown-alert-tip .markdown-alert-title {
-    color: var(--theme-alert-tip-text);
-}
-
-.theme-[name].prose blockquote.markdown-alert-important {
-    border-left-color: var(--theme-alert-important-border);
-    background-color: var(--theme-alert-important-bg);
-}
-.theme-[name].prose blockquote.markdown-alert-important .markdown-alert-title {
-    color: var(--theme-alert-important-text);
-}
-
-.theme-[name].prose blockquote.markdown-alert-warning {
-    border-left-color: var(--theme-alert-warning-border);
-    background-color: var(--theme-alert-warning-bg);
-}
-.theme-[name].prose blockquote.markdown-alert-warning .markdown-alert-title {
-    color: var(--theme-alert-warning-text);
-}
-
-.theme-[name].prose blockquote.markdown-alert-caution {
-    border-left-color: var(--theme-alert-caution-border);
-    background-color: var(--theme-alert-caution-bg);
-}
-.theme-[name].prose blockquote.markdown-alert-caution .markdown-alert-title {
-    color: var(--theme-alert-caution-text);
-}
-
-.theme-[name].prose a {
-    color: var(--theme-link-color);
-    text-decoration: var(--theme-link-decoration);
-    transition: all 0.2s;
-}
-
-.theme-[name].prose a:hover {
-    background-color: var(--theme-link-hover-bg);
-    border-bottom: 2px solid var(--theme-link-hover-border);
-}
-
+/* 若需要覆寫表格特色邊框或圓角（選配） */
 .theme-[name].prose table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
     border: var(--theme-table-border);
     border-radius: 8px;
-    overflow: hidden;
-    margin: 2rem 0;
 }
-
 .theme-[name].prose th {
     background-color: var(--theme-table-header-bg);
     color: var(--theme-table-header-color);
     border-bottom: var(--theme-table-header-border);
-    padding: 1rem;
-    font-weight: 600;
-    text-align: left;
 }
-
 .theme-[name].prose td {
-    padding: 1rem;
     border-top: var(--theme-table-border);
     color: var(--theme-text-color);
+}
+
+/* 若需要覆寫超連結特色樣式（選配） */
+.theme-[name].prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+}
+.theme-[name].prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom-color: var(--theme-link-hover-border);
 }
 ```
 
@@ -427,17 +364,15 @@
 *   **開發者優勢**：開發者**完全不需**在客製化主題 CSS 檔案中，針對 `.dark` 狀態重複編寫繁重、冗餘、且帶有高權重 `!important` 的列印覆寫規則！
 
 ### 6.2 列印配色與樣式裁量準則 (Print Color & Style Decision Guide) [UPDATED]
-由於架構層已確保「列印時必定以降級的淺色模式渲染」，為了在「正式文件嚴謹度」與「主題設計感」之間取得平衡，系統採用以下**美學分流準則**。開發者在編寫主題的 `@media print` 規則時應遵循此規範：
+由於架構層已確保「列印時必定以降級的淺色模式渲染」，為了在「商務/論文文件嚴謹度」與「創意主題設計感」之間取得完美平衡，本系統建立以下**美學列印分流準則**。開發者與使用者需遵循以下規範：
 
-1. **嚴謹型主題 (如 Academic / Formal 主題)**
-   - **定位**：用於論文、公文、合約等需 100% 複印與嚴謹閱讀的場景。
-   - **規範**：必須在 `@media print` 中將顏色強行「黑白洗淨」。使用 `color: #000000 !important;` 確保最高對比度，並將表格邊框、引言左側線條等裝飾元素強制覆寫為純黑色或深灰色。
-   - **範例**：參見 `academic.css`。
+1. **唯一商務/論文正規列印載體 ➔ 系統預設主題 (DEFAULT Theme)**
+   - **定位**：用於論文、公文、合約、學術報告等需 100% 黑白複印、極致嚴謹閱讀的正式場景。
+   - **規範**：系統已在主入口 `@media print` 中，透過 `.prose:not([class*="theme-"])` 對其進行強硬的「黑白洗淨防禦」。其內文、超連結、程式碼、以及 **Note, Tip, Warning, Caution 等彩色 Alerts 標註，會被自動且嚴密地強制洗淨為無彩色的高雅黑、白、灰色調**，呈現最無瑕的商務學術規範。
 
-2. **創意與美學型主題 (如 Classical / Developer / Minimal 主題)**
-   - **定位**：用於個人網誌、創意日誌、代碼分享等強調個人格調或設計藍圖的場景。
-   - **規範**：**不應**在 `@media print` 內將顏色強行洗為純黑。直接利用系統降級後的「淺色模式變數」來渲染。開發者只需確保淺色模式的配色在白色背景紙張上具有 WCAG 對比度（如古典宣紙的硃砂紅標題、開發者主題的綠色邊框/語法高亮），即可直接以精美的彩色 PDF 導出，保留編輯器的豐富美學。
-   - **範例**：參見 `classical.css` 與 `developer.css`。
+2. **創意與美學風格印表 ➔ 全體特色主題 (Academic / Classical / Developer / Minimal / Implementation Plan)**
+   - **定位**：用於技術部落格、代碼藍圖、古典文藝日誌、精緻簡報與開發計劃書等強調個人美學與專業格調的場景。
+   - **規範**：**徹底放寬列印色彩限制，自訂度完美回歸**。開發者不應（也不需要）在客製主題的 `@media print` 內將顏色與邊框洗淨為純黑白。系統已建立高保真保護規則，會完美將特色主題降級後的「淺色模式特色變數」（如古典宣紙的暖黃底色與硃砂紅、開發者的終端綠與語法高亮、學術主題的彩色 Alerts 標註與三線表、實作計劃的工業寶藍 Checkbox）透傳輸出至 PDF 中，保留編輯器的核心視覺張力。
 
 ### 6.3 簡明列印排版微調指南 (選配)
 當淺色配色已具備足夠對比度時，開發者**甚至不需要編寫任何顏色相關的 `@media print` 規則**。僅在有以下排版需求時，在主題內加上簡單的純結構性 `@media print` 微調：

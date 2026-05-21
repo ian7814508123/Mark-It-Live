@@ -178,34 +178,9 @@
 .theme-implementation-plan.prose blockquote {
     border-left: var(--theme-quote-border-left);
     background-color: var(--brand-surface);
-    padding: 1rem 1.25rem;
-    margin: 1.5rem 0;
     border-radius: 0 0.75rem 0.75rem 0;
     font-style: var(--theme-quote-font-style);
     color: var(--theme-quote-text);
-}
-
-/* 針對 Alert 的特定色彩 (透過標準變數對接) */
-.theme-implementation-plan.prose blockquote.markdown-alert {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    margin: 1.5rem 0;
-}
-
-.theme-implementation-plan.prose blockquote.markdown-alert .markdown-alert-title {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.35rem;
-    font-weight: 700;
-}
-
-.theme-implementation-plan.prose blockquote.markdown-alert .markdown-alert-title svg {
-    margin-right: 0.375rem;
 }
 
 .theme-implementation-plan.prose blockquote.markdown-alert-note {
@@ -301,13 +276,8 @@
 
 /* 表格：清晰、工業感 */
 .theme-implementation-plan.prose table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
     border: var(--theme-table-border);
     border-radius: 0.75rem;
-    overflow: hidden;
-    margin: 2rem 0;
 }
 
 .theme-implementation-plan.prose th {
@@ -332,43 +302,19 @@
     color: var(--theme-link-color);
     text-decoration: var(--theme-link-decoration);
     border-bottom: 1px solid transparent;
-    transition: border-color 0.2s;
 }
 
 .theme-implementation-plan.prose a:hover {
     border-bottom-color: var(--theme-link-hover-border);
 }
 
-/* Print Specifics */
+/* Print Specifics: 工業藍藍圖美學列印微調 */
 @media print {
-    .theme-implementation-plan {
-        --brand-primary: #005B94 !important;
-        --brand-surface: #ffffff !important;
-        --code-bg: #f8fafc !important;
-        --code-border: #cbd5e1 !important;
-
-        --theme-text-color: #000000 !important;
-        --theme-heading-color: #000000 !important;
-        --theme-table-border: 1px solid #cbd5e1 !important;
-    }
-
     .theme-implementation-plan.prose {
-        background-color: white !important;
-        font-size: 10pt !important;
-    }
-
-    .theme-implementation-plan.prose h1 {
-        border-bottom: 2pt solid #005B94 !important;
-        font-size: 20pt !important;
+        font-size: 10pt;
     }
 
     .theme-implementation-plan.prose blockquote {
-        background-color: #f8fafc !important;
-        border-left: 3pt solid #cbd5e1 !important;
         page-break-inside: avoid;
-    }
-
-    .theme-implementation-plan.prose table {
-        border: 1pt solid #cbd5e1 !important;
     }
 }
