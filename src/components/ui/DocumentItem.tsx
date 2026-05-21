@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FileText, FileCode2, Trash2, Clock, Link as LinkIcon, GripVertical } from 'lucide-react';
+import { FileText, FileCode2, Clock, Link as LinkIcon, GripVertical } from 'lucide-react';
 import { DocumentRecord } from '../../types';
+import EllipsisMenu from './EllipsisMenu';
 
 interface DocumentItemProps {
     document: DocumentRecord;
@@ -15,6 +16,14 @@ interface DocumentItemProps {
     onDragOverItem?: (e: React.DragEvent, docId: string) => void;
     onDropItem?: (e: React.DragEvent, docId: string) => void;
 }
+
+/**
+ * 觸控裝置偵測（只在模組載入時計算一次，效能友善）
+ * 用於決定是否停用 HTML5 Drag & Drop（觸控端以 Ellipsis Menu 的「移動至...」替代）
+ */
+const isTouchDevice =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 const DocumentItem: React.FC<DocumentItemProps> = ({
     document,
@@ -33,6 +42,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
     const [editName, setEditName] = useState(document.name);
     const [isBacklinksOpen, setIsBacklinksOpen] = useState(false);
 
+    /** 桌面端雙擊仍可直接重命名（保留原有習慣） */
     const handleDoubleClick = () => {
         setIsEditing(true);
         setEditName(document.name);
@@ -54,11 +64,17 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
         }
     };
 
-    const handleDeleteClick = (e: React.MouseEvent) => {
-        e.stopPropagation(); // 避免觸發 onClick
+    /** Ellipsis Menu 的刪除 callback（帶確認對話框） */
+    const handleDeleteViaMenu = () => {
         if (confirm(`確定要刪除「${document.name}」嗎？`)) {
             onDelete();
         }
+    };
+
+    /** Ellipsis Menu 的重新命名 callback（進入行內編輯模式） */
+    const handleRenameViaMenu = () => {
+        setIsEditing(true);
+        setEditName(document.name);
     };
 
     const formatTime = (timestamp: number) => {
@@ -80,24 +96,28 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
         <div
             onClick={onClick}
             onDoubleClick={handleDoubleClick}
-            draggable="true"
-            onDragStart={(e) => {
+            // 觸控端：停用原生 HTML5 Drag & Drop，改以 Ellipsis Menu 的「移動至...」操作
+            draggable={!isTouchDevice}
+            onDragStart={!isTouchDevice ? (e) => {
                 e.dataTransfer.setData('text/plain', document.id);
                 e.dataTransfer.effectAllowed = 'move';
-            }}
-            onDragOver={(e) => onDragOverItem?.(e, document.id)}
-            onDrop={(e) => onDropItem?.(e, document.id)}
+            } : undefined}
+            onDragOver={!isTouchDevice ? (e) => onDragOverItem?.(e, document.id) : undefined}
+            onDrop={!isTouchDevice ? (e) => onDropItem?.(e, document.id) : undefined}
             className={`
-        group relative px-3 py-2.5 mx-2 rounded-2xl cursor-pointer transition-all
-        ${isActive
+                group relative px-3 py-2.5 mx-2 rounded-2xl cursor-pointer transition-all min-w-0
+                doc-item-draggable
+                ${isActive ? 'doc-item--active' : ''}
+                ${isActive
                     ? 'bg-brand-secondary dark:bg-brand-primary/30 border border-brand-primary/20 dark:border-brand-primary/50 shadow-sm'
                     : 'hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent'
                 }
-      `}
+            `}
         >
-            <div className="flex items-start gap-1">
-                {/* 拖曳圖框 (Hover 時顯示) */}
-                <div className="mt-1 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 transition-opacity">
+            {/* 使用 w-full 與 min-w-0 限制主要 Flex 容器寬度，防止長檔名撐破容器 */}
+            <div className="flex items-start gap-1 w-full min-w-0">
+                {/* 拖曳圖框（doc-item-grip：觸控端透過 CSS 隱藏） */}
+                <div className="mt-1 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 transition-opacity doc-item-grip">
                     <GripVertical size={14} />
                 </div>
 
@@ -150,8 +170,9 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
                         </div>
                     </div>
 
-                    {/* 操作按鈕組 */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    {/* 操作按鈕組（doc-item-actions：觸控端由 CSS 控制 Active-Only 顯示） */}
+                    <div className="flex items-center gap-1 shrink-0 doc-item-actions">
+                        {/* 反向連結按鈕 */}
                         {backlinks.length > 0 && (
                             <button
                                 onClick={(e) => {
@@ -165,19 +186,20 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
                                 <LinkIcon size={14} />
                             </button>
                         )}
-                        <button
-                            onClick={handleDeleteClick}
-                            aria-label="刪除此文檔"
-                            className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 text-slate-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
-                            title="刪除文檔"
-                        >
-                            <Trash2 size={14} />
-                        </button>
+
+                        {/* Ellipsis 更多操作選單（收納 Rename / Move / Delete） */}
+                        <EllipsisMenu
+                            onRename={handleRenameViaMenu}
+                            onMove={onMove}
+                            onDelete={handleDeleteViaMenu}
+                            folders={folders}
+                            currentFolderId={document.folderId}
+                        />
                     </div>
                 </div>
             </div>
 
-            {/* 反向連結清單：CCS Grid 彈性展開 */}
+            {/* 反向連結清單：CSS Grid 彈性展開 */}
             <div style={{
                 display: 'grid',
                 gridTemplateRows: isBacklinksOpen && backlinks.length > 0 ? '1fr' : '0fr',

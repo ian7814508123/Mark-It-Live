@@ -494,8 +494,8 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
                         fontSize: '0.875rem',
                         lineHeight: '1.5',
                         backgroundColor: 'var(--code-bg)',
-                        borderRadius: language ? '0 0 0.5rem 0.5rem' : '0.5rem',
-                        border: '1px solid var(--code-border)',
+                        borderRadius: '0', /* 圓角由外層卡片統一裁剪 */
+                        border: 'none', /* 拔除內層重複邊框，消除雙重邊框 Bug */
                         overflowX: effectiveWrapped ? 'hidden' : 'auto',
                         tabSize: '2',
                     }}
@@ -808,7 +808,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
         <CommentProvider>
             <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0`}>
-                <div className={`prose max-w-none px-8 pb-4  ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl prose-table:border-collapse prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:p-2 prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2 print:p-0 print:max-w-none print:bg-white relative z-10`}>
+                <div className={`prose max-w-none px-8 pb-4  ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak]}
                         rehypePlugins={[rehypeRaw]}

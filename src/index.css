@@ -531,19 +531,33 @@
             color: var(--theme-alert-caution-text) !important;
         }
 
-        /* 5. 程式碼與圖表容器：不再需要與 prose 激烈爭奪，回歸標準定義 */
+        /* 5. 程式碼與圖表容器：不再需要與 prose 激烈爭奪，回歸標準卡片定義 */
         .diagram-block-container,
-        .code-block-wrapper pre,
-        pre[style] {
+        .enhanced-codeblock {
             background-color: var(--code-bg) !important;
             /* PDF 導出必須強制背景 */
-            border: 1px solid var(--code-border);
-            border-radius: 6px;
-            padding: 1rem 0;
-            margin: 1.5rem 0;
-            width: 100%;
-            overflow: visible;
-            white-space: pre-wrap;
+            border: 1px solid var(--code-border) !important;
+            border-radius: 6px !important;
+            margin: 1.5rem 0 !important;
+            width: 100% !important;
+            overflow: visible !important;
+        }
+
+        .diagram-block-container {
+            padding: 1rem 0 !important;
+        }
+
+        /* 列印時內層 pre 防禦性洗淨，徹底消除雙重邊框 */
+        .enhanced-codeblock pre,
+        .enhanced-codeblock pre[style] {
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            width: 100% !important;
+            overflow: visible !important;
+            white-space: pre-wrap !important;
         }
 
         /* 6. 語言標籤列印樣式：強制使用淺色風格，改為不透明以消除與底層邊框的疊影 */
@@ -563,20 +577,41 @@
      * 與 react-syntax-highlighter 產生的 pre[style] 統一控制，
      * 避免「雙層背景」的視覺問題。
      */
-    /* ── 程式碼區塊容器 (外框樣式) ── */
+    /* ── 程式碼與圖表容器 (統一外框卡片樣式) ──
+       統一由外層的 .enhanced-codeblock 與 .diagram-block-container 作為卡片載體。
+       這能完美防止內部代碼 pre 與標頭組件產生重複的灰色邊框。 */
     .diagram-block-container,
-    .code-block-wrapper pre,
-    pre[style] {
+    .enhanced-codeblock {
         background-color: var(--code-bg);
         border: 1px solid var(--code-border);
         border-radius: 0.5rem;
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         margin: 1.5rem 0;
-        padding: 1rem;
+        overflow: hidden; /* 關鍵：確保內層 Header 與代碼被外層卡片圓角自然截斷 */
         display: block;
         width: 100%;
         color: var(--code-token-punctuation);
     }
+
+    /* 圖表容器專用內距 */
+    .diagram-block-container {
+        padding: 1rem;
+    }
+
+    /* ── 內層代碼 pre 防禦性洗淨 ──
+       強制拔除內層 react-syntax-highlighter (pre[style]) 的多餘邊框、圓角與 margin，
+       使其無縫融入外層的 .enhanced-codeblock 卡片中，徹底解決「雙層邊框」與「雙重背景」視覺 Bug。 */
+    .enhanced-codeblock pre,
+    .enhanced-codeblock pre[style] {
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        background-color: transparent !important; /* 透出外層容器的背景色 */
+        width: 100% !important;
+        display: block !important;
+    }
+
 
     /* ── 圖表列印對齊優化 ── */
     .chart-wrapper {
@@ -1085,5 +1120,50 @@
             /* 確保內層不會遮擋背景 */
             background-color: transparent !important;
         }
+    }
+
+    /* ── 跨裝置操作相容：DocumentItem 按鈕行為差異化 ────────────────────────
+     * 桌面端（pointer: fine）：Tailwind 的 group-hover 原生處理，無需額外 CSS。
+     * 觸控端（pointer: coarse）：覆蓋 group-hover，改為「選中常駐 (Active-Only)」機制。
+     *   - 非 Active 項目：操作按鈕完全隱藏，讓長檔名使用 100% 寬度
+     *   - Active 項目：操作按鈕常駐可見，供使用者點擊
+     * ─────────────────────────────────────────────────────────────────────── */
+    @media (hover: none) and (pointer: coarse) {
+
+        /* 1. 強制隱藏所有文件項目的操作按鈕（覆蓋 Tailwind opacity-0 group-hover 機制） */
+        .doc-item-actions {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            /* 確保 group-hover 在觸控端不觸發 */
+            transition: none !important;
+        }
+
+        /* 2. 僅有 Active 項目的操作按鈕常駐顯示 */
+        .doc-item--active .doc-item-actions {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* 3. 觸控端隱藏拖曳 Grip 圖示（以 Ellipsis Menu 的「移動至...」替代拖曳排序） */
+        .doc-item-grip {
+            display: none !important;
+        }
+    }
+
+    /* ── Ellipsis 選單進入動畫 ── */
+    @keyframes ellipsis-menu-in {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-6px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .ellipsis-menu-enter {
+        animation: ellipsis-menu-in 150ms var(--m3-easing-decelerate) both;
+        transform-origin: top right;
     }
 }

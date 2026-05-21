@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, FolderOpen, FileText, Wrench, ChevronDown, ChevronRight, Files, FolderPlus, Trash2 } from 'lucide-react';
+import { X, Plus, FolderOpen, FileText, Wrench, ChevronDown, ChevronRight, Files, FolderPlus } from 'lucide-react';
 import { DocumentRecord } from '../../types';
 import DocumentItem from '../ui/DocumentItem';
 import ToolsModal from '../modals/ToolsModal';
 import RippleButton from '../ui/RippleButton';
 import MarkdownPreview from '../markdown/MarkdownPreview';
 import MagneticButton from '../ui/MagneticButton';
+import EllipsisMenu from '../ui/EllipsisMenu';
 
 interface HistorySidebarProps {
     isOpen: boolean;
@@ -112,8 +113,11 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         });
     };
 
-    const handleFolderDoubleClick = (e: React.MouseEvent, folder: any) => {
-        e.stopPropagation();
+    /**
+     * 資料夾重新命名：由 EllipsisMenu 的 onRename callback 觸發，
+     * 直接進入行內輸入模式，取代觸控端難以觸發的「雙擊重命名」。
+     */
+    const handleFolderRenameStart = (folder: any) => {
         setEditingFolderId(folder.id);
         setEditFolderName(folder.name);
     };
@@ -359,11 +363,10 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                                                 }}
                                             >
                                                 <div
-                                                    className="group flex items-center justify-between px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                                                    className="flex items-center justify-between px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                                                     onClick={() => toggleFolder(folder.id)}
-                                                    onDoubleClick={(e) => handleFolderDoubleClick(e, folder)}
                                                 >
-                                                    <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                                    <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                                                         {isExpanded ? <ChevronDown size={14} className="text-brand-primary shrink-0" /> : <ChevronRight size={14} className="text-slate-400 shrink-0" />}
                                                         <FolderOpen size={16} className={`${isExpanded ? 'text-brand-primary' : 'text-slate-400'} shrink-0`} />
                                                         {editingFolderId === folder.id ? (
@@ -386,39 +389,44 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
+
+                                                    {/* 資料夾操作：EllipsisMenu 常駐顯示，同時適用桌面端與觸控端 */}
+                                                    <div className="shrink-0 ml-1">
+                                                        <EllipsisMenu
+                                                            onRename={() => handleFolderRenameStart(folder)}
+                                                            onDelete={() => {
                                                                 if (confirm("建立在資料夾內的『點擊建檔』與『雙向連結』僅限於該資料夾內有效。\n確定要刪除整個資料夾嗎？")) {
                                                                     onDeleteFolder(folder.id);
                                                                 }
                                                             }}
-                                                            aria-label="刪除資料夾"
-                                                            className="p-1.5 rounded-full text-slate-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 transition-all"
-                                                            title="刪除資料夾"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
+                                                            deleteLabel="刪除資料夾"
+                                                        />
                                                     </div>
                                                 </div>
 
                                                 {/* CSS Grid 彈性展開動畫：內容常駐提高渲染額費，不再條件淡入 */}
-                                                <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateRows: isExpanded ? '1fr' : '0fr',
-                                                    transition: 'grid-template-rows 0.35s cubic-bezier(0.4,0,0.2,1)',
-                                                    overflow: 'hidden',
-                                                }}>
-                                                    <div style={{
-                                                        minHeight: 0,
-                                                        opacity: isExpanded ? 1 : 0,
-                                                        transform: isExpanded ? 'translateY(0)' : 'translateY(-8px)',
-                                                        transition: isExpanded
-                                                            ? 'opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s'
-                                                            : 'opacity 0.18s ease, transform 0.18s ease',
-                                                    }}>
-                                                        <div className="pl-1 space-y-0.2 border-l border-brand-primary/10 dark:border-brand-primary/30 ml-6 mb-2">
+                                                {/* 加上 min-w-0 確保 Grid 容器及其子項目寬度受到父級約束，不被長檔名撐破 */}
+                                                <div
+                                                    className="min-w-0"
+                                                    style={{
+                                                        display: 'grid',
+                                                        gridTemplateRows: isExpanded ? '1fr' : '0fr',
+                                                        transition: 'grid-template-rows 0.35s cubic-bezier(0.4,0,0.2,1)',
+                                                        overflow: 'hidden',
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="min-w-0"
+                                                        style={{
+                                                            minHeight: 0,
+                                                            opacity: isExpanded ? 1 : 0,
+                                                            transform: isExpanded ? 'translateY(0)' : 'translateY(-8px)',
+                                                            transition: isExpanded
+                                                                ? 'opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s'
+                                                                : 'opacity 0.18s ease, transform 0.18s ease',
+                                                        }}
+                                                    >
+                                                        <div className="pl-1 space-y-0.2 border-l border-brand-primary/10 dark:border-brand-primary/30 ml-6 mb-2 min-w-0">
                                                             {folderDocs.length === 0 ? (
                                                                 <p className="px-4 py-2 text-[10px] text-slate-400 dark:text-slate-600 italic">無文件</p>
                                                             ) : (

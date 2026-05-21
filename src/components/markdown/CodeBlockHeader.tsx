@@ -65,7 +65,7 @@ export const CodeBlockHeader: React.FC<CodeHeaderProps> = ({
 
   return (
     <div 
-      className="flex items-center justify-between px-4 border border-b-0 h-10 select-none rounded-t-lg"
+      className="flex items-center justify-between px-4 border-b h-10 select-none"
       style={{ 
         backgroundColor: 'var(--code-header-bg, var(--code-bg))',
         borderColor: 'var(--code-border)'

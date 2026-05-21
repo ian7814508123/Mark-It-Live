@@ -162,21 +162,41 @@
     transition: all 0.2s ease-in-out;
 }
 
-/* ── 6. 表格基礎骨架 ──────────────────────────────────────────────────── */
+/* ── 6. 表格基礎骨架 ────────────────────────────────────────────────────
+   統一表格的工業美學，預設提供圓角外框、去除垂直豎線，並將底線對齊乾淨。
+   此處為所有主題的通用排版骨架，方便統一繼承與風格控制。 */
 .prose table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow: hidden;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: 1px solid var(--theme-table-border, var(--code-border, #e2e8f0)) !important;
+    border-radius: 0.75rem !important;
+    overflow: hidden !important;
     margin: 2rem 0;
 }
 
 .prose th {
-    padding: 1rem;
-    font-weight: 600;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
     text-align: left;
+    background-color: var(--theme-table-header-bg, #f8fafc);
+    color: var(--theme-table-header-color, inherit);
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: var(--theme-table-header-border, 1px solid var(--theme-table-border, var(--code-border, #e2e8f0))) !important;
 }
 
 .prose td {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--theme-table-border, var(--code-border, #e2e8f0)) !important;
+    color: var(--theme-text-color, inherit);
 }
+
+.prose tr:last-child td {
+    border-bottom: none !important; /* 消除表格最後一行與外框重合的雙重底線 */
+}
+
