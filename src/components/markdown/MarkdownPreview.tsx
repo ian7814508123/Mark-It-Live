@@ -517,6 +517,8 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
 
 // ─── 區塊判斷上下文：用於解決 react-markdown v10 移除 inline prop 後的辨識問題 ───────
 const IsInPreContext = React.createContext(false);
+// 用於追蹤是否已經處於某個已包裹評論的 Block 容器中，避免巢狀結構（如 blockquote > p）重複渲染標註按鈕
+const IsInBlockContext = React.createContext(false);
 
 const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     content,
@@ -552,40 +554,53 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         const hasComment = !!lineComments[line];
 
         return (
-            <div className={`relative group/line ${className}`} data-line={line}>
-                {children}
+            <IsInBlockContext.Consumer>
+                {(isInBlock) => {
+                    // 如果已經在外層 Block 內部了，或者沒有行號，就直接渲染 children，不再重複包裹評論與 Hover 按鈕
+                    if (isInBlock || !line) {
+                        return <>{children}</>;
+                    }
 
-                {/* ─── Hover 提示 Badge（非評論模式 & 有評論時顯示） ──── */}
-                {!isCommentMode && hasComment && (
-                    <div
-                        aria-label={`第 ${line} 行有評論`}
-                        className="
-                            absolute left-full ml-2 top-1/2 -translate-y-1/2
-                            opacity-0 group-hover/line:opacity-100
-                            pointer-events-none
-                            transition-opacity duration-150
-                            flex items-center gap-1
-                            px-1.5 py-0.5 rounded-full
-                            bg-brand-primary/15 dark:bg-brand-primary/25
-                            border border-brand-primary/30 dark:border-brand-primary/50
-                            text-brand-primary text-[9px] font-bold
-                            select-none z-10 print:hidden
-                        "
-                    >
-                        <span>💬</span>
-                        <span>#{line}</span>
-                    </div>
-                )}
+                    return (
+                        <IsInBlockContext.Provider value={true}>
+                            <div className={`relative group/line ${className}`} data-line={line}>
+                                {children}
 
-                {/* ─── 評論操作組件（評論模式 or 有評論時掛載） ─────────── */}
-                <LineCommentItem
-                    line={line}
-                    comment={lineComments[line]}
-                    isCommentMode={isCommentMode}
-                    currentDocId={currentDocId ?? null}
-                    onUpdateLineComment={onUpdateLineComment}
-                />
-            </div>
+                                {/* ─── Hover 提示 Badge（非評論模式 & 有評論時顯示） ──── */}
+                                {!isCommentMode && hasComment && (
+                                    <div
+                                        aria-label={`第 ${line} 行有評論`}
+                                        className="
+                                            absolute left-full ml-2 top-1/2 -translate-y-1/2
+                                            opacity-0 group-hover/line:opacity-100
+                                            pointer-events-none
+                                            transition-opacity duration-150
+                                            flex items-center gap-1
+                                            px-1.5 py-0.5 rounded-full
+                                            bg-brand-primary/15 dark:bg-brand-primary/25
+                                            border border-brand-primary/30 dark:border-brand-primary/50
+                                            text-brand-primary text-[9px] font-bold
+                                            select-none z-10 print:hidden
+                                        "
+                                    >
+                                        <span>💬</span>
+                                        <span>#{line}</span>
+                                    </div>
+                                )}
+
+                                {/* ─── 評論操作組件（評論模式 or 有評論時掛載） ─────────── */}
+                                <LineCommentItem
+                                    line={line}
+                                    comment={lineComments[line]}
+                                    isCommentMode={isCommentMode}
+                                    currentDocId={currentDocId ?? null}
+                                    onUpdateLineComment={onUpdateLineComment}
+                                />
+                            </div>
+                        </IsInBlockContext.Provider>
+                    );
+                }}
+            </IsInBlockContext.Consumer>
         );
     }, [lineComments, isCommentMode, currentDocId, onUpdateLineComment]);
 
@@ -681,8 +696,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         h4: ({ node, ...props }: any) => wrapWithComment(node, <h4 {...props} />),
         h5: ({ node, ...props }: any) => wrapWithComment(node, <h5 {...props} />),
         h6: ({ node, ...props }: any) => wrapWithComment(node, <h6 {...props} />),
-        ul: ({ node, ...props }: any) => wrapWithComment(node, <ul {...props} />),
-        ol: ({ node, ...props }: any) => wrapWithComment(node, <ol {...props} />),
+        ul: ({ node, ...props }: any) => <ul {...props} />,
+        ol: ({ node, ...props }: any) => <ol {...props} />,
         li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
         blockquote: ({ node, children, ...props }: any) => {
             const line = node?.position?.start?.line;
