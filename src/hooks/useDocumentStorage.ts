@@ -86,11 +86,12 @@ function saveToStorage(state: AppState): boolean {
 export function useDocumentStorage() {
     const [state, setState] = useState<AppState>(loadFromStorage);
 
-    // 同步到 localStorage（加入 debounce 避免快速輸入時每次按鍵都觸發序列化）
+    // 同步到 localStorage（debounce 500ms：減少打字時的 I/O 阻塞，
+    // 停止打字後才執行序列化寫入，避免 localStorage 阻斷主執行緒）
     useEffect(() => {
         const timer = setTimeout(() => {
             saveToStorage(state);
-        }, 300);
+        }, 500);
         return () => clearTimeout(timer);
     }, [state]);
 

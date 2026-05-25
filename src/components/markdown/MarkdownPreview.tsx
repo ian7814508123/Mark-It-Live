@@ -4,8 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { MathJax } from 'better-react-mathjax';
 import rehypeRaw from 'rehype-raw';
-import mermaid from 'mermaid';
-import embed from 'vega-embed';
+
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import SmilesDrawer from 'smiles-drawer';
 import { remarkGithubAlerts } from './remarkGithubAlerts';
@@ -15,8 +14,8 @@ import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
 import { hashString } from '../../utils';
-import { useDebounce } from '../../hooks/useDebounce';
 import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSettings';
+import { useDebounce } from '../../hooks/useDebounce';
 import { WrapText, Info, AlertCircle, AlertTriangle, Lightbulb, Ban } from 'lucide-react';
 import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
@@ -58,6 +57,8 @@ const cleanMermaidSvg = (svgHtml: string) => {
 
 const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        // 動態載入 Mermaid（首次渲染時才下載，後續使用已快取實例）
+        const mermaid = (await import('mermaid')).default;
         mermaid.initialize({
             theme: isDark ? 'dark' : 'neutral',
             fontFamily: 'Inter, system-ui, sans-serif',
@@ -91,10 +92,12 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
     const { getDataFileByName } = useImageStorage();
 
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        // 動態載入 vega-embed（首次渲染時才下載，後續使用已快取實例）
+        const { default: embed } = await import('vega-embed');
         const spec = JSON.parse(renderCode);
 
         container.innerHTML = '';
-        await embed(container, spec, {
+        const result = await embed(container, spec, {
             actions: false,
             theme: isDark ? 'dark' : 'vox',
             renderer: 'svg',
@@ -103,7 +106,7 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
                 sanitize: (uri: string) => {
                     return { href: uri };
                 },
-                // 2. 覆寫非同步載入器：在載入數據時進行攔截
+                // 2. 覆寫非同步載入器：在載入數據時進行擴截
                 load: async (uri: string) => {
                     if (uri.startsWith('data-local://')) {
                         const fileName = uri.replace('data-local://', '');
@@ -124,6 +127,16 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
                 }
             } as any
         });
+
+        // 返回清理函數：當圖表卸載或代碼更新時，呼叫 view.finalize() 釋放 Vega View 實例，
+        // 防止 Canvas/SVG 事件監聽與內部計時器持續佔用記憶體（修復 Memory Leak）
+        return () => {
+            try {
+                result?.view?.finalize();
+            } catch (e) {
+                // view 已被清除時靜默忽略
+            }
+        };
     }, [getDataFileByName]);
 
     return (
@@ -538,11 +551,15 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 }) => {
     const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
-    const debouncedContent = useDebounce(content, 200);
     const { getImage } = useImageStorage();
 
     const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
-    const lineComments = currentDoc?.lineComments || {};
+    // 穩定化 lineComments 參照：避免空物件 {} 每次 render 都是新參照，
+    // 導致 wrapWithComment 的 useCallback 失效並觸發 components 重建
+    const lineComments = useMemo(
+        () => currentDoc?.lineComments ?? {},
+        [currentDoc?.lineComments]
+    );
 
     // 註解相關 state 已搬移至 LineCommentItem 組件內部自治管理
 
@@ -802,7 +819,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
         container.addEventListener('load', handleImageLoad, true);
         return () => container.removeEventListener('load', handleImageLoad, true);
-    }, [debouncedContent]);
+    }, [content]);
 
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
@@ -816,7 +833,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                         components={components}
                         urlTransform={urlTransform}
                     >
-                        {debouncedContent}
+                        {content}
                     </ReactMarkdown>
                 </div>
             </div>

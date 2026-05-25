@@ -48,8 +48,8 @@ _你也可以 **混合使用** 不同樣式_
 1. 項目 1
 2. 項目 2
 3. 項目 3
-  1. 項目 3a
-  2. 項目 3b
+    1. 項目 3A
+    2. 項目 3B
 
 ---
 
@@ -106,13 +106,14 @@ _你也可以 **混合使用** 不同樣式_
 ### 行內程式碼
 
 本網站使用 `markedjs/marked` 進行解析。
+
 例如：`console.log('Hello')`
 
 ### 程式碼區塊
 
 ```javascript
 function sayHello() {
-  console.log('Hello, Markdown Live Editor!');
+  console.log('Hello, Markdown Live Previewer!');
 }
 ```
 
@@ -127,6 +128,11 @@ function sayHello() {
 可以直接在 Markdown 中撰寫 Mermaid 語法：
 
 ```mermaid
+---
+title: 支援的圖表
+---
+%% width:70% 
+%% ↑這樣可以調整圖表大小
 graph LR
     A[Markdown] --> B{內嵌渲染}
     B --> C[Mermaid]

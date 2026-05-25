@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
 import { flushSync } from 'react-dom';
 import { MathJaxContext } from 'better-react-mathjax';
-import mermaid from 'mermaid';
 
 import Header from './src/components/layout/Header';
 import Editor from './src/components/layout/Editor';
@@ -27,13 +26,27 @@ import './src/styles/themes/classical.css';
 
 type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 
-// Initialize Mermaid
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'neutral',
-  securityLevel: 'loose',
-  fontFamily: 'Inter',
-});
+// ─── Mermaid Lazy Singleton ───────────────────────────────────────────────────
+// 不在頂層同步 import mermaid，改為首次進入 Mermaid 編輯器模式時才動態載入，
+// 確保不使用 Mermaid 的使用者第一次開啟網頁時完全不下載此套件。
+let mermaidInstance: typeof import('mermaid') | null = null;
+let mermaidInitialized = false;
+
+async function getMermaid(theme: string = 'neutral') {
+  if (!mermaidInstance) {
+    mermaidInstance = await import('mermaid');
+  }
+  if (!mermaidInitialized) {
+    mermaidInstance.default.initialize({
+      startOnLoad: false,
+      theme: theme as any,
+      securityLevel: 'loose',
+      fontFamily: 'Inter',
+    });
+    mermaidInitialized = true;
+  }
+  return mermaidInstance.default;
+}
 
 
 
@@ -155,6 +168,12 @@ const App: React.FC = () => {
   // 從當前文檔取得 mode 和 code
   const mode = currentDocument?.mode || 'markdown';
   const code = currentDocument?.content || '';
+
+  // 將預覽面板的渲染與編輯器打字解耦：
+  // code 即時反映打字（用於 ScrollSync、Mermaid 模式），
+  // deferredCode 在瀏覽器空閒時才更新（用於 MarkdownPreview 的 AST 重解析），
+  // 確保打字時主執行緒的 CPU 不被 Remark/Rehype 的 AST 編譯霸佔。
+  const deferredCode = useDeferredValue(code);
 
   // Toggle Dark Mode with View Transitions
   const handleToggleDarkMode = (event?: React.MouseEvent) => {
@@ -323,13 +342,14 @@ const App: React.FC = () => {
     };
   }, [rebuildLineMap]);
 
-  // 當內容大幅度改變或切換文本時重新校準
+  // 當預覽渲染完成後（deferredCode 更新代表 React 已在空閒期處理完）重新校準
+  // 使用 deferredCode 而非 code，確保不在打字進行中觸發 getBoundingClientRect()
   useEffect(() => {
-    if (code !== lastContentRef.current) {
-      lastContentRef.current = code;
-      setTimeout(rebuildLineMap, 500); // 等待 ReactMarkdown 渲染
+    if (deferredCode !== lastContentRef.current) {
+      lastContentRef.current = deferredCode;
+      setTimeout(rebuildLineMap, 500); // 等待 ReactMarkdown 渲染完成
     }
-  }, [code, rebuildLineMap]);
+  }, [deferredCode, rebuildLineMap]);
 
 
   const syncLoop = useCallback(() => {
@@ -511,7 +531,7 @@ const App: React.FC = () => {
     setIsCreateModalOpen(true);
   };
 
-  // Render Mermaid code to SVG
+  // Render Mermaid code to SVG（使用動態載入 Mermaid，避免首屏同步載入大套件）
   const renderDiagram = useCallback(async (mermaidCode: string, currentTheme: string) => {
     if (mode !== 'mermaid') return;
 
@@ -522,7 +542,10 @@ const App: React.FC = () => {
     }
 
     try {
-      mermaid.initialize({ theme: currentTheme as any });
+      // 動態載入 Mermaid Singleton（首次呼叫時才下載，後續直接返回快取實例）
+      const mermaid = await getMermaid(currentTheme);
+      // 切換主題時重新初始化
+      mermaid.initialize({ theme: currentTheme as any, startOnLoad: false, securityLevel: 'loose', fontFamily: 'Inter' });
       const { svg } = await mermaid.render('mermaid-render-target', mermaidCode);
       setSvgContent(svg);
       setError(null);
@@ -1374,7 +1397,7 @@ const App: React.FC = () => {
               onMouseUp={onMouseUp}
               onWheel={handleWheel}
               onScroll={handlePreviewScroll}
-              code={code}
+              code={deferredCode}
               theme={theme}
               isDarkMode={isDarkMode}
               onMouseEnter={() => {

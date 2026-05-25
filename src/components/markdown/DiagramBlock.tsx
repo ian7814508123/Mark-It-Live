@@ -10,8 +10,8 @@ interface DiagramBlockProps {
     isDarkMode: boolean;
     isPrinting?: boolean;
     printSessionId?: number;
-    /** 渲染函數：由具體圖表類型提供 */
-    render: (container: HTMLDivElement, code: string, isDark: boolean) => Promise<void> | void;
+    /** 渲染函數：由具體圖表類型提供，可選返回清理函數以釋放資源 */
+    render: (container: HTMLDivElement, code: string, isDark: boolean) => Promise<(() => void) | void> | ((() => void) | void);
     /** 錯誤訊息標題 */
     errorTitle?: string;
     /** 容器類名 (可選) */
@@ -85,11 +85,18 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
         setIsPending(true);
         setError(null);
 
+        // 儲存渲染產生的清理函數（如 Vega view.finalize()）
+        let cleanupFn: (() => void) | undefined;
+
         const timer = setTimeout(async () => {
             if (!containerRef.current) return;
             isMounted.current = true;
             try {
-                await renderRef.current(containerRef.current, renderCode, isDark);
+                const result = await renderRef.current(containerRef.current, renderCode, isDark);
+                // 如果 render 函數返回了清理函數，儲存起來供 useEffect cleanup 使用
+                if (typeof result === 'function') {
+                    cleanupFn = result;
+                }
                 if (isMounted.current) {
                     lastValidHtml.current = containerRef.current.innerHTML;
                     setError(null);
@@ -114,6 +121,8 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
         return () => {
             isMounted.current = false;
             clearTimeout(timer);
+            // 執行渲染器提供的清理函數（例如 Vega view.finalize()），防止記憶體洩漏
+            cleanupFn?.();
         };
     }, [renderCode, isDark, type, notifyReady, isActuallyPrinting]);
 
