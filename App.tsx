@@ -936,12 +936,12 @@ const App: React.FC = () => {
       // 恢復原本的標題
       document.title = prevTitle;
       setIsPrinting(false);
-      
+
       // 列印結束後恢復深色模式
       if (isDarkMode) {
         document.documentElement.classList.add('dark');
       }
-      
+
       document.getElementById('app-print-override')?.remove();
       printTimeoutRef.current = null;
     };
@@ -957,12 +957,12 @@ const App: React.FC = () => {
       printTimeoutRef.current = null;
     }
     setIsPrinting(false);
-    
+
     // 取消列印時同樣恢復深色模式
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     }
-    
+
     document.getElementById('app-print-override')?.remove();
   }, [isDarkMode]);
 
@@ -1306,35 +1306,6 @@ const App: React.FC = () => {
       fn: 'tex2chtml'
     }
   };
-
-  // ─── IndexedDB 初始化啟動畫面 ──────────────────────────────────────────────
-  // 當 IndexedDB 尚在讀取（或執行 localStorage → IndexedDB 自動遷移）時，
-  // 顯示優雅的啟動動畫，避免使用者看到空白頁面（FOUC）
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-slate-950 z-50">
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-2xl">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="10" height="10" rx="2" fill="white" opacity="0.9"/>
-                <rect x="18" y="4" width="10" height="10" rx="2" fill="white" opacity="0.6"/>
-                <rect x="4" y="18" width="10" height="10" rx="2" fill="white" opacity="0.6"/>
-                <rect x="18" y="18" width="10" height="10" rx="2" fill="white" opacity="0.3"/>
-              </svg>
-            </div>
-            {/* 旋轉外環 */}
-            <div className="absolute inset-0 rounded-2xl border-2 border-violet-400/30 animate-ping" />
-          </div>
-          {/* 進度列 */}
-          <div className="w-48 h-1 rounded-full bg-slate-800 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full animate-pulse" style={{ width: '60%' }} />
-          </div>
-          <p className="text-slate-400 text-sm font-medium tracking-wide">載入文件庫中…</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <MathJaxContext config={mathJaxConfig}>

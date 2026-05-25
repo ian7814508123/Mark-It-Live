@@ -36,10 +36,11 @@ interface CodeMirrorEditorProps {
     isDarkMode: boolean;
     onScroll?: (e: any) => void;
     placeholder?: string;
+    ariaLabel?: string; // 新增無障礙屬性，用於標示編輯器輸入框
 }
 
 const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorProps>((props, ref) => {
-    const { mode, code, setCode, isDarkMode, onScroll, placeholder } = props;
+    const { mode, code, setCode, isDarkMode, onScroll, placeholder, ariaLabel } = props;
 
     const extensions = useMemo(() => {
         const exts = [
@@ -63,6 +64,10 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 },
             }),
             mode === 'mermaid' ? mermaid() : markdown({ base: markdownLanguage, codeLanguages: languages }),
+            // 設定底層編輯器輸入框 (cm-content) 的無障礙屬性，提升螢幕閱讀器體驗
+            EditorView.contentAttributes.of({
+                'aria-label': ariaLabel || (mode === 'mermaid' ? 'Mermaid 圖表代碼編輯器' : 'Markdown 內容編輯器')
+            }),
             // 搜尋擴充與快速鍵
             search({ top: true }),
             keymap.of(searchKeymap),
@@ -76,7 +81,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
             })
         ];
         return exts;
-    }, [mode, onScroll]);
+    }, [mode, onScroll, ariaLabel]);
 
     const theme = isDarkMode ? vscodeDark : vscodeLight;
 
@@ -119,7 +124,6 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             }}
             className="codemirror-editor-container"
-            aria-label={mode === 'mermaid' ? 'Mermaid 圖表代碼編輯器' : 'Markdown 內容編輯器'}
         />
     );
 });

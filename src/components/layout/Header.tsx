@@ -139,6 +139,8 @@ const Header: React.FC<HeaderProps> = ({
             {/* Logo + 標題 */}
             <div className="flex items-center gap-3">
                 <button
+                    title='Brand Logo'
+                    aria-label='Brand Logo'
                     onClick={() => setLogoVariant(prev => prev === 'v1' ? 'v2' : 'v1')}
                     className="cursor-pointer"
                 >
