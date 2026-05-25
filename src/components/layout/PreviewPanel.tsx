@@ -563,19 +563,19 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                         <div className="text-slate-400 text-center flex flex-col items-center">
                             {/* 保持相對定位，並用 grid 或 flex 讓子元件重疊 */}
                             <div className="relative mb-6 grid place-items-center">
-                                {/* 旋轉的重新整理圖示（加上 col-start-1 row-start-1 讓它進入置中網格） */}
+                                {/* 旋轉的重新整理圖示（統一為品牌主色 text-brand-primary，並在深淺色模式下微調 opacity 以獲得最佳對比度） */}
                                 <RefreshCw
-                                    size={65}
-                                    className="opacity-10 animate-spin col-start-1 row-start-1"
-                                    style={{ animationDuration: '3s', animationTimingFunction: 'cubic-bezier(0.1, 0.8, 0.3, 1)' }}
+                                    size={75}
+                                    className="text-brand-primary opacity-[0.12] dark:opacity-[0.18] animate-spin col-start-1 row-start-1"
+                                    style={{ animationDuration: '2s', animationTimingFunction: 'cubic-bezier(0,.7,1,.66)' }}
                                 />
 
-                                {/* 內層的 Logo（保持相同設定，兩者就會重疊置中） */}
+                                {/* 內層的 Logo（統一為品牌主色，增強透明度以形成具深度的視覺焦點） */}
                                 <InteractiveLogo
                                     size={40}
                                     showBg={false}
                                     loading={true}
-                                    className="opacity-20 pointer-events-none col-start-1 row-start-1"
+                                    className="opacity-[0.25] dark:opacity-[0.35] pointer-events-none col-start-1 row-start-1"
                                 />
                             </div>
                             <p className="text-sm font-bold uppercase tracking-[0.3em] opacity-40">編譯圖表</p>
