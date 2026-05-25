@@ -142,7 +142,9 @@ const App: React.FC = () => {
     moveDocument,
     reorderDocuments,
     updateLineComment,
+    isLoading,
   } = useDocumentStorage();
+  // isLoading = true 表示 IndexedDB 初始化（或自動遷移）尚未完成，避免 FOUC
 
   // UI 狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -276,12 +278,13 @@ const App: React.FC = () => {
   }, [documents]);
 
   // 初始化：如果沒有文檔，建立預設文檔
+  // 需同時等待 isLoading（IndexedDB 尚在讀取）與 isLoadingDefaults（預設檔案尚在載入）兩者都完成
   useEffect(() => {
-    if (documents.length === 0 && defaultContents && !isLoadingDefaults) {
+    if (documents.length === 0 && defaultContents && !isLoadingDefaults && !isLoading) {
       createDocument('markdown', defaultContents.markdown['markdown-standard'], '預設 標記掉落 文檔', null, 'markdown-standard');
       createDocument('mermaid', defaultContents.mermaid['mermaid-standard'], '預設 美人魚 文檔', null, 'mermaid-standard');
     }
-  }, [documents.length, createDocument, defaultContents, isLoadingDefaults]);
+  }, [documents.length, createDocument, defaultContents, isLoadingDefaults, isLoading]);
 
   const originalTitle = useRef(document.title);
 
@@ -1303,6 +1306,35 @@ const App: React.FC = () => {
       fn: 'tex2chtml'
     }
   };
+
+  // ─── IndexedDB 初始化啟動畫面 ──────────────────────────────────────────────
+  // 當 IndexedDB 尚在讀取（或執行 localStorage → IndexedDB 自動遷移）時，
+  // 顯示優雅的啟動動畫，避免使用者看到空白頁面（FOUC）
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-950 z-50">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-2xl">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="10" height="10" rx="2" fill="white" opacity="0.9"/>
+                <rect x="18" y="4" width="10" height="10" rx="2" fill="white" opacity="0.6"/>
+                <rect x="4" y="18" width="10" height="10" rx="2" fill="white" opacity="0.6"/>
+                <rect x="18" y="18" width="10" height="10" rx="2" fill="white" opacity="0.3"/>
+              </svg>
+            </div>
+            {/* 旋轉外環 */}
+            <div className="absolute inset-0 rounded-2xl border-2 border-violet-400/30 animate-ping" />
+          </div>
+          {/* 進度列 */}
+          <div className="w-48 h-1 rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+          </div>
+          <p className="text-slate-400 text-sm font-medium tracking-wide">載入文件庫中…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <MathJaxContext config={mathJaxConfig}>
