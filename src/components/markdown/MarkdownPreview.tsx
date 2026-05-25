@@ -21,6 +21,7 @@ import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
 import { CodeBlockHeader } from './CodeBlockHeader';
+import { detectMarkdownFeatures } from '../../utils/markdownScanner';
 
 interface MarkdownPreviewProps {
     content: string;
@@ -820,6 +821,43 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         container.addEventListener('load', handleImageLoad, true);
         return () => container.removeEventListener('load', handleImageLoad, true);
     }, [content]);
+
+    // ─── 3-A 前置：ReactMarkdown 渲染完成通知 ────────────────────────────────
+    // 當 content 更新並完成渲染後（useEffect 在 commit 階段後執行），
+    // 派發 markdown-render-complete 事件通知 App.tsx 重建 lineMap，
+    // 取代原本靠「猜測」的 setTimeout(rebuildLineMap, 500)，實現精準觸發。
+    useEffect(() => {
+        if (isActuallyPrinting) return; // 列印模式不需要 ScrollSync 校準
+        // requestAnimationFrame 確保瀏覽器已完成一次 paint 後才通知（DOM 量測正確）
+        const rafId = requestAnimationFrame(() => {
+            window.dispatchEvent(new CustomEvent('markdown-render-complete'));
+        });
+        return () => cancelAnimationFrame(rafId);
+    }, [content, isActuallyPrinting]);
+
+    // ─── 3-B：整合 markdownScanner 取代重複裸露正則 ─────────────────────────────
+    // 使用統一的 detectMarkdownFeatures 函數掃描特徵，
+    // 相比裸露正則，支援縮排容忍 / 更完整的語法偵測，且邏輯集中維護。
+    useEffect(() => {
+        if (!content || isActuallyPrinting) return;
+
+        const schedulePreload = (fn: () => void) => {
+            if ('requestIdleCallback' in window) {
+                (window as any).requestIdleCallback(fn, { timeout: 2000 });
+            } else {
+                setTimeout(fn, 200);
+            }
+        };
+
+        // 使用 markdownScanner 統一偵測，避免重複維護多份正則
+        const features = detectMarkdownFeatures(content);
+
+        schedulePreload(() => {
+            if (features.hasMermaid) import('mermaid').catch(() => {});
+            if (features.hasVega) import('vega-embed').catch(() => {});
+            if (features.hasAbc) import('./AbcBlock').catch(() => {});
+        });
+    }, [content, isActuallyPrinting]);
 
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine

@@ -16,6 +16,7 @@ import InteractiveLogo from './src/components/ui/InteractiveLogo';
 import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
 import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollTop } from './src/utils';
+import { detectMarkdownFeatures } from './src/utils/markdownScanner';
 import { useAppSettings } from './src/hooks/useAppSettings';
 import './src/styles/markdown-base.css';
 import './src/styles/themes/academic.css';
@@ -175,6 +176,43 @@ const App: React.FC = () => {
   // 確保打字時主執行緒的 CPU 不被 Remark/Rehype 的 AST 編譯霸佔。
   const deferredCode = useDeferredValue(code);
 
+  // ─── Markdown 特徵偵測：在 deferredCode 穩定後（瀏覽器空閒時）才掃描 ────────────
+  // 使用 useMemo 快取掃描結果，只在 deferredCode 變化時重新執行正則掃描（O(n) 一次過）
+  // 目的：根據偵測到的特殊語法，提前非阻塞地預載對應的大型套件，縮短首次渲染延遲。
+  const markdownFeatures = useMemo(
+    () => detectMarkdownFeatures(deferredCode),
+    [deferredCode]
+  );
+
+  // ─── 特徵驅動的非阻塞預載（Prefetch）────────────────────────────────────────────
+  // 當偵測到特定語法後，在瀏覽器空閒排程中靜默預載套件 chunk。
+  // 使用 requestIdleCallback（降級為 setTimeout）確保不佔用主執行緒。
+  // 這裡只做 import() 預載，不賦值 — 實際使用仍在各 Block 組件的 render callback 中。
+  useEffect(() => {
+    if (mode !== 'markdown') return;
+
+    const schedule = (fn: () => void) => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(fn, { timeout: 2000 });
+      } else {
+        setTimeout(fn, 200);
+      }
+    };
+
+    // Mermaid：預載後 MermaidBlock 的動態 import 會直接命中 chunk 快取
+    if (markdownFeatures.hasMermaid) {
+      schedule(() => import('mermaid'));
+    }
+    // Vega-Embed：同上
+    if (markdownFeatures.hasVega) {
+      schedule(() => import('vega-embed'));
+    }
+    // AbcJS：透過 AbcBlock 的 lazy 邊界觸發，這裡提前暖機
+    if (markdownFeatures.hasAbc) {
+      schedule(() => import('./src/components/markdown/AbcBlock'));
+    }
+  }, [markdownFeatures, mode]);
+
   // Toggle Dark Mode with View Transitions
   const handleToggleDarkMode = (event?: React.MouseEvent) => {
     const isSupported = typeof document !== 'undefined' && 'startViewTransition' in document;
@@ -330,24 +368,30 @@ const App: React.FC = () => {
       resizeObserver.observe(previewRef.current);
     }
 
+    // 「3-A 主體」：監聽 MarkdownPreview 渲染完成事件，取代 setTimeout(rebuildLineMap, 500)
+    // markdown-render-complete 在 ReactMarkdown commit 後的 rAF 中派發，DOM 量測更精準
+    window.addEventListener('markdown-render-complete', handleLayoutChange);
     window.addEventListener('content-layout-ready', handleLayoutChange);
     window.addEventListener('preview-content-height-change', handleLayoutChange);
     window.addEventListener('resize', handleLayoutChange);
 
     return () => {
       if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('markdown-render-complete', handleLayoutChange);
       window.removeEventListener('content-layout-ready', handleLayoutChange);
       window.removeEventListener('preview-content-height-change', handleLayoutChange);
       window.removeEventListener('resize', handleLayoutChange);
     };
   }, [rebuildLineMap]);
 
-  // 當預覽渲染完成後（deferredCode 更新代表 React 已在空閒期處理完）重新校準
-  // 使用 deferredCode 而非 code，確保不在打字進行中觸發 getBoundingClientRect()
+  // 「3-A 主體」：保留此 useEffect 但將 setTimeout 移除。
+  // lineMap 重建現在由 markdown-render-complete 事件統一驅動（已加入上方的 event listener）。
+  // 此 useEffect 只負責同步 lastContentRef，確保切換文件時不無直接跳過首次校準。
   useEffect(() => {
     if (deferredCode !== lastContentRef.current) {
       lastContentRef.current = deferredCode;
-      setTimeout(rebuildLineMap, 500); // 等待 ReactMarkdown 渲染完成
+      // 切換文件時，增加一次備用校準（情境：迷你車總截 / 文件首次開啟時事件可能尚未觸發）
+      requestAnimationFrame(rebuildLineMap);
     }
   }, [deferredCode, rebuildLineMap]);
 
