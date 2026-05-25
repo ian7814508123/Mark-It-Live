@@ -450,7 +450,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                                     </p>
                                     <div className={`flex items-center gap-1 mt-0.5 ${isExpiringSoon ? 'text-amber-500 font-semibold' : 'text-slate-400 dark:text-slate-600'}`}>
                                         <Clock size={9} />
-                                        <span className="text-[9px]">到期：{formatExpiryDate(img.expiresAt)}</span>
+                                        <span className="text-[9px]">到期日：{formatExpiryDate(img.expiresAt)}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">

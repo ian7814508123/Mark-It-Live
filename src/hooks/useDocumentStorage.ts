@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { DocumentRecord, AppState, FolderRecord } from '../types';
 import pkg from '../../package.json';
 import {
@@ -7,7 +7,6 @@ import {
     idbPutDocuments,
     idbDeleteDocument,
     idbPutFolder,
-    idbPutFolders,
     idbDeleteFolder,
     idbSetMeta,
     migrateFromLocalStorage,
@@ -45,8 +44,6 @@ export function useDocumentStorage() {
         folders: [],
     });
     const [isLoading, setIsLoading] = useState(true);
-    // 追蹤當前批次操作的順序，避免舊的 async 操作覆蓋新的狀態
-    const stateVersionRef = useRef(0);
 
     // ─── 初始化：遷移 + 讀取 IndexedDB ────────────────────────────────────────
     useEffect(() => {
