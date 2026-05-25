@@ -10,6 +10,7 @@ export interface ThemeOption {
     icon?: React.ReactNode;
     color: string;
     previewImg?: string;
+    category: 'minimal' | 'tech' | 'creative';
 }
 
 interface ThemeGridSelectorProps {
@@ -21,7 +22,19 @@ interface ThemeGridSelectorProps {
 const ThemeGridSelector: React.FC<ThemeGridSelectorProps> = ({ options, value, onChange }) => {
     const [hoveredOption, setHoveredOption] = useState<ThemeOption | null>(null);
     const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
+    const [activeCategory, setActiveCategory] = useState<'all' | 'minimal' | 'tech' | 'creative'>('all');
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const categories = [
+        { label: '全部', value: 'all' },
+        { label: '簡約', value: 'minimal' },
+        { label: '專業', value: 'tech' },
+        { label: '創意', value: 'creative' }
+    ] as const;
+
+    const filteredOptions = activeCategory === 'all'
+        ? options
+        : options.filter(opt => opt.category === activeCategory);
 
     const handleMouseEnter = (e: React.MouseEvent, option: ThemeOption) => {
         setHoveredOption(option);
@@ -61,8 +74,34 @@ const ThemeGridSelector: React.FC<ThemeGridSelectorProps> = ({ options, value, o
             className="relative"
             onMouseLeave={() => setHoveredOption(null)}
         >
-            <div className="grid grid-cols-2 gap-3 mt-2">
-                {options.map((option) => {
+            {/* 極簡無邊框底線分類 Tab */}
+            <div className="flex items-center gap-5 border-b border-slate-100 dark:border-slate-800/80 pb-2 mb-3 px-1">
+                {categories.map((cat) => {
+                    const isActive = activeCategory === cat.value;
+                    return (
+                        <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => setActiveCategory(cat.value)}
+                            className={`
+                                relative text-[10px] font-black uppercase tracking-widest pb-1 transition-all duration-300
+                                ${isActive
+                                    ? 'text-brand-primary dark:text-brand-primary'
+                                    : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
+                                }
+                            `}
+                        >
+                            {cat.label}
+                            {isActive && (
+                                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-primary rounded-full animate-in fade-in duration-300" />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 max-w-[440px] mt-2">
+                {filteredOptions.map((option) => {
                     const isSelected = value === option.value;
 
                     return (

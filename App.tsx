@@ -24,6 +24,7 @@ import './src/styles/themes/minimal.css';
 import './src/styles/themes/developer.css';
 import './src/styles/themes/implementation-plan.css';
 import './src/styles/themes/classical.css';
+import './src/styles/themes/newspaper.css';
 
 type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 

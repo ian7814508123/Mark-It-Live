@@ -14,7 +14,7 @@ export interface PrintSettings {
     /** 下載 PDF 時合併資料夾 */
     mergeVaultOnPdfExport: boolean;
     /** Markdown 預覽主題 */
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper';
 }
 
 export interface AppSettings {

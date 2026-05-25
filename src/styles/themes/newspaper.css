@@ -1,0 +1,591 @@
+/* ==========================================================================
+   主題名稱: 復古報紙風 (Retro Newspaper)
+   設計理念: 經典鉛字印刷、頭條大標、社論雙線、復古專欄情懷，重現 20 世紀紙本質感。
+   設計規範對齊: 三層樣式架構 (Three-Tier Style Architecture) 第三層
+   ========================================================================== */
+
+.theme-newspaper {
+    /* 1. 排版與基礎字體 */
+    --theme-font-family: "Georgia", "Times New Roman", "Songti SC", "SimSun", serif;
+    --theme-line-height: 1.65;
+    --theme-text-align: justify; /* 報紙排版講求左右齊行，結構嚴謹 */
+    --theme-text-color: #111111; /* 印刷鉛字黑，帶有濃重油墨質感 */
+    --theme-accent-color: #000000; /* 強烈對比的純黑 */
+
+    /* 2. 標題設計 (Slab Serif 粗襯線字體，大氣開闊) */
+    --theme-heading-font: "Playfair Display", "Times New Roman", "Heiti TC", "SimHei", serif;
+    --theme-heading-color: #111111;
+    --theme-heading-weight: 800; /* 極粗頭條字體 */
+    --theme-h1-size: 2.8rem;
+    --theme-h2-size: 2.0rem;
+    --theme-h3-size: 1.55rem;
+    --theme-h4-size: 1.3rem;
+    --theme-h5-size: 1.15rem;
+    --theme-h6-size: 1.05rem;
+    --theme-h1-border: none;
+    --theme-h2-border: none;
+    --theme-h1-transform: none;
+
+    /* 3. 引言區塊 (社論專欄風格) */
+    --theme-quote-bg: transparent;
+    --theme-quote-border-left: none; /* 報紙風格不使用左側單邊線 */
+    --theme-quote-text: #111111;
+    --theme-quote-font-style: italic;
+
+    /* 4. 超連結 */
+    --theme-link-color: #111111;
+    --theme-link-decoration: underline; /* 實體排版強調實線標記 */
+    --theme-link-hover-bg: rgba(0, 0, 0, 0.08);
+    --theme-link-hover-border: #000000;
+
+    /* 5. 表格設計 */
+    --theme-table-border: 1px solid #111111;
+    --theme-table-header-bg: transparent;
+    --theme-table-header-color: #111111;
+    --theme-table-header-border: 2px solid #111111;
+
+    /* 6. 系統 UI 對接 (控制編輯器外框與底色，還原紙質氛圍) */
+    --brand-primary: #111111;
+    --brand-secondary: #f5ede1; /* 泛黃老舊新聞報紙底色 */
+    --brand-surface: #f5ede1;
+    --brand-accent: #333333;
+    --code-bg: #ebe3d5; /* 略深一階的油墨紙張背景 */
+    --code-border: #d1c7b7; /* 帶有磨損感的紙邊框線 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(17, 17, 17, 0.04);
+
+    /* 7. 語法高亮客製化 (古典墨印刷風格，避免高亮顏色過於科技感) */
+    --code-token-comment: #6e6557; /* 油墨擦痕枯褐 */
+    --code-token-keyword: #111111; /* 強調鉛墨色 */
+    --code-token-string: #2b4c3f; /* 復古深林綠 */
+    --code-token-number: #7d3c1a; /* 鏽鐵紅 */
+    --code-token-function: #111111;
+    --code-token-operator: #111111;
+    --code-token-variable: #111111;
+    --code-token-class: #3c546a; /* 黛藍 */
+    --code-token-tag: #111111;
+    --code-token-attr-name: #7d3c1a;
+
+    /* 8. 標註系統 (Alerts - 微調為沉穩印刷色調，與泛黃底紙融為一體) */
+    --theme-alert-note-border: #111111;
+    --theme-alert-note-bg: #ebe3d5;
+    --theme-alert-note-text: #111111;
+    --theme-alert-tip-border: #2b4c3f;
+    --theme-alert-tip-bg: #e1ede8;
+    --theme-alert-tip-text: #2b4c3f;
+    --theme-alert-important-border: #000000;
+    --theme-alert-important-bg: #e2dbcd;
+    --theme-alert-important-text: #111111;
+    --theme-alert-warning-border: #7d3c1a;
+    --theme-alert-warning-bg: #ebdccb;
+    --theme-alert-warning-text: #7d3c1a;
+    --theme-alert-caution-border: #962a2a;
+    --theme-alert-caution-bg: #ebcfcf;
+    --theme-alert-caution-text: #962a2a;
+}
+
+/* ==========================================================================
+   深色模式變數覆蓋 (磨損鉛白與炭黑紙，在高對比與復古風中取得完美平衡)
+   ========================================================================== */
+.dark .theme-newspaper {
+    --theme-text-color: #e2dbcd; /* 磨損紙張鉛白 */
+    --theme-accent-color: #ffffff; /* 亮白 */
+    --theme-heading-color: #ffffff;
+
+    --theme-quote-text: #e2dbcd;
+    --theme-link-color: #ffffff;
+    --theme-link-hover-bg: rgba(255, 255, 255, 0.1);
+    --theme-link-hover-border: #ffffff;
+
+    --theme-table-border: 1px solid #3e3c39;
+    --theme-table-header-color: #ffffff;
+    --theme-table-header-border: 2px solid #ffffff;
+
+    --brand-primary: #ffffff;
+    --brand-secondary: #1b1a19; /* 深夜油墨炭黑色 */
+    --brand-surface: #1b1a19;
+    --brand-accent: #cccccc;
+    --code-bg: #252422; /* 油煙深灰黑 */
+    --code-border: #3e3c39;
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.3);
+
+    /* 語法高亮深色模式調整 */
+    --code-token-comment: #8c8375;
+    --code-token-keyword: #ffffff;
+    --code-token-string: #81c7a5;
+    --code-token-number: #f29c6b;
+    --code-token-function: #ffffff;
+    --code-token-operator: #ffffff;
+    --code-token-variable: #ffffff;
+    --code-token-class: #85b0d9;
+    --code-token-tag: #ffffff;
+    --code-token-attr-name: #f29c6b;
+
+    /* 標註系統深色模式 */
+    --theme-alert-note-border: #ffffff;
+    --theme-alert-note-bg: rgba(255, 255, 255, 0.06);
+    --theme-alert-note-text: #ffffff;
+    --theme-alert-tip-border: #81c7a5;
+    --theme-alert-tip-bg: rgba(129, 199, 165, 0.08);
+    --theme-alert-tip-text: #81c7a5;
+    --theme-alert-important-border: #ffffff;
+    --theme-alert-important-bg: rgba(255, 255, 255, 0.08);
+    --theme-alert-important-text: #ffffff;
+    --theme-alert-warning-border: #f29c6b;
+    --theme-alert-warning-bg: rgba(242, 156, 107, 0.08);
+    --theme-alert-warning-text: #f29c6b;
+    --theme-alert-caution-border: #fca5a5;
+    --theme-alert-caution-bg: rgba(252, 165, 165, 0.08);
+    --theme-alert-caution-text: #fca5a5;
+}
+
+/* ==========================================================================
+   樣式套用與排版細節 (Prose Binding)
+   ========================================================================== */
+.theme-newspaper.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+}
+
+.theme-newspaper.prose h1,
+.theme-newspaper.prose h2,
+.theme-newspaper.prose h3,
+.theme-newspaper.prose h4,
+.theme-newspaper.prose h5,
+.theme-newspaper.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+    letter-spacing: -0.02em; /* 報紙粗標題字距通常較為緊實，以產生高度張力 */
+}
+
+/* 報紙大標：H1 與 H2 不加現代的底邊線，回歸實體排版的開闊感 */
+.theme-newspaper.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-align: center; /* 頭條大標居中 */
+    line-height: 1.1;
+    margin-bottom: 2rem;
+}
+
+.theme-newspaper.prose h2 {
+    font-size: var(--theme-h2-size);
+    line-height: 1.2;
+    margin-top: 2.5rem;
+    padding-bottom: 0;
+}
+
+.theme-newspaper.prose h3 {
+    font-size: var(--theme-h3-size);
+    margin-top: 2rem;
+}
+
+/* ==========================================================================
+   📰 特色排版機制：首字放大 (Drop Cap) 與社論雙實線引言
+   這是報紙主題的核心靈魂，重現 20 世紀鉛字印刷實體報紙的油墨視覺張力。
+   ========================================================================== */
+
+/* 
+ * 1. 首字放大機制 (Drop Cap)
+ * 只針對 Markdown 預覽區 (.theme-newspaper.prose) 內的第一個段落實施。
+ * 第一個字會以 3.5rem 的特大號粗襯線體浮動在左側，並保持適當字距，塑造文藝史詩感。
+ */
+.theme-newspaper.prose p::first-letter {
+    font-size: 3.5rem;
+    float: left;
+    font-weight: 800;
+    line-height: 0.9;
+    margin-right: 0.6rem;
+    margin-top: 0.15rem;
+    color: var(--theme-accent-color);
+    font-family: var(--theme-heading-font);
+    /* 模仿報紙手壓油墨的些微下沉感 */
+    text-transform: uppercase;
+}
+
+/* 
+ * 由於行內評論將每個段落包裝在獨立的 div[data-line] 容器中，
+ * 我們使用兄弟選擇器 (~) 精準重置後續所有同級段落之首字，
+ * 確保首字放大僅在文章的「第一段第一個字」生效，其餘段落皆不受影響。
+ */
+.theme-newspaper.prose div[data-line] ~ div[data-line] p::first-letter {
+    font-size: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
+/* 
+ * 2. 社論專欄雙實線引言 (Editorial Blockquote)
+ * 覆寫 Markdown Base 的預設左側單邊線。
+ * 引言改為文字居中、上下雙橫線 (Double line) 的古典專欄插話效果。
+ */
+.theme-newspaper.prose blockquote {
+    border: none !important;
+    border-top: 3px double var(--theme-text-color) !important;
+    border-bottom: 3px double var(--theme-text-color) !important;
+    padding: 1.5rem 1rem !important;
+    margin: 2rem 0 !important;
+    text-align: center !important;
+    background-color: transparent !important;
+    color: var(--theme-text-color) !important;
+    font-style: italic !important;
+}
+
+/* 
+ * 3. 實用 GitHub 警示框 (Useful GitHub Alerts)
+ * 完美融合報紙主題特色：保留上下雙實線 (double line) 作為專欄邊框，
+ * 但以 Alert 對應之主題色彩渲染邊框與標題，並提供精緻的剪報背景色。
+ * 文字恢復左右齊行且取消斜體，在兼顧極致報紙美學的同時，保障預覽的實用性與資訊可讀性。
+ */
+.theme-newspaper.prose blockquote.markdown-alert {
+    border: none !important; /* 清除 default blockquote border */
+    border-top: 3px double var(--theme-text-color) !important;
+    border-bottom: 3px double var(--theme-text-color) !important;
+    padding: 1.25rem 1.25rem !important;
+    margin: 2rem 0 !important;
+    text-align: justify !important;
+    font-style: normal !important; /* 取消斜體，提升可讀性 */
+    border-radius: 0 !important; /* 報紙排版講求嚴謹直角 */
+}
+
+/* 標題設計：採用粗襯線大寫字，下方以細虛線分隔內容，極富古典專欄質感 */
+.theme-newspaper.prose blockquote.markdown-alert .markdown-alert-title {
+    display: flex;
+    align-items: center;
+    font-family: var(--theme-heading-font);
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px dashed rgba(17, 17, 17, 0.15);
+    font-style: normal !important;
+}
+
+/* 深色模式下的標題底部分隔線調整 */
+.dark .theme-newspaper.prose blockquote.markdown-alert .markdown-alert-title {
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 警示框內容文字調整 */
+.theme-newspaper.prose blockquote.markdown-alert .markdown-alert-content {
+    font-style: normal !important;
+    color: var(--theme-text-color) !important;
+    line-height: var(--theme-line-height);
+}
+
+/* 
+ * 針對不同類型的 Alert 注入對應的報紙印刷色彩 (變數已於上面宣告)
+ */
+ 
+/* [!NOTE] - 經典鉛字灰黑 */
+.theme-newspaper.prose blockquote.markdown-alert-note {
+    border-top-color: var(--theme-alert-note-border) !important;
+    border-bottom-color: var(--theme-alert-note-border) !important;
+    background-color: var(--theme-alert-note-bg) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text) !important;
+}
+
+/* [!TIP] - 復古深林綠 */
+.theme-newspaper.prose blockquote.markdown-alert-tip {
+    border-top-color: var(--theme-alert-tip-border) !important;
+    border-bottom-color: var(--theme-alert-tip-border) !important;
+    background-color: var(--theme-alert-tip-bg) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    border-bottom-color: rgba(43, 76, 63, 0.2);
+}
+.dark .theme-newspaper.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    border-bottom-color: rgba(129, 199, 165, 0.2);
+}
+
+/* [!IMPORTANT] - 頭條炭黑 */
+.theme-newspaper.prose blockquote.markdown-alert-important {
+    border-top-color: var(--theme-alert-important-border) !important;
+    border-bottom-color: var(--theme-alert-important-border) !important;
+    background-color: var(--theme-alert-important-bg) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text) !important;
+}
+
+/* [!WARNING] - 鏽鐵橘紅 */
+.theme-newspaper.prose blockquote.markdown-alert-warning {
+    border-top-color: var(--theme-alert-warning-border) !important;
+    border-bottom-color: var(--theme-alert-warning-border) !important;
+    background-color: var(--theme-alert-warning-bg) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    border-bottom-color: rgba(125, 60, 26, 0.2);
+}
+.dark .theme-newspaper.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    border-bottom-color: rgba(242, 156, 107, 0.2);
+}
+
+/* [!CAUTION] - 警報絳紅 */
+.theme-newspaper.prose blockquote.markdown-alert-caution {
+    border-top-color: var(--theme-alert-caution-border) !important;
+    border-bottom-color: var(--theme-alert-caution-border) !important;
+    background-color: var(--theme-alert-caution-bg) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text) !important;
+}
+.theme-newspaper.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    border-bottom-color: rgba(150, 42, 42, 0.2);
+}
+.dark .theme-newspaper.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    border-bottom-color: rgba(252, 165, 165, 0.2);
+}
+
+/* ==========================================================================
+   表格與超連結特色樣式
+   ========================================================================== */
+
+/* 報紙風表格：採用上下雙橫實線，中間無任何直向格線 */
+.theme-newspaper.prose table {
+    border-collapse: collapse !important;
+    border-top: 3px double var(--theme-text-color) !important;
+    border-bottom: 3px double var(--theme-text-color) !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+    margin: 2rem 0;
+}
+
+.theme-newspaper.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: var(--theme-table-header-border) !important;
+    font-weight: 800;
+    font-family: var(--theme-heading-font);
+}
+
+.theme-newspaper.prose td {
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: var(--theme-table-border) !important;
+}
+
+.theme-newspaper.prose tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* 超連結：經典報紙下劃線效果 */
+.theme-newspaper.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    text-underline-offset: 3px;
+    font-weight: 700;
+}
+
+.theme-newspaper.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom: 2px solid var(--theme-link-hover-border);
+}
+
+/* 列表樣式調整：經典實心黑圓點或黑數字，對齊報紙鉛印感 */
+.theme-newspaper.prose li::marker {
+    color: var(--theme-accent-color);
+    font-weight: 800;
+}
+
+/* ==========================================================================
+   📰 特色主題隔離防禦：防止本主題字型與大小污染內建圖表
+   本主題採用粗襯線字體與大字號首字放大排版。為了防止圖表（如 Mermaid SVG）內部
+   字型也跟著被改成襯線體或放大，我們在此處進行樣式隔離，使其維持
+   圖表原生所需的無襯線 Inter 字型與標準字級，解決文字在圖表節點內被截斷的問題。
+   ========================================================================== */
+.theme-newspaper.prose .not-prose,
+.theme-newspaper.prose .not-prose svg,
+.theme-newspaper.prose .not-prose svg text,
+.theme-newspaper.prose .not-prose span,
+.theme-newspaper.prose .not-prose div {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: inherit;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+}
+
+/* 徹底重置與洗淨 .not-prose 圖表內部段落的 ::first-letter 偽元素，防止首字放大干擾圖表文字 */
+.theme-newspaper.prose .not-prose p::first-letter,
+.theme-newspaper.prose .not-prose div::first-letter,
+.theme-newspaper.prose .not-prose span::first-letter,
+.theme-newspaper.prose .not-prose text::first-letter {
+    font-size: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
+/* 針對本主題下的 Mermaid 節點進行文字字型與字級鎖定 */
+.theme-newspaper.prose .not-prose .mermaid text,
+.theme-newspaper.prose .not-prose .mermaid .node text,
+.theme-newspaper.prose .not-prose .mermaid .edgeLabel text,
+.theme-newspaper.prose .not-prose .mermaid .label text {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: 13px !important;
+}
+
+/* ==========================================================================
+   列印與輸出相容性 (Print Compatibility)
+   ========================================================================== */
+@media print {
+    /* 
+     * 強制將所有變數重設為淺色報紙配色，並開啟局部背景與色彩列印。
+     * 系統會以泛黃老舊報紙底色搭配高保真黑字進行 PDF 輸出，保留極致美學。
+     */
+    .theme-newspaper,
+    .dark .theme-newspaper,
+    [class*="theme-newspaper"] {
+        --theme-text-color: #111111 !important;
+        --theme-accent-color: #000000 !important;
+        --theme-heading-color: #111111 !important;
+        --theme-quote-text: #111111 !important;
+        --theme-link-color: #111111 !important;
+        --theme-table-header-color: #111111 !important;
+        --brand-primary: #111111 !important;
+        --brand-secondary: #f5ede1 !important;
+        --brand-surface: #ffffff !important; /* 確保主背景為白色以符合印表紙張防護，但保留預覽內容的報紙質感 */
+        --code-bg: #ebe3d5 !important;
+        --code-border: #d1c7b7 !important;
+
+        --code-token-comment: #6e6557 !important;
+        --code-token-keyword: #111111 !important;
+        --code-token-string: #2b4c3f !important;
+        --code-token-number: #7d3c1a !important;
+        --code-token-class: #3c546a !important;
+
+        --theme-alert-note-border: #111111 !important;
+        --theme-alert-note-bg: #ebe3d5 !important;
+        --theme-alert-note-text: #111111 !important;
+        --theme-alert-tip-border: #2b4c3f !important;
+        --theme-alert-tip-bg: #e1ede8 !important;
+        --theme-alert-tip-text: #2b4c3f !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    html,
+    body,
+    .theme-newspaper,
+    .theme-newspaper.prose {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: var(--theme-text-color) !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .theme-newspaper.prose {
+        font-size: 10.5pt;
+        line-height: 1.55;
+    }
+
+    /* 頑強保留：特色首字放大與雙線社論引言在 PDF 中的高保真輸出 */
+    .theme-newspaper.prose p:first-of-type::first-letter {
+        color: var(--theme-accent-color) !important;
+        font-size: 3.2rem !important;
+        font-weight: 800 !important;
+    }
+
+    .theme-newspaper.prose blockquote {
+        border-top: 3px double var(--theme-text-color) !important;
+        border-bottom: 3px double var(--theme-text-color) !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* 頑強保留：特色雙線剪報 Alert 區塊在 PDF 列印時的高保真輸出 */
+    .theme-newspaper.prose blockquote.markdown-alert {
+        page-break-inside: avoid !important;
+        border-top: 3px double var(--theme-text-color) !important;
+        border-bottom: 3px double var(--theme-text-color) !important;
+    }
+
+    .theme-newspaper.prose blockquote.markdown-alert-note {
+        background-color: var(--theme-alert-note-bg) !important;
+        border-top-color: var(--theme-alert-note-border) !important;
+        border-bottom-color: var(--theme-alert-note-border) !important;
+    }
+    .theme-newspaper.prose blockquote.markdown-alert-note .markdown-alert-title {
+        color: var(--theme-alert-note-text) !important;
+    }
+
+    .theme-newspaper.prose blockquote.markdown-alert-tip {
+        background-color: var(--theme-alert-tip-bg) !important;
+        border-top-color: var(--theme-alert-tip-border) !important;
+        border-bottom-color: var(--theme-alert-tip-border) !important;
+    }
+    .theme-newspaper.prose blockquote.markdown-alert-tip .markdown-alert-title {
+        color: var(--theme-alert-tip-text) !important;
+    }
+
+    .theme-newspaper.prose blockquote.markdown-alert-important {
+        background-color: var(--theme-alert-important-bg) !important;
+        border-top-color: var(--theme-alert-important-border) !important;
+        border-bottom-color: var(--theme-alert-important-border) !important;
+    }
+    .theme-newspaper.prose blockquote.markdown-alert-important .markdown-alert-title {
+        color: var(--theme-alert-important-text) !important;
+    }
+
+    .theme-newspaper.prose blockquote.markdown-alert-warning {
+        background-color: var(--theme-alert-warning-bg) !important;
+        border-top-color: var(--theme-alert-warning-border) !important;
+        border-bottom-color: var(--theme-alert-warning-border) !important;
+    }
+    .theme-newspaper.prose blockquote.markdown-alert-warning .markdown-alert-title {
+        color: var(--theme-alert-warning-text) !important;
+    }
+
+    .theme-newspaper.prose blockquote.markdown-alert-caution {
+        background-color: var(--theme-alert-caution-bg) !important;
+        border-top-color: var(--theme-alert-caution-border) !important;
+        border-bottom-color: var(--theme-alert-caution-border) !important;
+    }
+    .theme-newspaper.prose blockquote.markdown-alert-caution .markdown-alert-title {
+        color: var(--theme-alert-caution-text) !important;
+    }
+
+    .theme-newspaper.prose pre,
+    .theme-newspaper.prose .enhanced-codeblock {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-newspaper.prose table {
+        border-top: 3px double var(--theme-text-color) !important;
+        border-bottom: 3px double var(--theme-text-color) !important;
+        page-break-inside: avoid !important;
+    }
+}

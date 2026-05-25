@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -54,37 +54,50 @@ const PdfSettingsPanel: React.FC<{
                                 label: '預設', value: 'default', hint: 'default',
                                 icon: <Zap size={16} />, color: '#000000',
                                 previewImg: '/image/themes/default.png',
-                                description: '最均衡的排版，適合一般技術文件。'
+                                description: '最均衡的排版，適合一般技術文件。',
+                                category: 'minimal'
                             },
                             {
                                 label: '學術', value: 'academic', hint: 'academic',
-                                icon: <BookOpen size={16} />, color: '#78350f',
+                                icon: <GraduationCap size={16} />, color: '#78350f',
                                 previewImg: '/image/themes/academic.png',
-                                description: '使用襯線字體，模擬學術期刊與論文排版。'
+                                description: '使用襯線字體，模擬學術期刊與論文排版。',
+                                category: 'minimal'
                             },
                             {
                                 label: '極簡', value: 'minimal', hint: 'minimal',
                                 icon: <Feather size={16} />, color: '#cece91ff',
                                 previewImg: '/image/themes/minimal.png',
-                                description: '極大的白留與現代字體，適合詩歌或文學創作。'
+                                description: '極大的白留與現代字體，適合詩歌或文學創作。',
+                                category: 'minimal'
                             },
                             {
                                 label: '工程師', value: 'developer', hint: 'developer',
                                 icon: <Code size={16} />, color: '#059669',
                                 previewImg: '/image/themes/developer.png',
-                                description: '全等寬字體與終端機風格，技術感滿滿。'
+                                description: '全等寬字體與終端機風格，技術感滿滿。',
+                                category: 'tech'
                             },
                             {
                                 label: '實作計畫', value: 'implementation-plan', hint: 'Plan',
                                 icon: <ClipboardList size={16} />, color: '#005B94',
                                 previewImg: '/image/themes/plan.png',
-                                description: '工業化結構設計，適合展示開發方案與進度。'
+                                description: '工業化結構設計，適合展示開發方案與進度。',
+                                category: 'tech'
                             },
                             {
                                 label: '古典宣紙', value: 'classical', hint: 'Classical',
-                                icon: <Feather size={16} />, color: '#b22222',
+                                icon: <Scroll size={16} />, color: '#b22222',
                                 previewImg: '/image/themes/classical.png',
-                                description: '模擬宣紙底色，徽墨與硃砂紅點綴，帶有古典三線表，充滿人文古意。'
+                                description: '模擬宣紙底色，徽墨與硃砂紅點綴，帶有古典三線表，充滿人文古意。',
+                                category: 'creative'
+                            },
+                            {
+                                label: '復古報紙', value: 'newspaper', hint: 'Newspaper',
+                                icon: <Newspaper size={16} />, color: '#111111',
+                                previewImg: '/image/themes/newspaper.png',
+                                description: '高度還原 20 世紀實體報紙印刷質感，擁有經典首字放大 (Drop Cap) 與社論雙線排版。',
+                                category: 'creative'
                             },
                         ]}
                         value={settings.previewTheme}
