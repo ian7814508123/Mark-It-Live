@@ -144,7 +144,7 @@ type CountMode = 'current-doc' | 'paste';
 
 const PASTE_PLACEHOLDER = `在此貼上 Markdown 內容…
 
-支援的特殊語法（自動略過）：
+自動略過特殊語法：
 - 數學公式：$E=mc^2$ 或 $$\\int_0^\\infty$$
 - 化學式：$\\ce{H2SO4}$
 - Mermaid 圖、Vega 圖、程式碼區塊`;
@@ -256,7 +256,7 @@ const WordCountTool: React.FC<WordCountToolProps> = ({ currentDocContent }) => {
                                     </button>
                                 </div>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide font-semibold">
-                                    自動略過公式、圖表等特殊區塊
+                                    統計編輯字數
                                 </p>
                             </div>
                         </div>
@@ -298,7 +298,7 @@ const WordCountTool: React.FC<WordCountToolProps> = ({ currentDocContent }) => {
                         placeholder={PASTE_PLACEHOLDER}
                         spellCheck={false}
                         className={[
-                            'w-full h-24 resize-none rounded-2xl border text-[12px] leading-relaxed shrink-0',
+                            'w-full h-24 resize-none rounded-2xl text-[12px] leading-relaxed shrink-0',
                             'px-3 py-2.5 font-mono',
                             'text-slate-650 dark:text-slate-300',
                             'bg-slate-50 dark:bg-slate-800/60',

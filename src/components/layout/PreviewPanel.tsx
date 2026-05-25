@@ -1,6 +1,7 @@
 import React, { forwardRef, useState, useEffect, useRef, useMemo } from 'react';
 import { AlertCircle, Trash2, RefreshCw, Sparkles, ZoomIn, ZoomOut, Maximize, Hand, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import MarkdownPreview from '../markdown/MarkdownPreview';
+import InteractiveLogo from '../ui/InteractiveLogo';
 
 // ── PrintPaper ──────────────────────────────────────────────────────────────
 // 封裝每份紙張的渲染邏輯
@@ -341,6 +342,16 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     const [isHUDExpanded, setIsHUDExpanded] = useState(false);
     const hudRef = useRef<HTMLDivElement>(null);
 
+    // 判斷當前編輯器是否為空狀態（無文字內容）
+    const isTextEmpty = !code || code.trim() === '';
+
+    // 當編輯器內容變為空時，自動收合 HUD 膠囊工具列
+    useEffect(() => {
+        if (isTextEmpty) {
+            setIsHUDExpanded(false);
+        }
+    }, [isTextEmpty]);
+
     // 處理點擊外部收合
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -420,38 +431,61 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                         ? 'bg-white/95 dark:bg-slate-900/95 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_0_30px_rgba(14,165,233,0.1)] px-3 rounded-full border border-slate-300 dark:border-white/20'
                         : 'bg-white/60 dark:bg-slate-950/40 shadow-xl p-1.5 rounded-full border border-white/30 dark:border-white/10'
                     }
-                    backdrop-blur-3xl group/hud-container
+                    ${isTextEmpty
+                        ? 'opacity-40 pointer-events-none select-none shadow-none border-slate-200/50 dark:border-white/5 bg-slate-100/50 dark:bg-slate-950/20'
+                        : 'backdrop-blur-3xl'
+                    }
+                    group/hud-container
                 `}
             >
                 {/* 1. 呼吸燈 (觸發源) */}
                 <button
-                    onClick={() => setIsHUDExpanded(!isHUDExpanded)}
+                    onClick={() => !isTextEmpty && setIsHUDExpanded(!isHUDExpanded)}
+                    disabled={isTextEmpty}
                     className={`
                         relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300
                         ${isHUDExpanded ? 'bg-slate-100/80 dark:bg-slate-800/80' : 'hover:bg-white/80 dark:hover:bg-slate-700/50'}
+                        ${isTextEmpty ? 'cursor-not-allowed' : ''}
                     `}
-                    title={isHUDExpanded ? "收合資訊" : "顯示詳情"}
+                    title={isTextEmpty ? "無編輯內容" : (isHUDExpanded ? "收合資訊" : "顯示詳情")}
                 >
                     <div className={`
                         w-2.5 h-2.5 rounded-full transition-all duration-500
-                        ${error
-                            ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.7)] animate-pulse'
-                            : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.7)] animate-pulse'
+                        ${isTextEmpty
+                            ? 'bg-slate-400 dark:bg-slate-650 shadow-none'
+                            : error
+                                ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.7)] animate-pulse'
+                                : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.7)] animate-pulse'
                         }
                     `} />
                 </button>
 
                 {/* 按鈕組 (放大/縮小/重置) - 始終顯示，排列穩定 */}
                 <div className={`flex items-center gap-0.5 ${isHUDExpanded ? 'ml-1 pr-3 border-r border-slate-200 dark:border-white/10' : 'ml-0.5'}`}>
-                    <button onClick={() => onZoom(25)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90"
-                        title="放大"><ZoomIn size={18} /></button>
-                    <button onClick={() => onZoom(-25)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90"
-                        title="縮小"><ZoomOut size={18} /></button>
-                    <button onClick={onResetNav}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90"
-                        title="跳轉至中心"><Maximize size={18} /></button>
+                    <button
+                        onClick={() => !isTextEmpty && onZoom(25)}
+                        disabled={isTextEmpty}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-current"
+                        title="放大"
+                    >
+                        <ZoomIn size={18} />
+                    </button>
+                    <button
+                        onClick={() => !isTextEmpty && onZoom(-25)}
+                        disabled={isTextEmpty}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-current"
+                        title="縮小"
+                    >
+                        <ZoomOut size={18} />
+                    </button>
+                    <button
+                        onClick={() => !isTextEmpty && onResetNav()}
+                        disabled={isTextEmpty}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-current"
+                        title="跳轉至中心"
+                    >
+                        <Maximize size={18} />
+                    </button>
                 </div>
 
                 {/* 2. 展開區域 (純水平展開，維持高度穩定) */}
@@ -465,12 +499,15 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                         <div className="relative">
                             <input
                                 type="text"
+                                title='Zoom Input Group'
+                                disabled={isTextEmpty}
                                 value={`${Math.round(zoom)}%`}
                                 onChange={(e) => {
+                                    if (isTextEmpty) return;
                                     const val = e.target.value.replace(/[^0-9]/g, '');
                                     if (val) onSetZoom(Math.min(Math.max(parseInt(val), 5), 1000));
                                 }}
-                                className="w-16 bg-slate-100 dark:bg-white/10 text-brand-primary font-bold text-[11px] px-2 py-1.5 rounded-lg border-none focus:ring-1 focus:ring-brand-primary/30 text-center transition-all tabular-nums placeholder:opacity-30"
+                                className="w-16 bg-slate-100 dark:bg-white/10 text-brand-primary font-bold text-[11px] px-2 py-1.5 rounded-lg border-none focus:ring-1 focus:ring-brand-primary/30 text-center transition-all tabular-nums placeholder:opacity-30 disabled:opacity-50"
                             />
                         </div>
                     </div>
@@ -524,12 +561,26 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                         />
                     ) : !error && (
                         <div className="text-slate-400 text-center flex flex-col items-center">
-                            <div className="relative mb-6">
-                                <RefreshCw size={64} className="opacity-10 animate-spin duration-[3s]" />
-                                <Sparkles size={32} className="absolute inset-0 m-auto text-brand-primary/30 animate-pulse" />
+                            {/* 保持相對定位，並用 grid 或 flex 讓子元件重疊 */}
+                            <div className="relative mb-6 grid place-items-center">
+                                {/* 旋轉的重新整理圖示（加上 col-start-1 row-start-1 讓它進入置中網格） */}
+                                <RefreshCw
+                                    size={65}
+                                    className="opacity-10 animate-spin col-start-1 row-start-1"
+                                    style={{ animationDuration: '3s', animationTimingFunction: 'cubic-bezier(0.1, 0.8, 0.3, 1)' }}
+                                />
+
+                                {/* 內層的 Logo（保持相同設定，兩者就會重疊置中） */}
+                                <InteractiveLogo
+                                    size={40}
+                                    showBg={false}
+                                    loading={true}
+                                    className="opacity-20 pointer-events-none col-start-1 row-start-1"
+                                />
                             </div>
                             <p className="text-sm font-bold uppercase tracking-[0.3em] opacity-40">編譯圖表</p>
                         </div>
+
                     )}
 
                     {error && !svgContent && (
