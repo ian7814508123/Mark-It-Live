@@ -34,7 +34,7 @@ interface MarkdownPreviewProps {
     isPrinting?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper';
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic';
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
@@ -118,7 +118,7 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
                         }
                         throw new Error(`本地數據庫中找不到檔案：${fileName}`);
                     }
-                    
+
                     // 對於一般網路的 http/https 請求，使用標準 fetch 加載
                     const response = await fetch(uri);
                     if (!response.ok) {
@@ -481,7 +481,7 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
     }, [codeString]);
 
     return (
-        <div 
+        <div
             className="relative group/codeblock w-full my-6"
             style={{ '--code-max-digits': maxDigits } as React.CSSProperties}
         >
@@ -490,7 +490,7 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
                 data-theme-style={(isActuallyPrinting || !shouldShowDark) ? 'light' : 'dark'}
             >
                 {language && (
-                    <CodeBlockHeader 
+                    <CodeBlockHeader
                         language={language}
                         isWrapped={isWrapped}
                         onToggleWrap={isActuallyPrinting ? undefined : () => setIsWrapped(!isWrapped)}
@@ -853,9 +853,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         const features = detectMarkdownFeatures(content);
 
         schedulePreload(() => {
-            if (features.hasMermaid) import('mermaid').catch(() => {});
-            if (features.hasVega) import('vega-embed').catch(() => {});
-            if (features.hasAbc) import('./AbcBlock').catch(() => {});
+            if (features.hasMermaid) import('mermaid').catch(() => { });
+            if (features.hasVega) import('vega-embed').catch(() => { });
+            if (features.hasAbc) import('./AbcBlock').catch(() => { });
         });
     }, [content, isActuallyPrinting]);
 

@@ -1,0 +1,515 @@
+/* ==========================================================================
+   主題名稱: 北歐森林 / 鼠尾草護眼 (Nordic Forest / nordicforest)
+   設計理念: 清晨薄霧林地、松針陰影、鼠尾草綠、岩石苔蘚、大地木質質感
+   適用情境: 心流寫作、睡前日記、詩歌創作、專注讀書筆記、長時間文件編寫
+   ========================================================================== */
+
+.theme-nordicforest {
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Inter", "PingFang TC", "Hiragino Sans GB", sans-serif;
+    --theme-line-height: 1.7;
+    --theme-text-align: left;
+    --theme-text-color: #1c2d20; /* 松針橄欖深綠 */
+    --theme-accent-color: #2d4a36; /* 林地深葉綠 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Outfit", "Inter", "Heiti TC", sans-serif;
+    --theme-heading-color: #0d3d2d; /* 深松葉綠 */
+    --theme-heading-weight: 700;
+    --theme-h1-size: 2.5rem;
+    --theme-h2-size: 1.85rem;
+    --theme-h3-size: 1.45rem;
+    --theme-h4-size: 1.25rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: 2px solid #2d4a36;
+    --theme-h2-border: 1px solid #d2ded2;
+    --theme-h1-transform: none;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: #edf2ed; /* 極低飽和度的清透嫩芽綠 */
+    --theme-quote-border-left: 4px solid #2d4a36;
+    --theme-quote-text: #1c2d20;
+    --theme-quote-font-style: italic;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #2d4a36;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: #e9ece9;
+    --theme-link-hover-border: #2d4a36;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: 1px solid #d2ded2;
+    --theme-table-header-bg: #edf2ed;
+    --theme-table-header-color: #0d3d2d;
+    --theme-table-header-border: 2px solid #2d4a36;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #2d4a36;
+    --brand-secondary: #edf2ed;
+    --brand-surface: #ffffff; /* 淨白，完全去除背景的主題色 */
+    --brand-accent: #6ee7b7;
+    --code-bg: #f3f7f3;      /* 從 #e4f3e4 大幅調亮至 97% 明度，清透淡綠 */
+    --code-border: #dae3da;  /* 從 #bcd6bc 調淡至 88% 明度，溫和的薄霧線條 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(45, 74, 54, 0.08);
+
+    /* 7. 語法高亮客製化 - 森林木質系 (Syntax Highlighting) */
+    --code-token-comment: #7a9a60; /* 松針苔綠 */
+    --code-token-keyword: #2d4a36; /* 深松葉綠 */
+    --code-token-string: #b8860b; /* 溫暖秋金 */
+    --code-token-number: #c27a3f; /* 落葉黃棕 */
+    --code-token-function: #0d3d2d; /* 晨林黛綠 */
+    --code-token-operator: #1c2d20;
+    --code-token-variable: #1c2d20;
+    --code-token-class: #2f4f4f; /* 深石板綠 */
+    --code-token-tag: #2d4a36;
+    --code-token-attr-name: #c27a3f;
+
+    /* 8. 標註系統 (Alerts) */
+    --theme-alert-note-border: #2d4a36;
+    --theme-alert-note-bg: rgba(45, 74, 54, 0.05);
+    --theme-alert-note-text: #0d3d2d;
+    --theme-alert-tip-border: #16a34a;
+    --theme-alert-tip-bg: rgba(22, 163, 74, 0.05);
+    --theme-alert-tip-text: #15803d;
+    --theme-alert-important-border: #7c3aed;
+    --theme-alert-important-bg: rgba(124, 58, 237, 0.05);
+    --theme-alert-important-text: #6d28d9;
+    --theme-alert-warning-border: #d97706;
+    --theme-alert-warning-bg: rgba(217, 119, 6, 0.05);
+    --theme-alert-warning-text: #b45309;
+    --theme-alert-caution-border: #dc2626;
+    --theme-alert-caution-bg: rgba(220, 38, 38, 0.05);
+    --theme-alert-caution-text: #b91c1c;
+}
+
+/* --------------------------------------------------------------------------
+   深色模式變數覆蓋 (Dark Mode - WCAG 對比度對焦)
+   -------------------------------------------------------------------------- */
+.dark .theme-nordicforest {
+    --theme-text-color: #e2ece6; /* 清晨白霧松白 */
+    --theme-heading-color: #f0f8f5; /* 淡霧白 */
+    --theme-accent-color: #6ee7b7; /* 瑩亮薄荷綠 */
+
+    --theme-quote-bg: #13221b; /* 暗林翠炭黑 */
+    --theme-quote-border-left: 4px solid #6ee7b7;
+    --theme-quote-text: #c8ddd7; /* 淡霧綠 */
+
+    --theme-link-color: #6ee7b7;
+    --theme-link-hover-bg: rgba(110, 231, 183, 0.1);
+    --theme-link-hover-border: #6ee7b7;
+
+    --theme-table-border: 1px solid #1f362b;
+    --theme-table-header-bg: #13221b;
+    --theme-table-header-color: #e2ece6;
+    --theme-table-header-border: 1px solid #1f362b;
+
+    --brand-primary: #6ee7b7;
+    --brand-secondary: #13221b;
+    --brand-surface:#0f172a; /* 近純黑的暗森林炭黑，高純淨度 */
+    --brand-accent: #34d399;
+    --code-bg: #121d17;       /* 深松苔綠，與頁面背景明度差控制在微弱的 2% */
+    --code-border: #1c2e24;   /* 柔和的暗葉綠邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.3);
+
+    /* 深色模式語法高亮 */
+    --code-token-comment: #8eb473; /* 嫩松葉綠 */
+    --code-token-keyword: #6ee7b7; /* 薄荷瑩綠 */
+    --code-token-string: #fcd34d; /* 金秋花粉黃 */
+    --code-token-number: #fda4af; /* 晚霞粉 */
+    --code-token-function: #f0f8f5;
+    --code-token-operator: #e2ece6;
+    --code-token-variable: #e2ece6;
+    --code-token-class: #a78bfa; /* 晨霧幽紫 */
+    --code-token-tag: #6ee7b7;
+    --code-token-attr-name: #fbbf24;
+
+    /* 深色模式下的 Alerts */
+    --theme-alert-note-border: #6ee7b7;
+    --theme-alert-note-bg: rgba(110, 231, 183, 0.1);
+    --theme-alert-note-text: #6ee7b7;
+    --theme-alert-tip-border: #34d399;
+    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #a78bfa;
+    --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
+    --theme-alert-important-text: #a78bfa;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   Markdown 基礎元素與特色客製 (Prose Binding & Customizations)
+   -------------------------------------------------------------------------- */
+.theme-nordicforest.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    max-width: 100%;
+    background-color: var(--brand-surface);
+}
+
+.theme-nordicforest.prose h1,
+.theme-nordicforest.prose h2,
+.theme-nordicforest.prose h3,
+.theme-nordicforest.prose h4,
+.theme-nordicforest.prose h5,
+.theme-nordicforest.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+}
+
+.theme-nordicforest.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: var(--theme-h1-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.theme-nordicforest.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.3rem;
+    margin-top: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.theme-nordicforest.prose h3 { 
+    font-size: var(--theme-h3-size);
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+}
+.theme-nordicforest.prose h4 { 
+    font-size: var(--theme-h4-size);
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+.theme-nordicforest.prose h5 { 
+    font-size: var(--theme-h5-size);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+.theme-nordicforest.prose h6 { 
+    font-size: var(--theme-h6-size);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.theme-nordicforest.prose blockquote {
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text);
+    padding: 1rem 1.5rem;
+    border-radius: 0 8px 8px 0; /* 更柔和的北歐式倒角 */
+    margin: 1.5rem 0;
+}
+
+.theme-nordicforest.prose blockquote p {
+    margin: 0.5rem 0;
+}
+
+/* 針葉綠圓點自然列表符號 */
+.theme-nordicforest.prose ul {
+    list-style-type: disc;
+}
+
+.theme-nordicforest.prose li::marker {
+    color: var(--theme-accent-color);
+    font-size: 0.9em;
+}
+
+/* 超連結特色樣式 - 平滑呼吸過渡 */
+.theme-nordicforest.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-nordicforest.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom-color: var(--theme-link-hover-border);
+}
+
+/* 自然落葉黃與鼠尾草綠的 <mark> 高亮 */
+.theme-nordicforest.prose mark {
+    background-color: #d2ded2; /* 淺苔綠 */
+    color: #0d3d2d;
+    border-bottom: 2px solid #2d4a36;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.dark .theme-nordicforest.prose mark {
+    background-color: #1f362b; /* 深苔綠 */
+    color: #6ee7b7;
+    border-bottom: 2px solid #6ee7b7;
+}
+
+/* 自然 Checkbox 核取方塊美化 */
+.theme-nordicforest.prose input[type="checkbox"] {
+    accent-color: var(--brand-primary) !important;
+    border-radius: 4px !important;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.theme-nordicforest.prose input[type="checkbox"]:hover {
+    transform: scale(1.1);
+}
+
+/* 點狀自然分隔線 */
+.theme-nordicforest.prose hr {
+    border: none;
+    border-top: 2px dotted var(--theme-table-border);
+    margin: 3rem auto;
+    width: 80%;
+}
+
+/* 表格特色樣式 */
+.theme-nordicforest.prose table {
+    border: var(--theme-table-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+.theme-nordicforest.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-bottom: var(--theme-table-header-border);
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+}
+
+.theme-nordicforest.prose td {
+    border-top: var(--theme-table-border);
+    color: var(--theme-text-color);
+    padding: 0.8rem 1rem;
+}
+
+.theme-nordicforest.prose tr:hover {
+    background-color: rgba(45, 74, 54, 0.03);
+}
+
+.dark .theme-nordicforest.prose tr:hover {
+    background-color: rgba(110, 231, 183, 0.05);
+}
+
+/* Inline Code 樣式 */
+.theme-nordicforest.prose :not(pre) > code {
+    background-color: var(--code-bg);
+    color: var(--theme-text-color);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+    font-family: "Fira Code", "JetBrains Mono", monospace;
+    font-size: 0.85em;
+}
+
+
+
+/* Alert 標註系統客製 */
+.theme-nordicforest.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+.theme-nordicforest.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-nordicforest.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+.theme-nordicforest.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-nordicforest.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+.theme-nordicforest.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-nordicforest.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+.theme-nordicforest.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-nordicforest.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+.theme-nordicforest.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
+/* ==========================================================================
+   🌲 特色主題隔離防禦：防止主題字型與大小干擾內置 SVG 圖表 (如 Mermaid)
+   ========================================================================== */
+.theme-nordicforest.prose .not-prose,
+.theme-nordicforest.prose .not-prose svg,
+.theme-nordicforest.prose .not-prose svg text,
+.theme-nordicforest.prose .not-prose span,
+.theme-nordicforest.prose .not-prose div {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: inherit;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+}
+
+/* 重置圖表內部的 ::first-letter 防止文字放大干擾 */
+.theme-nordicforest.prose .not-prose p::first-letter,
+.theme-nordicforest.prose .not-prose div::first-letter,
+.theme-nordicforest.prose .not-prose span::first-letter,
+.theme-nordicforest.prose .not-prose text::first-letter {
+    font-size: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
+/* 鎖定 Mermaid 內部字型與字級，防截斷 */
+.theme-nordicforest.prose .not-prose .mermaid text,
+.theme-nordicforest.prose .not-prose .mermaid .node text,
+.theme-nordicforest.prose .not-prose .mermaid .edgeLabel text,
+.theme-nordicforest.prose .not-prose .mermaid .label text {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: 13px !important;
+}
+
+/* ==========================================================================
+   列印與輸出相容性 (Print Compatibility)
+   本主題遵循高保真特色列印。系統會將淺色護眼變數透傳輸出至 PDF 中，保留視覺張力。
+   在此僅進行必要的結構性排版微調，無任何 !important 負擔！
+   ========================================================================== */
+@media print {
+    /* 1. 強制將所有變數重設為淺色薄霧護眼配色，防禦深色列印黑洞 */
+    .theme-nordicforest,
+    .dark .theme-nordicforest,
+    [class*="theme-nordicforest"] {
+        --theme-text-color: #1c2d20 !important;
+        --theme-accent-color: #2d4a36 !important;
+        --theme-heading-color: #0d3d2d !important;
+        --theme-quote-bg: #edf2ed !important;
+        --theme-quote-border-left: 4px solid #2d4a36 !important;
+        --theme-quote-text: #1c2d20 !important;
+        --theme-link-color: #2d4a36 !important;
+        --theme-table-border: 1px solid #d2ded2 !important;
+        --theme-table-header-bg: #edf2ed !important;
+        --theme-table-header-color: #0d3d2d !important;
+        --theme-table-header-border: 2px solid #2d4a36 !important;
+        
+        --brand-primary: #2d4a36 !important;
+        --brand-secondary: #edf2ed !important;
+        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
+        --brand-accent: #6ee7b7 !important;
+        --code-bg: #121d17 !important;
+        --code-border:  #dae3da !important;
+
+        /* 語法高亮列印淺色變數 */
+        --code-token-comment: #7a9a60 !important;
+        --code-token-keyword: #2d4a36 !important;
+        --code-token-string: #b8860b !important;
+        --code-token-number: #c27a3f !important;
+        --code-token-function: #0d3d2d !important;
+
+        /* Alerts 標註列印淺色變數 */
+        --theme-alert-note-border: #2d4a36 !important;
+        --theme-alert-note-bg: rgba(45, 74, 54, 0.05) !important;
+        --theme-alert-note-text: #0d3d2d !important;
+        --theme-alert-tip-border: #16a34a !important;
+        --theme-alert-tip-bg: rgba(22, 163, 74, 0.05) !important;
+        --theme-alert-tip-text: #15803d !important;
+        --theme-alert-important-border: #7c3aed !important;
+        --theme-alert-important-bg: rgba(124, 58, 237, 0.05) !important;
+        --theme-alert-important-text: #6d28d9 !important;
+        --theme-alert-warning-border: #d97706 !important;
+        --theme-alert-warning-bg: rgba(217, 119, 6, 0.05) !important;
+        --theme-alert-warning-text: #b45309 !important;
+        --theme-alert-caution-border: #dc2626 !important;
+        --theme-alert-caution-bg: rgba(220, 38, 38, 0.05) !important;
+        --theme-alert-caution-text: #b91c1c !important;
+    }
+
+    /* 2. 強制瀏覽器啟用局部背景與色彩列印 */
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. 排版與文字尺寸微調 */
+    .theme-nordicforest.prose {
+        font-size: 10.5pt !important;
+        line-height: 1.55 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* 確保列印時的標題層次與底邊線高對比 */
+    .theme-nordicforest.prose h1 {
+        border-bottom: 2pt solid var(--brand-primary) !important;
+    }
+    
+    .theme-nordicforest.prose h2 {
+        border-bottom: 1pt solid var(--theme-table-border) !important;
+    }
+
+    /* 4. 強制保留代碼塊、列表與標註區在白底上的可讀性，避免大面積黑色溢出 */
+    .theme-nordicforest.prose pre,
+    .theme-nordicforest.prose .enhanced-codeblock {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-nordicforest.prose blockquote {
+        background-color: var(--theme-quote-bg) !important;
+        border-left: var(--theme-quote-border-left) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-nordicforest.prose table {
+        border: var(--theme-table-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-nordicforest.prose th {
+        background-color: var(--theme-table-header-bg) !important;
+        border-bottom: var(--theme-table-header-border) !important;
+    }
+
+    .theme-nordicforest.prose td {
+        border-top: var(--theme-table-border) !important;
+    }
+
+    .theme-nordicforest.prose h1,
+    .theme-nordicforest.prose h2,
+    .theme-nordicforest.prose h3 {
+        page-break-after: avoid !important;
+    }
+}

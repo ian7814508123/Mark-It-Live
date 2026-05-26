@@ -14,12 +14,13 @@ export interface PrintSettings {
     /** 下載 PDF 時合併資料夾 */
     mergeVaultOnPdfExport: boolean;
     /** Markdown 預覽主題 */
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic';
 }
 
 export interface AppSettings {
     customMacros: Record<string, string | [string, number]>;
     printSettings: PrintSettings;
+    favoriteThemes?: string[];
 }
 
 const DEFAULT_PRINT_SETTINGS: PrintSettings = {
@@ -62,6 +63,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         "mat": ["{\\mathbf{#1}}", 1],                // 矩陣粗體
     },
     printSettings: DEFAULT_PRINT_SETTINGS,
+    favoriteThemes: [],
 };
 
 
@@ -94,13 +96,15 @@ export function useAppSettings() {
                             ...DEFAULT_PRINT_SETTINGS,
                             ...(parsed.printSettings ?? {})
                         },
+                        favoriteThemes: parsed.favoriteThemes ?? []
                     };
                 }
                 // stored 存在但沒有 customMacros，補上預設後回傳
                 return {
                     ...DEFAULT_SETTINGS,
                     ...parsed,
-                    printSettings: parsed.printSettings ?? DEFAULT_PRINT_SETTINGS
+                    printSettings: parsed.printSettings ?? DEFAULT_PRINT_SETTINGS,
+                    favoriteThemes: parsed.favoriteThemes ?? []
                 };
             }
             return DEFAULT_SETTINGS;
@@ -126,6 +130,16 @@ export function useAppSettings() {
         setSettings(prev => ({ ...prev, printSettings: { ...prev.printSettings, ...patch } }));
     };
 
+    const toggleFavoriteTheme = (themeValue: string) => {
+        setSettings(prev => {
+            const favs = prev.favoriteThemes || [];
+            const nextFavs = favs.includes(themeValue)
+                ? favs.filter(t => t !== themeValue)
+                : [...favs, themeValue];
+            return { ...prev, favoriteThemes: nextFavs };
+        });
+    };
+
     const restoreDefaults = () => {
         setSettings(DEFAULT_SETTINGS);
     };
@@ -134,6 +148,7 @@ export function useAppSettings() {
         settings,
         updateMacros,
         updatePrintSettings,
+        toggleFavoriteTheme,
         restoreDefaults
     };
 }

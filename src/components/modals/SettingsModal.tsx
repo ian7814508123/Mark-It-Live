@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -23,6 +23,8 @@ interface SettingsModalProps {
     onSavePrintSettings: (patch: Partial<PrintSettings>) => void;
     isStandalone?: boolean;
     onOpenIntro?: () => void;
+    favoriteThemes: string[];
+    onToggleFavoriteTheme: (themeValue: string) => void;
 }
 
 // ── PDF 設定面板 ────────────────────────────────────────────────────────────
@@ -30,7 +32,9 @@ const PdfSettingsPanel: React.FC<{
     settings: PrintSettings;
     onChange: (patch: Partial<PrintSettings>) => void;
     isStandalone?: boolean;
-}> = ({ settings, onChange, isStandalone }) => {
+    favoriteThemes: string[];
+    onToggleFavoriteTheme: (themeValue: string) => void;
+}> = ({ settings, onChange, isStandalone, favoriteThemes, onToggleFavoriteTheme }) => {
     const [customScale, setCustomScale] = useState<number>(
         typeof settings.scale === 'number' ? settings.scale : 100
     );
@@ -99,9 +103,25 @@ const PdfSettingsPanel: React.FC<{
                                 description: '高度還原 20 世紀實體報紙印刷質感，擁有經典首字放大 (Drop Cap) 與社論雙線排版。',
                                 category: 'creative'
                             },
+                            {
+                                label: '北歐森林', value: 'nordicforest', hint: 'Nordic Forest',
+                                icon: <Leaf size={16} />, color: '#2d4a36',
+                                previewImg: '/image/themes/nordicforest.png',
+                                description: '清晨薄霧林地、松針陰影、鼠尾草綠，適合心流寫作與睡前日記。',
+                                category: 'creative'
+                            },
+                            {
+                                label: '潛境太空', value: 'cosmic', hint: 'Cosmic Voyage',
+                                icon: <Orbit size={16} />, color: '#a855f7',
+                                previewImg: '/image/themes/cosmic.png',
+                                description: '冷冽太空艙與螢光霓虹霓彩，搭配硬核科技等寬字體與星芒點綴，極具未來張力。',
+                                category: 'tech'
+                            },
                         ]}
                         value={settings.previewTheme}
                         onChange={(v) => onChange({ previewTheme: v as any })}
+                        favoriteValues={favoriteThemes}
+                        onToggleFavorite={onToggleFavoriteTheme}
                     />
                 </div>
             </div>
@@ -202,6 +222,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     onSavePrintSettings,
     isStandalone = false,
     onOpenIntro,
+    favoriteThemes,
+    onToggleFavoriteTheme,
 }) => {
     const [activeTab, setActiveTab] = useState<'editor' | 'print' | 'about'>('editor');
     const [jsonInput, setJsonInput] = useState('');
@@ -416,7 +438,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             </div>
                         )
                     ) : activeTab === 'print' ? (
-                        <PdfSettingsPanel key="print" settings={currentPrintSettings} onChange={onSavePrintSettings} isStandalone={isStandalone} />
+                        <PdfSettingsPanel
+                            key="print"
+                            settings={currentPrintSettings}
+                            onChange={onSavePrintSettings}
+                            isStandalone={isStandalone}
+                            favoriteThemes={favoriteThemes}
+                            onToggleFavoriteTheme={onToggleFavoriteTheme}
+                        />
                     ) : (
                         <div key="editor" className="flex flex-col">
                             {mode === 'markdown' ? (

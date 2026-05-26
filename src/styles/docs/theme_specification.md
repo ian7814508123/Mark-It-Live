@@ -74,7 +74,7 @@
 
 ---
 
-## 3. 圖表與程式碼背景統一規範 (Code & Diagram Unification) [NEW]
+## 3. 圖表與程式碼背景統一規範 (Code & Diagram Unification) [UPDATED]
 
 本系統內嵌了全新升級的「卡片式增強型代碼區塊」與「動態圖表渲染元件」。
 為了維持極致的視覺品質與防止畫布底色破碎，所有主題設計必須遵守以下規則：
@@ -94,7 +94,21 @@
    - `CodeBlockHeader` 內建了輕量級圖示與自適應的 Tailwind 色彩（用於各語言標籤分類）。
    - 標題列的背景色固定使用稍微與代碼底色區分的系統色階，主題開發者只需確保 `--code-border` (外框線) 與 `--code-bg` (代碼底色) 與整體畫面協調，即能呈現具質感的「編輯器卡片」風格。
    - 帶有標頭時，頂部內距為緊湊的 `1rem`；無標頭時，頂部自動擴展為 `1.2rem` 以保持視覺平衡。主題 CSS 絕對不得利用 `!important` 干預 `pre` 標籤的 `padding`。
-   
+3. **行內與區塊代碼的選擇器防禦隔離 (Inline vs Block Code Selector Isolation) [CRITICAL]**：
+   - **嚴禁使用** `.theme-[name].prose code` 這種寬鬆的選擇器來定義行內代碼。這會因為 CSS 權重問題，誤傷到代碼塊（Enhanced Code Block）內層語法高亮生成的 `<code>` 元素。
+   - 誤傷後會導致代碼塊內的每一行文字也跟著被強行加上 inline code 的邊框、圓角與內距，造成極為突兀的「內層線框」視覺 Bug。
+   - **強制規範**：所有主題的行內代碼（Inline Code）樣式，**必須且嚴格限制**寫為排除 `pre` 的 `:not` 選擇器：
+     ```css
+     .theme-[name].prose :not(pre) > code {
+         /* 僅修飾行內代碼，不誤傷區塊代碼 */
+         background-color: var(--code-bg);
+         border: 1px solid var(--code-border);
+         padding: 0.2em 0.4em;
+         border-radius: 4px;
+         font-size: 0.85em;
+     }
+     ```
+
 ### 3.3 語法高亮色階自訂 (Syntax Highlighting Customization) [OPTIONAL]
 系統在底層 (`index.css` 的 `:root`) 已經強制採用了工業級標準的 **VS Code Light / Dark+** 作為預設的語法高亮配色，這代表：
 只要您的 `--code-bg` 淺色維持高明度、深色維持低明度，系統預設的高亮配色就**絕對不會發生顏色衝突或對比度不足的問題**。
@@ -123,15 +137,25 @@
   <div class="markdown-alert-content">
     <!-- 去除標註字串後的 Markdown 內容 -->
   </div>
-</blockquote>
+ </blockquote>
 ```
 
 #### 🎨 客製化樣式原則：
 主題開發者應透過定義標準的標註變數（如 `--theme-alert-note-*`）來控制各類型 Alert 的視覺外觀，以確保在深淺色模式下皆有符合 WCAG 規範的良好對比度。避免在 CSS 中直接寫死硬編碼顏色。若未自訂，系統會自動 Fallback 回各主題基礎的 `blockquote` 與 `--theme-accent-color` 配置。
 
+### 3.5 主題背景與內聯容器層級對比規範 (Theme Surface & Inline Contrast) [UPDATED]
+為了確保預覽區域的視覺「純淨度」與「資訊層級清晰度」，避免內聯元素（如代碼區塊 `--code-bg`、引言區塊 `--theme-quote-bg`、表格頭 `--theme-table-header-bg`）與主題的主背景色（Prose 容器背景 `--brand-surface`）發生色彩重疊或視覺混淆，所有主題設計必須遵循 **「卡片層級視覺差 (Layered Visual Contrast)」** 原則：
+
+1. **主背景淨空與純淨化 (Surface Pureness)**：所有主題的主背景色（`--brand-surface` 與預覽區 `.prose` 的 `background-color`）**必須維持絕對的淨白（淺色模式，如 `#ffffff`）與深藍黑（深色模式，如 `#0f172a`），嚴禁在主背景上強行染上濃厚的主題色相（如直接使用偏綠、偏藍的底色）**。這能確保主預覽區擁有最乾淨清爽的閱讀邊界，內聯容器浮現時才不會與底色色彩重疊而顯得髒亂。
+2. **內聯容器與主背景的「黃金 2% - 3% 明度差」配色原則 (Golden Lightness Contrast) [NEW]**：
+   內聯容器的背景色與邊框**嚴禁**與主背景完全相同或明度差過大。為了呈現最舒適、柔和且不突兀的無邊界感，開發者在進行色彩選配時應遵循以下明度差指標：
+   - **淺色模式 (Light Mode) ➔ 2% - 3% 的微妙明度差**：代碼底色 `--code-bg` 相對於主背景 `--brand-surface`（通常為純白 `#ffffff`，明度 L=100%）應**僅下降 2% 至 3% 的明度**，落在 **97% - 98%** 的明度帶（如溫潤森林綠白 `#f3f7f3`、極淡太空冷灰藍 `#f5f7f9`）。邊框 `--code-border` 的明度則應調淡至 **88% - 90%** 之間（如 `#dae3da` 或 `#e0e4e7`）。這能完美防禦突兀的「色塊補丁」感，呈現高級的微弱卡片感。
+   - **深色模式 (Dark Mode) ➔ 2% - 3% 的微妙明度差**：代碼底色 `--code-bg` 相對於主背景 `--brand-surface`（通常為極深黑，明度 L=10% 左右）應**僅提升 2% 至 3% 的明度**（如 `#0d1124` 或 `#121d17`）。而邊框 `--code-border` 的明度應控制在 **15% - 17%** 左右，避免深色模式下的邊框與行號線喧賓奪主，確保細緻優雅。
+3. **設計優勢**：這能確保在任何文字排版、縮放比例或列印狀態下，程式碼卡片、引言盒子與表格表頭皆能像「實體卡片」般清晰立體地浮現於純淨的主背景之上，既不會發生背景重疊顯得髒亂，也不會因底色支離破碎而破壞專注度。
+
 ---
 
-## 4. 開箱即用之主題 CSS 模板骨架 (Standard Template Blueprint) [NEW]
+## 4. 開箱即用之主題 CSS 模板骨架 (Standard Template Blueprint) [UPDATED]
 
 未來開發新主題時，請直接複製以下模板，並填入對應配色即可：
 
@@ -180,13 +204,13 @@
     --theme-table-header-color: #1e293b;
     --theme-table-header-border: 1px solid #e2e8f0;
 
-    /* 6. 系統 UI 對接 (控制整體系統 UI 隨主題變換) */
+    /* 6. 系統 UI 對接 (控制整體系統 UI 隨主題變換，強制對齊 2%-3% 黃金明度差配色原則) */
     --brand-primary: #3b82f6;
     --brand-secondary: #eff6ff;
-    --brand-surface: #ffffff;
+    --brand-surface: #ffffff;      /* 主背景維持純淨 */
     --brand-accent: #60a5fa;
-    --code-bg: #f8fafc;
-    --code-border: #e2e8f0;
+    --code-bg: #f5f7f9;            /* 2%-3% 黃金明度差，微降明度至 97% */
+    --code-border: #e0e4e7;        /* 邊框維持在 88%-90% 溫和對比，防禦突兀 */
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.05);
 
@@ -231,10 +255,10 @@
 
     --brand-primary: #60a5fa;
     --brand-secondary: #1e293b;
-    --brand-surface: #0f172a;
+    --brand-surface: #0f172a;      /* 深色主背景 */
     --brand-accent: #94a3b8;
-    --code-bg: #1e293b;
-    --code-border: #334155;
+    --code-bg: #131729;            /* 2%-3% 黃金明度差，微升明度 */
+    --code-border: #1e243d;        /* 邊框維持在 15%-17% 溫和對比 */
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.25);
 
@@ -302,7 +326,19 @@
     color: var(--theme-quote-text);
 }
 
-/* 註：Alert 標註系統、列表 (ul/ol) 縮排階層、表格寬度、Inline-code 骨架等
+/* ─── 行內代碼 (Inline Code) 樣式自訂 [CRITICAL] ───
+   必須嚴格使用排除 pre 內層的 :not(pre) 選擇器，消除區塊代碼內部的雙重線框 Bug */
+.theme-[name].prose :not(pre) > code {
+    background-color: var(--code-bg);
+    color: var(--theme-text-color);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+    font-family: var(--theme-font-family);
+    font-size: 0.85em;
+}
+
+/* 註：Alert 標註系統、列表 (ul/ol) 縮排階層、表格寬度等
    已在 `markdown-base.css` 統一處理，主題 CSS 不需重複撰寫。
    如果主題對 Alerts 顏色、表格特定邊框或超連結有客製需求，可按需加入以下客製： */
 

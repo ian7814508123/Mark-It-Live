@@ -1,0 +1,535 @@
+/* ==========================================================================
+   主題名稱: 潛境太空 / 星際探索 (Cosmic Voyage / Deep Space)
+   設計理念: 冷冽太空船艙、霓虹發光二極體、深空暗物質、星雲紫、星系金
+   適用情境: 技術白皮書、前沿 AI 說明書、科幻小說創作、代碼藍圖與架構圖表展示
+   ========================================================================== */
+
+.theme-cosmic {
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Fira Code", "JetBrains Mono", "Courier New", monospace;
+    --theme-line-height: 1.6;
+    --theme-text-align: left;
+    --theme-text-color: #1e293b; /* 冷石板暗藍 */
+    --theme-accent-color: #6366f1; /* 星雲光芒靛藍 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Orbitron", "Fira Code", "Heiti TC", monospace;
+    --theme-heading-color: #0f172a; /* 太空黑 */
+    --theme-heading-weight: 800;
+    --theme-h1-size: 2.5rem;
+    --theme-h2-size: 1.85rem;
+    --theme-h3-size: 1.45rem;
+    --theme-h4-size: 1.25rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: 2px solid #6366f1;
+    --theme-h2-border: 1px solid #cbd5e1;
+    --theme-h1-transform: uppercase;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: #eff6ff; /* 太空艙通訊風格 */
+    --theme-quote-border-left: 4px solid #6366f1;
+    --theme-quote-text: #1e293b;
+    --theme-quote-font-style: normal;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #6366f1;
+    --theme-link-decoration: none;
+    --theme-link-hover-bg: #eff6ff;
+    --theme-link-hover-border: #6366f1;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: 1px solid #cbd5e1;
+    --theme-table-header-bg: #eff6ff;
+    --theme-table-header-color: #0f172a;
+    --theme-table-header-border: 2px solid #6366f1;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #6366f1;
+    --brand-secondary: #eff6ff;
+    --brand-surface: #ffffff;
+    --brand-accent: #a855f7;
+    --code-bg: #f5f7f9;      /* 調亮至 97% 明度，微帶藍調的太空冷灰 */
+    --code-border: #e0e4e7;  /* 減弱對比至 90% 明度，微弱的冷灰邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(99, 102, 241, 0.08);
+
+    /* 7. 語法高亮客製化 - 科技儀表板 (Syntax Highlighting) */
+    --code-token-comment: #64748b; /* 冷星灰 */
+    --code-token-keyword: #4f46e5; /* 星海深藍 */
+    --code-token-string: #0d9488; /* 瑩翠綠 */
+    --code-token-number: #db2777; /* 脈衝粉紅 */
+    --code-token-function: #2563eb; /* 科技靛藍 */
+    --code-token-operator: #0f172a;
+    --code-token-variable: #1e293b;
+    --code-token-class: #7c3aed; /* 離子紫 */
+    --code-token-tag: #4f46e5;
+    --code-token-attr-name: #b45309;
+
+    /* 8. 標註系統 (Alerts) */
+    --theme-alert-note-border: #6366f1;
+    --theme-alert-note-bg: rgba(99, 102, 241, 0.05);
+    --theme-alert-note-text: #4f46e5;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.05);
+    --theme-alert-tip-text: #059669;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.05);
+    --theme-alert-important-text: #7c3aed;
+    --theme-alert-warning-border: #f59e0b;
+    --theme-alert-warning-bg: rgba(245, 158, 11, 0.05);
+    --theme-alert-warning-text: #d97706;
+    --theme-alert-caution-border: #ef4444;
+    --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
+    --theme-alert-caution-text: #dc2626;
+}
+
+/* --------------------------------------------------------------------------
+   深色模式變數覆蓋 (Dark Mode - WCAG 對比度對焦)
+   -------------------------------------------------------------------------- */
+.dark .theme-cosmic {
+    --theme-text-color: #f8fafc; /* 星際無瑕太空白 */
+    --theme-heading-color: #ffffff; /* 恆星純白 */
+    --theme-accent-color: #a855f7; /* 螢光超新星紫 */
+
+    --theme-quote-bg: rgba(168, 85, 247, 0.05); /* 終端通訊風格 */
+    --theme-quote-border-left: 4px solid #a855f7;
+    --theme-quote-text: #e2e8f0; /* 星際艙灰 */
+
+    --theme-link-color: #a855f7;
+    --theme-link-hover-bg: rgba(168, 85, 247, 0.1);
+    --theme-link-hover-border: #a855f7;
+
+    --theme-table-border: 1px solid #1e254d;
+    --theme-table-header-bg: rgba(168, 85, 247, 0.05);
+    --theme-table-header-color: #ffffff;
+    --theme-table-header-border: 2px solid #a855f7;
+
+    --brand-primary: #a855f7;
+    --brand-secondary: rgba(168, 85, 247, 0.05);
+    --brand-surface: #0f172a; /* 暗物質深空星際藍，深邃高純淨度 */
+    --brand-accent: #6366f1;
+    --code-bg: #0d1124;       /* 太空艙夜空藍，與頁面底色完美貼合 */
+    --code-border: #1a1e36;   /* 降低深色邊框明度，行號線更顯精緻 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.4);
+
+    /* 深色模式科技高亮 (Neon Syntax) */
+    --code-token-comment: #475569; /* 深空塵埃灰 */
+    --code-token-keyword: #a855f7; /* 霓虹螢光紫 */
+    --code-token-string: #34d399; /* 亮螢光綠 */
+    --code-token-number: #f43f5e; /* 恆星耀紅 */
+    --code-token-function: #38bdf8; /* 星雲靛藍 */
+    --code-token-operator: #f8fafc;
+    --code-token-variable: #f8fafc;
+    --code-token-class: #fbbf24; /* 星系金黃 */
+    --code-token-tag: #a855f7;
+    --code-token-attr-name: #fbbf24;
+
+    /* 深色模式下的 Alerts */
+    --theme-alert-note-border: #a855f7;
+    --theme-alert-note-bg: rgba(168, 85, 247, 0.1);
+    --theme-alert-note-text: #a855f7;
+    --theme-alert-tip-border: #34d399;
+    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #c084fc;
+    --theme-alert-important-bg: rgba(192, 132, 252, 0.1);
+    --theme-alert-important-text: #c084fc;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   Markdown 基礎元素與特色客製 (Prose Binding & Customizations)
+   -------------------------------------------------------------------------- */
+.theme-cosmic.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    max-width: 100%;
+    background-color: var(--brand-surface);
+}
+
+.theme-cosmic.prose h1,
+.theme-cosmic.prose h2,
+.theme-cosmic.prose h3,
+.theme-cosmic.prose h4,
+.theme-cosmic.prose h5,
+.theme-cosmic.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+    letter-spacing: 0.05em;
+}
+
+.theme-cosmic.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: var(--theme-h1-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.theme-cosmic.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.3rem;
+    margin-top: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.theme-cosmic.prose h3 { 
+    font-size: var(--theme-h3-size);
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+}
+.theme-cosmic.prose h4 { 
+    font-size: var(--theme-h4-size);
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+.theme-cosmic.prose h5 { 
+    font-size: var(--theme-h5-size);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+.theme-cosmic.prose h6 { 
+    font-size: var(--theme-h6-size);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.theme-cosmic.prose blockquote {
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text);
+    padding: 1rem 1.5rem;
+    border-radius: 0 12px 12px 0; /* 幾何科技圓角 */
+    margin: 1.5rem 0;
+    border-top: 1px solid var(--theme-table-border);
+    border-right: 1px solid var(--theme-table-border);
+    border-bottom: 1px solid var(--theme-table-border);
+}
+
+.theme-cosmic.prose blockquote p {
+    margin: 0.5rem 0;
+}
+
+/* 🌌 星芒列表點 (Cosmic Bullets) */
+.theme-cosmic.prose ul {
+    list-style-type: '✦  ' !important;
+}
+
+.theme-cosmic.prose li::marker {
+    color: var(--theme-accent-color);
+    text-shadow: 0 0 8px var(--theme-accent-color); /* 星芒帶有細微霓虹發光效果 */
+}
+
+/* 超連結特色樣式 - 無底線，平滑過渡 */
+.theme-cosmic.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px dashed var(--theme-link-color);
+}
+
+.theme-cosmic.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom-style: solid;
+}
+
+/* 霓虹發光 <mark> 高亮 */
+.theme-cosmic.prose mark {
+    background-color: rgba(99, 102, 241, 0.15); /* 淺靛藍發光 */
+    color: #4f46e5;
+    border-bottom: 2px solid #6366f1;
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.dark .theme-cosmic.prose mark {
+    background-color: rgba(168, 85, 247, 0.2); /* 深紫霓虹發光 */
+    color: #c084fc;
+    border-bottom: 2px solid #a855f7;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+}
+
+/* 核取方塊美化 */
+.theme-cosmic.prose input[type="checkbox"] {
+    accent-color: var(--brand-primary) !important;
+    border-radius: 4px !important;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.theme-cosmic.prose input[type="checkbox"]:hover {
+    transform: scale(1.1);
+}
+
+/* 未來科幻感虛線分隔線 */
+.theme-cosmic.prose hr {
+    border: none;
+    border-top: 1px dashed var(--theme-table-border);
+    margin: 3rem auto;
+    width: 90%;
+}
+
+/* 表格特色樣式 */
+.theme-cosmic.prose table {
+    border: var(--theme-table-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+.theme-cosmic.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-bottom: var(--theme-table-header-border);
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+}
+
+.theme-cosmic.prose td {
+    border-top: var(--theme-table-border);
+    color: var(--theme-text-color);
+    padding: 0.8rem 1rem;
+}
+
+.theme-cosmic.prose tr:hover {
+    background-color: rgba(99, 102, 241, 0.04);
+}
+
+.dark .theme-cosmic.prose tr:hover {
+    background-color: rgba(168, 85, 247, 0.04);
+}
+
+/* Inline Code 樣式 */
+.theme-cosmic.prose :not(pre) > code {
+    background-color: var(--code-bg);
+    color: var(--theme-text-color);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+    font-family: var(--theme-font-family);
+    font-size: 0.85em;
+}
+
+
+
+/* 🌌 儀表板發光容器 (Glow Hover Card) */
+.theme-cosmic.prose .enhanced-codeblock,
+.theme-cosmic.prose .diagram-block-container {
+    transition: all 0.3s ease-in-out !important;
+}
+
+.theme-cosmic.prose .enhanced-codeblock:hover,
+.theme-cosmic.prose .diagram-block-container:hover {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.25), 0 0 1px rgba(168, 85, 247, 0.5) !important;
+    border-color: var(--theme-accent-color) !important;
+}
+
+/* Alert 標註系統客製 */
+.theme-cosmic.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+.theme-cosmic.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-cosmic.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+.theme-cosmic.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-cosmic.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+.theme-cosmic.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-cosmic.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+.theme-cosmic.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-cosmic.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+.theme-cosmic.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
+/* ==========================================================================
+   🌌 特色主題隔離防禦：防止主題字型與大小干擾內置 SVG 圖表 (如 Mermaid)
+   ========================================================================== */
+.theme-cosmic.prose .not-prose,
+.theme-cosmic.prose .not-prose svg,
+.theme-cosmic.prose .not-prose svg text,
+.theme-cosmic.prose .not-prose span,
+.theme-cosmic.prose .not-prose div {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: inherit;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+}
+
+/* 重置圖表內部的 ::first-letter 防止文字放大干擾 */
+.theme-cosmic.prose .not-prose p::first-letter,
+.theme-cosmic.prose .not-prose div::first-letter,
+.theme-cosmic.prose .not-prose span::first-letter,
+.theme-cosmic.prose .not-prose text::first-letter {
+    font-size: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
+/* 鎖定 Mermaid 內部字型與字級，防截斷 */
+.theme-cosmic.prose .not-prose .mermaid text,
+.theme-cosmic.prose .not-prose .mermaid .node text,
+.theme-cosmic.prose .not-prose .mermaid .edgeLabel text,
+.theme-cosmic.prose .not-prose .mermaid .label text {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: 13px !important;
+}
+
+/* ==========================================================================
+   列印與輸出相容性 (Print Compatibility)
+   本主題遵循高保真特色列印。系統會將淺色太空艙金屬銀變數透傳輸出至 PDF 中，保留視覺張力。
+   在此僅進行必要的結構性排版微調，無任何 !important 負擔！
+   ========================================================================== */
+@media print {
+    /* 1. 強制將所有變數重設為淺色太空艙配色，防禦深色列印黑洞 */
+    .theme-cosmic,
+    .dark .theme-cosmic,
+    [class*="theme-cosmic"] {
+        --theme-text-color: #1e293b !important;
+        --theme-accent-color: #6366f1 !important;
+        --theme-heading-color: #0f172a !important;
+        --theme-quote-bg: #eff6ff !important;
+        --theme-quote-border-left: 4px solid #6366f1 !important;
+        --theme-quote-text: #1e293b !important;
+        --theme-link-color: #6366f1 !important;
+        --theme-table-border: 1px solid #cbd5e1 !important;
+        --theme-table-header-bg: #eff6ff !important;
+        --theme-table-header-color: #0f172a !important;
+        --theme-table-header-border: 2px solid #6366f1 !important;
+        
+        --brand-primary: #6366f1 !important;
+        --brand-secondary: #eff6ff !important;
+        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
+        --brand-accent: #a855f7 !important;
+        --code-bg: #f5f7f9 !important;
+        --code-border: #e0e4e7 !important;
+
+        /* 語法高亮列印淺色變數 */
+        --code-token-comment: #64748b !important;
+        --code-token-keyword: #4f46e5 !important;
+        --code-token-string: #0d9488 !important;
+        --code-token-number: #db2777 !important;
+        --code-token-function: #2563eb !important;
+
+        /* Alerts 標註列印淺色變數 */
+        --theme-alert-note-border: #6366f1 !important;
+        --theme-alert-note-bg: rgba(99, 102, 241, 0.05) !important;
+        --theme-alert-note-text: #4f46e5 !important;
+        --theme-alert-tip-border: #10b981 !important;
+        --theme-alert-tip-bg: rgba(16, 185, 129, 0.05) !important;
+        --theme-alert-tip-text: #059669 !important;
+        --theme-alert-important-border: #8b5cf6 !important;
+        --theme-alert-important-bg: rgba(139, 92, 246, 0.05) !important;
+        --theme-alert-important-text: #7c3aed !important;
+        --theme-alert-warning-border: #f59e0b !important;
+        --theme-alert-warning-bg: rgba(245, 158, 11, 0.05) !important;
+        --theme-alert-warning-text: #d97706 !important;
+        --theme-alert-caution-border: #ef4444 !important;
+        --theme-alert-caution-bg: rgba(239, 68, 68, 0.05) !important;
+        --theme-alert-caution-text: #dc2626 !important;
+    }
+
+    /* 2. 強制瀏覽器啟用局部背景與色彩列印 */
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. 排版與文字尺寸微調 */
+    .theme-cosmic.prose {
+        font-size: 10pt !important;
+        line-height: 1.5 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* 確保列印時的標題層次與底邊線高對比 */
+    .theme-cosmic.prose h1 {
+        border-bottom: 2pt solid var(--brand-primary) !important;
+    }
+    
+    .theme-cosmic.prose h2 {
+        border-bottom: 1pt solid var(--theme-table-border) !important;
+    }
+
+    /* 4. 強制保留代碼塊、列表與標註區在白底上的可讀性，避免大面積黑色溢出 */
+    .theme-cosmic.prose pre,
+    .theme-cosmic.prose .enhanced-codeblock {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-cosmic.prose blockquote {
+        background-color: var(--theme-quote-bg) !important;
+        border-left: var(--theme-quote-border-left) !important;
+        border-top: 1px solid var(--theme-table-border) !important;
+        border-right: 1px solid var(--theme-table-border) !important;
+        border-bottom: 1px solid var(--theme-table-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-cosmic.prose table {
+        border: var(--theme-table-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-cosmic.prose th {
+        background-color: var(--theme-table-header-bg) !important;
+        border-bottom: var(--theme-table-header-border) !important;
+    }
+
+    .theme-cosmic.prose td {
+        border-top: var(--theme-table-border) !important;
+    }
+
+    .theme-cosmic.prose h1,
+    .theme-cosmic.prose h2,
+    .theme-cosmic.prose h3 {
+        page-break-after: avoid !important;
+    }
+}

@@ -25,6 +25,8 @@ import './src/styles/themes/developer.css';
 import './src/styles/themes/implementation-plan.css';
 import './src/styles/themes/classical.css';
 import './src/styles/themes/newspaper.css';
+import './src/styles/themes/nordicforest.css';
+import './src/styles/themes/cosmic.css';
 
 type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 
@@ -166,7 +168,7 @@ const App: React.FC = () => {
   const [isCommentMode, setIsCommentMode] = useState(false);
   const printTimeoutRef = useRef<any>(null);
 
-  const { settings, updateMacros, updatePrintSettings, restoreDefaults } = useAppSettings();
+  const { settings, updateMacros, updatePrintSettings, toggleFavoriteTheme, restoreDefaults } = useAppSettings();
 
 
   // 從當前文檔取得 mode 和 code
@@ -1490,6 +1492,8 @@ const App: React.FC = () => {
           onSavePrintSettings={updatePrintSettings}
           isStandalone={!documents.find(d => d.id === currentDocId)?.folderId}
           onOpenIntro={() => setIsIntroModalOpen(true)}
+          favoriteThemes={settings.favoriteThemes || []}
+          onToggleFavoriteTheme={toggleFavoriteTheme}
         />
       </div>
     </MathJaxContext>
