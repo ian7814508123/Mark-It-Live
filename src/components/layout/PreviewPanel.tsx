@@ -18,7 +18,7 @@ interface PrintPaperProps {
     isPrinting: boolean;
     printSessionId: number;
     isMergedPrint: boolean;
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
     theme: any;
     isDarkMode: boolean;
     documents: any[];

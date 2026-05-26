@@ -1,0 +1,451 @@
+/* ==========================================================================
+   主題名稱: 落日餘暉 / 溫慢復古 (Sunset Glow / sunsetglow)
+   設計理念: 海灘夕陽橙紅、暖木黃昏、溫柔的海風細沙、舊底片復古色澤
+   適用情境: 抒情散文、復古遊記、情感日記、個人隨筆寫作
+   ========================================================================== */
+
+.theme-sunsetglow {
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Inter", "PingFang TC", "Hiragino Sans GB", sans-serif;
+    --theme-line-height: 1.75;
+    --theme-text-align: justify;
+    --theme-text-color: #5c3d2e; /* 溫柔落葉深褐 */
+    --theme-accent-color: #ea580c; /* 夕陽餘暉橙 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Outfit", "Inter", "Heiti TC", sans-serif;
+    --theme-heading-color: #442a1e; /* 濃郁烘焙咖啡褐 */
+    --theme-heading-weight: 700;
+    --theme-h1-size: 2.35rem;
+    --theme-h2-size: 1.8rem;
+    --theme-h3-size: 1.4rem;
+    --theme-h4-size: 1.2rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: 2px solid #ea580c;
+    --theme-h2-border: 1px solid #e4d9b4;
+    --theme-h1-transform: none;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: #fbf3db; /* 黃昏窗邊底色 */
+    --theme-quote-border-left: 4px solid #ea580c;
+    --theme-quote-text: #5c3d2e;
+    --theme-quote-font-style: italic;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #ea580c;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: #f5ecc8;
+    --theme-link-hover-border: #ea580c;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: 1px solid #e4d9b4;
+    --theme-table-header-bg: #fbf3db;
+    --theme-table-header-color: #442a1e;
+    --theme-table-header-border: 2px solid #ea580c;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #ea580c;
+    --brand-secondary: #fbf3db;
+    --brand-surface: #ffffff; /* 經典暖沙黃紙質背景 */
+    --brand-accent: #f97316;
+    --code-bg: #faf4db;       /* 經過 HSL 呼吸明度差微調，防禦色塊補丁 */
+    --code-border: #ebdca5;   /* 老舊照片紙邊邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(92, 61, 46, 0.08);
+
+    /* 7. 語法高亮客製化 - 溫暖復古底片系 (Syntax Highlighting) */
+    --code-token-comment: #8c7355; /* 枯茶褐 */
+    --code-token-keyword: #b24b17; /* 磚紅橘 */
+    --code-token-string: #4f6b28; /* 橄欖秋綠 */
+    --code-token-number: #a16207; /* 落葉暗黃 */
+    --code-token-function: #385d7a; /* 復古底片深藍 */
+    --code-token-operator: #5c3d2e;
+    --code-token-variable: #5c3d2e;
+    --code-token-class: #7c2d12;
+    --code-token-tag: #b24b17;
+    --code-token-attr-name: #a16207;
+
+    /* 8. 標註系統 (Alerts) */
+    --theme-alert-note-border: #ea580c;
+    --theme-alert-note-bg: rgba(234, 88, 12, 0.05);
+    --theme-alert-note-text: #b24b17;
+    --theme-alert-tip-border: #16a34a;
+    --theme-alert-tip-bg: rgba(22, 163, 74, 0.05);
+    --theme-alert-tip-text: #15803d;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.05);
+    --theme-alert-important-text: #7c3aed;
+    --theme-alert-warning-border: #d97706;
+    --theme-alert-warning-bg: rgba(217, 119, 6, 0.05);
+    --theme-alert-warning-text: #b45309;
+    --theme-alert-caution-border: #ef4444;
+    --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
+    --theme-alert-caution-text: #b91c1c;
+}
+
+/* --------------------------------------------------------------------------
+   深色模式變數覆蓋 (Dark Mode - WCAG 對比度對焦)
+   -------------------------------------------------------------------------- */
+.dark .theme-sunsetglow {
+    --theme-text-color: #fdf6e3; /* 夕照亮白沙 */
+    --theme-heading-color: #ffedd5; /* 夕陽溫慢橙白 */
+    --theme-accent-color: #f97316; /* 暖螢光橘 */
+
+    --theme-quote-bg: rgba(249, 115, 22, 0.05);
+    --theme-quote-border-left: 4px solid #f97316;
+    --theme-quote-text: #ffedd5;
+
+    --theme-link-color: #f97316;
+    --theme-link-hover-bg: rgba(249, 115, 22, 0.15);
+    --theme-link-hover-border: #f97316;
+
+    --theme-table-border: 1px solid #3f2b1d;
+    --theme-table-header-bg: #2b1f17;
+    --theme-table-header-color: #ffedd5;
+    --theme-table-header-border: 1px solid #3f2b1d;
+
+    --brand-primary: #f97316;
+    --brand-secondary: #2b1f17;
+    --brand-surface: #0f172a; 
+    --brand-accent: #ea580c;
+    --code-bg: #2b1f17;       /* 深咖啡木紋底板，完美維持 3.9% HSL 明度落差 */
+    --code-border: #3f2b1d;   /* 咖啡邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.35);
+
+    /* 深色模式語法高亮 */
+    --code-token-comment: #a18276; /* 晚霞淡褐 */
+    --code-token-keyword: #fb923c; /* 亮橘 */
+    --code-token-string: #a7f3d0; /* 清晨薄荷淡綠 */
+    --code-token-number: #fed7aa; /* 淺橙 */
+    --code-token-function: #f87171; /* 暖紅 */
+
+    /* 深色模式下的 Alerts */
+    --theme-alert-note-border: #f97316;
+    --theme-alert-note-bg: rgba(249, 115, 22, 0.1);
+    --theme-alert-note-text: #f97316;
+    --theme-alert-tip-border: #34d399;
+    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #a78bfa;
+    --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
+    --theme-alert-important-text: #a78bfa;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   Markdown 基礎元素與特色客製 (Prose Binding & Customizations)
+   -------------------------------------------------------------------------- */
+.theme-sunsetglow.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    max-width: 100%;
+    background-color: var(--brand-surface);
+}
+
+.theme-sunsetglow.prose h1,
+.theme-sunsetglow.prose h2,
+.theme-sunsetglow.prose h3,
+.theme-sunsetglow.prose h4,
+.theme-sunsetglow.prose h5,
+.theme-sunsetglow.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+}
+
+.theme-sunsetglow.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: var(--theme-h1-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.theme-sunsetglow.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.3rem;
+    margin-top: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.theme-sunsetglow.prose h3 { 
+    font-size: var(--theme-h3-size);
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+}
+.theme-sunsetglow.prose h4 { 
+    font-size: var(--theme-h4-size);
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+.theme-sunsetglow.prose h5 { 
+    font-size: var(--theme-h5-size);
+}
+.theme-sunsetglow.prose h6 { 
+    font-size: var(--theme-h6-size);
+    font-weight: 600;
+}
+
+.theme-sunsetglow.prose blockquote {
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text);
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+}
+
+.theme-sunsetglow.prose blockquote p {
+    margin: 0.5rem 0;
+}
+
+/* 超連結特色樣式 */
+.theme-sunsetglow.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.theme-sunsetglow.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom-color: var(--theme-link-hover-border);
+}
+
+/* 復古高亮 <mark> */
+.theme-sunsetglow.prose mark {
+    background-color: #f5ecc8; /* 褪色舊照片黃 */
+    color: #442a1e;
+    border-bottom: 2px solid #ea580c;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.dark .theme-sunsetglow.prose mark {
+    background-color: #3f2b1d;
+    color: #f97316;
+    border-bottom: 2px solid #f97316;
+}
+
+/* Checkbox 美化 */
+.theme-sunsetglow.prose input[type="checkbox"] {
+    accent-color: var(--brand-primary) !important;
+    border-radius: 4px !important;
+    cursor: pointer;
+}
+
+/* 復古虛線分隔線 */
+.theme-sunsetglow.prose hr {
+    border: none;
+    border-top: 1px dashed var(--theme-table-border);
+    margin: 3rem auto;
+    width: 85%;
+}
+
+/* 表格特色樣式 */
+.theme-sunsetglow.prose table {
+    border: var(--theme-table-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+.theme-sunsetglow.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-bottom: var(--theme-table-header-border);
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+}
+
+.theme-sunsetglow.prose td {
+    border-top: var(--theme-table-border);
+    color: var(--theme-text-color);
+    padding: 0.8rem 1rem;
+}
+
+.theme-sunsetglow.prose tr:hover {
+    background-color: rgba(234, 88, 12, 0.03);
+}
+
+.dark .theme-sunsetglow.prose tr:hover {
+    background-color: rgba(249, 115, 22, 0.05);
+}
+
+/* Inline Code 樣式排除 pre 避免誤傷 [CRITICAL] */
+.theme-sunsetglow.prose :not(pre) > code {
+    background-color: var(--code-bg);
+    color: var(--theme-text-color);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.85em;
+}
+
+/* Alert 標註系統客製 */
+.theme-sunsetglow.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+.theme-sunsetglow.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-sunsetglow.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+.theme-sunsetglow.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-sunsetglow.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+.theme-sunsetglow.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-sunsetglow.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+.theme-sunsetglow.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-sunsetglow.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+.theme-sunsetglow.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
+/* ==========================================================================
+   特色主題隔離防禦：防止主題字型與大小干擾內置 SVG 圖表 (如 Mermaid)
+   ========================================================================== */
+.theme-sunsetglow.prose .not-prose,
+.theme-sunsetglow.prose .not-prose svg,
+.theme-sunsetglow.prose .not-prose svg text,
+.theme-sunsetglow.prose .not-prose span,
+.theme-sunsetglow.prose .not-prose div {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: inherit;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+}
+
+.theme-sunsetglow.prose .not-prose .mermaid text,
+.theme-sunsetglow.prose .not-prose .mermaid .node text,
+.theme-sunsetglow.prose .not-prose .mermaid .edgeLabel text,
+.theme-sunsetglow.prose .not-prose .mermaid .label text {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: 13px !important;
+}
+
+/* ==========================================================================
+   列印與輸出相容性 (Print Compatibility)
+   本主題遵循高保真特色列印。在此僅進行必要的結構性排版微調，無任何 !important 負擔！
+   ========================================================================== */
+@media print {
+    /* 1. 強制將所有變數重設為淺色護眼配色，防禦深色列印黑洞 */
+    .theme-sunsetglow,
+    .dark .theme-sunsetglow,
+    [class*="theme-sunsetglow"] {
+        --theme-text-color: #5c3d2e !important;
+        --theme-accent-color: #ea580c !important;
+        --theme-heading-color: #442a1e !important;
+        --theme-quote-bg: #fbf3db !important;
+        --theme-quote-border-left: 4px solid #ea580c !important;
+        --theme-quote-text: #5c3d2e !important;
+        --theme-link-color: #ea580c !important;
+        --theme-table-border: 1px solid #e4d9b4 !important;
+        --theme-table-header-bg: #fbf3db !important;
+        --theme-table-header-color: #442a1e !important;
+        --theme-table-header-border: 2px solid #ea580c !important;
+        
+        --brand-primary: #ea580c !important;
+        --brand-secondary: #fbf3db !important;
+        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
+        --brand-accent: #f97316 !important;
+        --code-bg: #faf4db !important;
+        --code-border: #ebdca5 !important;
+
+        /* 語法高亮列印變數 */
+        --code-token-comment: #8c7355 !important;
+        --code-token-keyword: #b24b17 !important;
+        --code-token-string: #4f6b28 !important;
+        --code-token-number: #a16207 !important;
+        --code-token-function: #385d7a !important;
+    }
+
+    /* 2. 強制瀏覽器啟用背景與色彩列印 */
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. 排版與文字尺寸微調 */
+    .theme-sunsetglow.prose {
+        font-size: 10.5pt !important;
+        line-height: 1.6 !important;
+        background-color: #ffffff !important;
+    }
+
+    .theme-sunsetglow.prose h1 {
+        border-bottom: 2pt solid var(--brand-primary) !important;
+    }
+    
+    .theme-sunsetglow.prose h2 {
+        border-bottom: 1pt solid var(--theme-table-border) !important;
+    }
+
+    .theme-sunsetglow.prose pre,
+    .theme-sunsetglow.prose .enhanced-codeblock {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-sunsetglow.prose :not(pre)>code {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        color: var(--theme-text-color) !important;
+        padding: 0.2em 0.4em !important;
+        border-radius: 4px !important;
+    }
+
+    .theme-sunsetglow.prose blockquote {
+        background-color: var(--theme-quote-bg) !important;
+        border-left: var(--theme-quote-border-left) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-sunsetglow.prose table {
+        border: var(--theme-table-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-sunsetglow.prose h1,
+    .theme-sunsetglow.prose h2,
+    .theme-sunsetglow.prose h3 {
+        page-break-after: avoid !important;
+    }
+}

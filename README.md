@@ -8,7 +8,7 @@
 [![Vite 6.2.0](https://img.shields.io/badge/Vite-6.2.0-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
 [![TailwindCSS v4.0](https://img.shields.io/badge/TailwindCSS-v4.0-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![License MIT](https://img.shields.io/badge/License-MIT-green)]
+[![License MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 **專業、實時、隱私優先的 Mermaid 圖表與 Markdown 編輯器**
 

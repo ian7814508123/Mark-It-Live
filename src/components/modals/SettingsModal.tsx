@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -116,6 +116,20 @@ const PdfSettingsPanel: React.FC<{
                                 previewImg: '/image/themes/cosmic.png',
                                 description: '冷冽太空艙與螢光霓虹霓彩，搭配硬核科技等寬字體與星芒點綴，極具未來張力。',
                                 category: 'tech'
+                            },
+                            {
+                                label: '落日餘暉', value: 'sunsetglow', hint: 'Sunset Glow',
+                                icon: <Sunset size={16} />, color: '#ea580c',
+                                previewImg: '/image/themes/sunsetglow.png',
+                                description: '溫暖暖沙黃底色與黃昏引言，烘托出極具故事溫度與情感包容力的慢活隨筆意境。',
+                                category: 'creative'
+                            },
+                            {
+                                label: '霓虹雨夜', value: 'neonrain', hint: 'Neon Rain',
+                                icon: <CloudRain size={16} />, color: '#ec4899',
+                                previewImg: '/image/themes/neonrain.png',
+                                description: '高飽和粉紅與深紫雨夜黑擦出賽博火花，伴隨電晶外發光，點燃深夜寫作黑客心流。',
+                                category: 'creative'
                             },
                         ]}
                         value={settings.previewTheme}

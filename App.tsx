@@ -27,6 +27,8 @@ import './src/styles/themes/classical.css';
 import './src/styles/themes/newspaper.css';
 import './src/styles/themes/nordicforest.css';
 import './src/styles/themes/cosmic.css';
+import './src/styles/themes/sunsetglow.css';
+import './src/styles/themes/neonrain.css';
 
 type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 
@@ -795,7 +797,9 @@ const App: React.FC = () => {
             text-shadow: none !important;
         }
 
+        /* 所有預覽區在列印時的 inline code 基礎骨架，確保 padding 與圓角不遺失 */
         .prose :not(pre) > code {
+        
             background-color: #f1f5f9 !important;
             color: #333 !important;
             border: 1px solid #cbd5e1 !important;

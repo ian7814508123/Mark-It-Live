@@ -365,7 +365,7 @@
         padding-left: 1rem !important;
     }
 
-    /* 4. 頑強保留：所有標註區塊 (Alert Box) 的實作計畫配色，防禦 index.css 覆蓋 */
+    /* 4. 保留所有標註區塊 (Alert Box) 的實作計畫配色，防禦 index.css 覆蓋 */
     .theme-implementation-plan.prose blockquote.markdown-alert {
         page-break-inside: avoid !important;
         color: var(--theme-text-color) !important;

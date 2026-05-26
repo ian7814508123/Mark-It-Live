@@ -425,10 +425,10 @@
         
         --brand-primary: #2d4a36 !important;
         --brand-secondary: #edf2ed !important;
-        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
+        --brand-surface: #ffffff !important; 
         --brand-accent: #6ee7b7 !important;
-        --code-bg: #121d17 !important;
-        --code-border:  #dae3da !important;
+        --code-bg: #f3f7f3 !important; 
+        --code-border: #dae3da !important;
 
         /* 語法高亮列印淺色變數 */
         --code-token-comment: #7a9a60 !important;
@@ -485,6 +485,14 @@
         background-color: var(--code-bg) !important;
         border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
+    }
+
+    .theme-nordicforest.prose :not(pre)>code {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        color: var(--theme-text-color) !important;
+        padding: 0.2em 0.4em !important;
+        border-radius: 4px !important;
     }
 
     .theme-nordicforest.prose blockquote {

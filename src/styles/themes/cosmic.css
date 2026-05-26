@@ -504,6 +504,14 @@
         page-break-inside: avoid !important;
     }
 
+    .theme-cosmic.prose :not(pre)>code {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        color: var(--theme-text-color) !important;
+        padding: 0.2em 0.4em !important;
+        border-radius: 4px !important;
+    }
+
     .theme-cosmic.prose blockquote {
         background-color: var(--theme-quote-bg) !important;
         border-left: var(--theme-quote-border-left) !important;
