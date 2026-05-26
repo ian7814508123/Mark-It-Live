@@ -7,9 +7,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 簡單的 development 檢查 - 優先檢查 process.env
-const isDev = !app.isPackaged || 
-              process.env.NODE_ENV === 'development' || 
-              process.env.VITE_DEV_SERVER_URL !== undefined;
+const isDev = !app.isPackaged ||
+  process.env.NODE_ENV === 'development' ||
+  process.env.VITE_DEV_SERVER_URL !== undefined;
 
 console.log('[Electron] isDev:', isDev);
 console.log('[Electron] app.isPackaged:', app.isPackaged);
