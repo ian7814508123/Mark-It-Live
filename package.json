@@ -1,6 +1,7 @@
 {
   "name": "markdown-live-previewer",
   "author": "Ian Huang",
+  "email": "ian7814508123@mail.com",
   "description": "A desktop application for live previewing Markdown files.",
   "private": true,
   "version": "4.1.2",
