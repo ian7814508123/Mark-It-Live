@@ -32,7 +32,10 @@ const createWindow = () => {
     },
   });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
   if (isDev) {
     const devServerUrl = 'http://localhost:5173';
     console.log('Loading URL:', devServerUrl);

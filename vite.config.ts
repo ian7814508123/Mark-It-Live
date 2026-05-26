@@ -6,16 +6,16 @@ import tailwindcss from '@tailwindcss/vite';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 
 export default defineConfig(({ mode }) => {
-  // 本地開發：從專案根目錄的 .env 讀取
-  // Render Docker：Secret Files 掛載於 /etc/secrets，額外合併進來
-  const renderSecretsDir = '/etc/secrets';
   const env = {
     ...loadEnv(mode, process.cwd(), ''),
-    ...(fs.existsSync(renderSecretsDir) ? loadEnv(mode, renderSecretsDir, '') : {}),
+    ...(fs.existsSync('/etc/secrets') ? loadEnv(mode, '/etc/secrets', '') : {}),
   };
   const isElectron = process.env.VITE_ELECTRON === 'true';
+<<<<<<< HEAD
   // GitHub Pages 部署時，CI 會傳入 BASE_URL=/<repo-name>/
   // 本地開發時未設置，預設使用 '/'；如果是 Electron，則使用 './'
+=======
+>>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
   const base = isElectron ? './' : (process.env.BASE_URL ?? '/');
   return {
     base,
