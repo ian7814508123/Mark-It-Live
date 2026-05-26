@@ -13,31 +13,19 @@ console.log('[Electron] app.isPackaged:', app.isPackaged);
 console.log('[Electron] NODE_ENV:', process.env.NODE_ENV);
 let mainWindow = null;
 const createWindow = () => {
-<<<<<<< HEAD
     mainWindow = new electron_1.BrowserWindow({
-=======
-    mainWindow = new BrowserWindow({
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
         width: 1400,
         height: 900,
         minWidth: 800,
         minHeight: 600,
         icon: path.join(__dirname, '../public/favicon.ico'),
         webPreferences: {
-<<<<<<< HEAD
             preload: path_1.default.join(__dirname, 'preload.js'),
-=======
-            preload: path.join(__dirname, 'preload.js'),
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
             nodeIntegration: false,
             contextIsolation: true,
             plugins: true,
         },
     });
-<<<<<<< HEAD
-
-=======
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
     if (isDev) {
         const devServerUrl = 'http://localhost:5173';
         console.log('Loading URL:', devServerUrl);
@@ -64,11 +52,7 @@ const createMenu = () => {
                     label: 'Exit',
                     accelerator: 'CmdOrCtrl+Q',
                     click: () => {
-<<<<<<< HEAD
                         electron_1.app.quit();
-=======
-                        app.quit();
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
                     },
                 },
             ],
@@ -93,7 +77,6 @@ const createMenu = () => {
             ],
         },
     ];
-<<<<<<< HEAD
     const menu = electron_1.Menu.buildFromTemplate(template);
     electron_1.Menu.setApplicationMenu(menu);
 };
@@ -104,30 +87,13 @@ electron_1.app.on('window-all-closed', () => {
     }
 });
 electron_1.app.on('activate', () => {
-=======
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
-};
-app.on('ready', createWindow);
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-});
-app.on('activate', () => {
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
     if (mainWindow === null) {
         createWindow();
     }
 });
 // IPC handlers
-<<<<<<< HEAD
 electron_1.ipcMain.handle('get-app-version', () => {
     return electron_1.app.getVersion();
-=======
-ipcMain.handle('get-app-version', () => {
-    return app.getVersion();
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
 });
 ipcMain.handle('print', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);

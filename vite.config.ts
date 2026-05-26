@@ -11,11 +11,8 @@ export default defineConfig(({ mode }) => {
     ...(fs.existsSync('/etc/secrets') ? loadEnv(mode, '/etc/secrets', '') : {}),
   };
   const isElectron = process.env.VITE_ELECTRON === 'true';
-<<<<<<< HEAD
   // GitHub Pages 部署時，CI 會傳入 BASE_URL=/<repo-name>/
   // 本地開發時未設置，預設使用 '/'；如果是 Electron，則使用 './'
-=======
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
   const base = isElectron ? './' : (process.env.BASE_URL ?? '/');
   return {
     base,
@@ -40,7 +37,7 @@ export default defineConfig(({ mode }) => {
           const verifyId = fromLoadEnv || fromProcessEnv;
 
           // Debug：確認環境變數注入狀況
-          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv  ? `"${fromLoadEnv}"` : '(empty)');
+          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv ? `"${fromLoadEnv}"` : '(empty)');
           console.log('[google-verify] process.env.VITE_GOOGLE_VERIFY_ID =', fromProcessEnv ? `"${fromProcessEnv}"` : '(empty)');
 
           if (verifyId) {

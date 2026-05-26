@@ -3,11 +3,7 @@
   "author": "Ian Huang",
   "description": "A desktop application for live previewing Markdown files.",
   "private": true,
-<<<<<<< HEAD
   "version": "4.1.2",
-=======
-  "version": "3.4.2",
->>>>>>> 3eebec9c9e0e8f6ad7a99899947392b5c9ef4d19
   "type": "module",
   "main": "electron/main.js",
   "engines": {
