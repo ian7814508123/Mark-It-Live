@@ -144,8 +144,20 @@ docker run -d --name markdown-previewer -p 8080:80 markdown-previewer:latest
 *   **雙模相容路徑設計 (Hybrid Path Policy)**：系統在 `vite.config.ts` 中實作了動態路徑策略。本地開發使用根路徑 `/`；GitHub Pages 部署時，Actions 會自動注入 `BASE_URL` 環境變數修正為子路徑 `/<repo-name>/`，徹底避免資源加載 404 錯誤。
 
 ---
-
-### ☁️ 4. 雲端平台託管方案
+ 
+### 🖥️ 4. Electron 桌面版自動發布 (CI/CD)
+ 
+專案已為桌面版配置了完全自動化的跨平台 CI/CD 建置與發布管線。
+*   **觸發機制**：當有程式碼推送 (push) 至 `electron-desktop` 分支時，GitHub Actions 會自動啟動發布流程。
+*   **跨平台矩陣建置 (Matrix Build)**：Actions 會同時拉起三個虛擬環境 (Windows, macOS, Linux)，自動編譯前端與 Electron 主程式，並利用 `electron-builder` 打包出對應平台的專屬安裝檔：
+    *   **Windows**：自動生成 `.exe` (NSIS 安裝版與 Portable 免安裝版)。
+    *   **macOS**：自動生成 `.dmg` 安裝檔與 `.zip` 壓縮包。
+    *   **Linux**：自動生成 `.AppImage` 獨立執行檔與 `.deb` 安裝包。
+*   **自動化 GitHub Release**：所有打包好的安裝套件將會自動上傳到同一個 GitHub Draft Release 中，您只需在 GitHub Releases 頁面中確認無誤後點擊發布，即可完成版本交付，無需在本地繁瑣地配置與建置多平台環境。
+ 
+---
+ 
+### ☁️ 5. 雲端平台託管方案
 
 您可以使用 Dockerfile 將此應用程式一鍵式部署到以下平台：
 *   **Render (推薦)**：全自動從 GitHub 倉庫拉取並以 Docker 容器方式部署，支援自訂網域與自動 HTTPS。
