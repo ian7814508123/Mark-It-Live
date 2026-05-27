@@ -495,6 +495,48 @@ npm run electron-build
 
 ---
 
+## 🚀 自動化發布與背景更新 (CI/CD & Auto-Update)
+
+本專案配置了企業級的自動化發布與背景增量更新流程，極大地提高了產品迭代效率。
+
+### 1. ⚙️ GitHub Actions 自動打包發布
+當您在本地開發測試完畢，想要發布新版本時，觸發打包流程非常安全且簡單：
+*   **Git Tag 雙相容防呆觸發**：
+    我們在 `.github/workflows/electron-release.yml` 中配置了高度防呆的觸發機制。只要您推送了符合 `v*` 或者是純數字格式的 Git Tag，GitHub Actions 就會自動啟動 Windows & macOS 的雙平台打包建置：
+    ```bash
+    # 範例一：標準發布標籤
+    git tag v4.1.3
+    git push origin v4.1.3
+
+    # 範例二：純數字發布標籤（防呆自動相容）
+    git tag 4.1.3
+    git push origin 4.1.3
+    ```
+*   **Actions 自動掛載附件**：
+    打包成功後，執行檔將全自動上傳至對應的 GitHub Draft Release 附件中。
+
+---
+
+### 2. 🔄 Windows 桌面端背景無感更新 (Auto-Update)
+應用內建了 `electron-updater` 模組。發布新版本後，使用者端的使用體驗如下：
+*   **背景自動下載**：
+    每次使用者打開 Markdown Live Previewer 時，軟體會自動向 GitHub Releases 發送請求，比對 `latest.yml` 索引檔。若發現有高於本地的最新版本，將在背景靜默、自動地下載更新包。
+*   **一鍵彈窗重啟安裝**：
+    下載完成後，軟體會優雅地跳出系統彈窗：
+    > 💡 **發現新版本**
+    > 新版本 v4.1.3 已經下載完成，是否立即重啟安裝更新？
+    使用者點擊「是」即可在 2 秒內完成重啟並更新完畢，無需再去網頁重新下載任何 `.exe` 檔！
+
+---
+
+### 🛡️ 3. macOS 系統的自動更新安全限制 (CSC 簽章)
+*   **重要注意事項**：
+    macOS 系統的安全機制（Gatekeeper）強制要求應用程式必須具備**付費 Apple 開發者帳號 (Developer ID Certificate)** 的代碼簽署，`electron-updater` 才能在其背景順利執行自動安裝。
+*   **目前策略**：
+    在無簽署證書時，本專案在 macOS 下的自動更新模組將會在檢測到更新後跳出通知，引導 Mac 使用者手動前往 GitHub 下載最新的 `.dmg` 檔案，確保提供最安全的防禦機制。
+
+---
+
 ## 🔗 相關文件
 
 - [快速參考卡](./electron-quick-reference.md) - 命令速查

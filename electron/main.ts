@@ -1,6 +1,7 @@
-import { app, BrowserWindow, Menu, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { autoUpdater } from 'electron-updater';
 
 // 定義 __dirname for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -90,7 +91,39 @@ const createMenu = () => {
   Menu.setApplicationMenu(menu);
 };
 
-app.on('ready', createWindow);
+const setupAutoUpdater = () => {
+  if (isDev) {
+    console.log('[Electron] 開發模式下跳過自動更新檢查。');
+    return;
+  }
+
+  // 配置 autoUpdater 自動下載更新
+  autoUpdater.autoDownload = true;
+
+  // 監聽更新下載完成事件
+  autoUpdater.on('update-downloaded', (info) => {
+    dialog.showMessageBox({
+      type: 'info',
+      title: '發現新版本',
+      message: `新版本 ${info.version} 已經下載完成，是否立即重啟安裝更新？`,
+      buttons: ['是', '稍後'],
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  // 執行檢查
+  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    console.error('[Electron] 檢查更新出錯:', err);
+  });
+};
+
+app.on('ready', () => {
+  createWindow();
+  setupAutoUpdater();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
