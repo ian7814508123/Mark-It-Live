@@ -10,7 +10,6 @@ import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import CreateDocModal from './src/components/modals/CreateDocModal';
 import SettingsModal from './src/components/modals/SettingsModal';
 import SEOContent from './src/components/markdown/SEOContent';
-import Footer from './src/components/layout/Footer';
 import IntroModal from './src/components/modals/IntroModal';
 import InteractiveLogo from './src/components/ui/InteractiveLogo';
 import { usePanZoom } from './src/hooks/usePanZoom';
@@ -1480,9 +1479,6 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-
-        {/* 可見的頁腳 - 增加 AdSense 文字密度與連結 */}
-        {!isElectron && <Footer showIntroTrigger={openDocIds.length > 0} onOpenIntro={() => setIsIntroModalOpen(true)} />}
 
         <IntroModal isOpen={isIntroModalOpen} onClose={() => setIsIntroModalOpen(false)} />
         {/* SEO Content - Hidden from visual display but visible to search engines */}

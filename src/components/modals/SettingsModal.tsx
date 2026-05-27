@@ -383,7 +383,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     <div className="pt-0">
                                         <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Markdown Live Previewer</h3>
                                         <div className="flex items-center justify-center gap-2 mt-2">
-                                            <p className="text-1xl font-bold text-slate-600 dark:text-slate-300 capitalize tracking-widest">Version {version}</p>
+                                            <p className="text-1xl font-bold text-slate-600 dark:text-slate-300 tracking-widest">Version {version}</p>
                                             <button
                                                 onClick={() => setShowChangelog(true)}
                                                 className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F0F9FF] dark:bg-[#0C4A6E]/40 text-[#005B94] dark:text-[#0284C7] rounded-lg text-[13px] font-black hover:bg-[#E0F2FE] dark:hover:bg-[#0C4A6E]/60 transition-colors"
