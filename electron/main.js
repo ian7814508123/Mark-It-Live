@@ -46,41 +46,84 @@ const createWindow = () => {
     createMenu();
 };
 const createMenu = () => {
-    const template = [
-        {
-            label: 'File',
-            submenu: [
-                {
-                    label: 'Exit',
-                    accelerator: 'CmdOrCtrl+Q',
-                    click: () => {
-                        app.quit();
+    // 1. 開發環境：保留完整的選單以便除錯
+    if (isDev) {
+        const template = [
+            {
+                label: 'File',
+                submenu: [
+                    {
+                        label: 'Exit',
+                        accelerator: 'CmdOrCtrl+Q',
+                        click: () => {
+                            app.quit();
+                        },
                     },
-                },
-            ],
-        },
-        {
-            label: 'Edit',
-            submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
-                { type: 'separator' },
-                { role: 'cut' },
-                { role: 'copy' },
-                { role: 'paste' },
-            ],
-        },
-        {
-            label: 'View',
-            submenu: [
-                { role: 'reload' },
-                { role: 'forceReload' },
-                { role: 'toggleDevTools' },
-            ],
-        },
-    ];
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
+                ],
+            },
+            {
+                label: 'Edit',
+                submenu: [
+                    { role: 'undo' },
+                    { role: 'redo' },
+                    { type: 'separator' },
+                    { role: 'cut' },
+                    { role: 'copy' },
+                    { role: 'paste' },
+                    { role: 'selectAll' },
+                ],
+            },
+            {
+                label: 'View',
+                submenu: [
+                    { role: 'reload' },
+                    { role: 'forceReload' },
+                    { role: 'toggleDevTools' },
+                ],
+            },
+        ];
+        const menu = Menu.buildFromTemplate(template);
+        Menu.setApplicationMenu(menu);
+        return;
+    }
+    // 2. 生產環境：
+    if (process.platform === 'darwin') {
+        // macOS 選單顯示在螢幕頂端保留基本選單與 Edit 選單
+        const template = [
+            {
+                label: app.name,
+                submenu: [
+                    { role: 'about' },
+                    { type: 'separator' },
+                    { role: 'services' },
+                    { type: 'separator' },
+                    { role: 'hide' },
+                    { role: 'hideOthers' },
+                    { role: 'unhide' },
+                    { type: 'separator' },
+                    { role: 'quit' },
+                ],
+            },
+            {
+                label: 'Edit',
+                submenu: [
+                    { role: 'undo' },
+                    { role: 'redo' },
+                    { type: 'separator' },
+                    { role: 'cut' },
+                    { role: 'copy' },
+                    { role: 'paste' },
+                    { role: 'selectAll' },
+                ],
+            },
+        ];
+        const menu = Menu.buildFromTemplate(template);
+        Menu.setApplicationMenu(menu);
+    }
+    else {
+        // Windows & Linux：完全移除全域選單，快捷鍵由 Chromium 核心自動處理。
+        Menu.setApplicationMenu(null);
+    }
 };
 const setupAutoUpdater = () => {
     if (isDev) {

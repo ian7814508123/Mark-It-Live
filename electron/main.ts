@@ -54,7 +54,7 @@ const createWindow = () => {
 };
 
 const createMenu = () => {
-  // 1. 開發環境：為了方便除錯，保留完整的選單
+  // 1. 開發環境：保留完整的選單以便除錯
   if (isDev) {
     const template: Electron.MenuItemConstructorOptions[] = [
       {
@@ -98,8 +98,7 @@ const createMenu = () => {
 
   // 2. 生產環境：
   if (process.platform === 'darwin') {
-    // macOS 選單顯示在螢幕頂端，不佔用視窗空間。
-    // 必須保留基本選單與 Edit 選單，否則 macOS 的 Cmd+C/V/Z 快捷鍵會失效！
+    // macOS 選單顯示在螢幕頂端，保留基本選單與 Edit 選單
     const template: Electron.MenuItemConstructorOptions[] = [
       {
         label: app.name,
@@ -132,7 +131,7 @@ const createMenu = () => {
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
   } else {
-    // Windows & Linux：完全移除全域選單，頂部選單列會完全消失，快捷鍵由 Chromium 核心自動處理。
+    // Windows & Linux：完全移除全域選單，快捷鍵由 Chromium 核心自動處理。
     Menu.setApplicationMenu(null);
   }
 };
