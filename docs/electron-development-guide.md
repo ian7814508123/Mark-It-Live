@@ -230,7 +230,7 @@ npm run dev
 
 ## 🔄 同步網頁版更新
 
-當您在 `main` 分支開發了新功能，想同步至桌面版時：
+當您在 `main` 分支開發了新功能，想同步至桌面版時，通常可以透過衍合 (Rebase) 將桌面版專屬代碼套用在最新的網頁代碼之上。
 
 1. **確保在桌面分支**
    ```bash
@@ -244,6 +244,9 @@ npm run dev
    ```
 
 這會將桌面版的專屬修改「浮」在最新的網頁版代碼之上，保持代碼最前沿。
+
+> 💡 **樣式同步專用技巧**：
+> 如果您**只想同步樣式與主題視覺**（如 `src/index.css` 與主題 CSS 檔案），不希望觸及主邏輯與設定檔，可以使用零衝突的「精準樣式同步」方案。詳細操作請參閱：[樣式同步與衝突處理指南](./electron-style-sync-guide.md)。
 
 ---
 
@@ -407,6 +410,7 @@ const createWindow = () => {
     width: 1400,
     height: 900,
     icon: path.join(__dirname, '../public/favicon.ico'),
+    setMenuBarVisibility(false),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -539,10 +543,10 @@ npm run electron-build
 
 ## 🔗 相關文件
 
-- [快速參考卡](./electron-quick-reference.md) - 命令速查
-- [完整設置指南](./electron-complete-setup.md) - 設置概覽
+- [樣式同步與衝突處理指南](./electron-style-sync-guide.md) - 樣式同步
 - [架構設計](./electron-architecture.md) - 技術細節
-- [檢查清單](./electron-setup-checklist.md) - 故障排除
+- [開發與部署完整指南](./DEVELOPMENT.md) - 網頁版部署
+- [Remark AST 插件開發手冊](./REMARK-PLUGINS.md) - 語意渲染
 
 ---
 
