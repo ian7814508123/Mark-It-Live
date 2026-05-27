@@ -44,7 +44,7 @@ const PdfSettingsPanel: React.FC<{
     return (
         <div className="px-6 py-4 space-y-6 bg-slate-50/30 dark:bg-slate-900/30">
             {/* 分組 A：視覺化預覽 */}
-            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+            <div className="relative z-0 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 mb-1">
                     <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary"><Palette size={16} /></div>
                     <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">預覽風格 (Theme)</p>
@@ -142,7 +142,7 @@ const PdfSettingsPanel: React.FC<{
 
 
             {/* 分組 C：頁面配置 */}
-            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+            <div className="relative z-10 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
                 <div className="flex items-center gap-2 mb-1">
                     <div className="p-1.5 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-500"><Printer size={16} /></div>
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">頁面佈局參數</p>
@@ -279,7 +279,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     return createPortal(
         <>
             <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-[2px]" onClick={onClose} />
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-slate-800/80 z-[101] flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-slate-800/80 z-[101] flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300 isolate">
 
                 {/* Header & Tabs */}
                 <div className="px-8 pt-6 pb-2 shrink-0">
@@ -308,7 +308,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 {/* 內容區 */}
-                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-0 rounded-b-[2rem]">
                     {activeTab === 'about' ? (
                         showChangelog ? (
                             <div key="about-changelog" className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -321,43 +321,45 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         <p className="text-[10px] font-bold text-brand-primary lowercase tracking-widest mt-0.5">Version {version}</p>
                                     </div>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     {CHANGELOG_CARDS.map((card, idx) => {
-                                        const CardIcon = card.icon;
                                         return (
-                                            <div key={idx} className={`p-5 bg-gradient-to-br ${card.cardBgGradient} rounded-2xl border ${card.cardBorderColor} shadow-sm`}>
+                                            <div key={idx} className={`relative z-10 p-6 bg-gradient-to-br ${card.cardBgGradient} rounded-2xl border ${card.cardBorderColor} shadow-md hover:shadow-lg transition-all duration-300`}>
+                                                {/* 編年版本標題頭部 */}
+                                                <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-150 dark:border-slate-700/30">
+                                                    <h4 className="text-[14px] font-black text-slate-800 dark:text-slate-100 tracking-tight leading-snug">
+                                                        {card.title}
+                                                    </h4>
+                                                </div>
+
                                                 {card.subSections ? (
                                                     card.subSections.map((sub, sIdx) => {
                                                         const SubIcon = sub.icon;
                                                         return (
-                                                            <div key={sIdx} className="mb-5 last:mb-0">
-                                                                <div className="flex items-center gap-3 mb-3">
-                                                                    <div className={`p-2 ${card.iconBgColor} ${card.iconTextColor} rounded-2xl`}>
-                                                                        <SubIcon size={18} />
+                                                            <div key={sIdx} className="mb-4 last:mb-0">
+                                                                <div className="flex items-center gap-2 mb-2.5">
+                                                                    <div className="text-brand-primary dark:text-brand-primary/80 shrink-0">
+                                                                        <SubIcon size={14} />
                                                                     </div>
-                                                                    <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{sub.title}</h4>
+                                                                    <h5 className="text-[12px] font-bold text-slate-800 dark:text-slate-200">{sub.title}</h5>
                                                                 </div>
-                                                                {sub.details.map((detail, dIdx) => (
-                                                                    <p key={dIdx} className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 mb-2 last:mb-0">
-                                                                        {detail}
-                                                                    </p>
-                                                                ))}
+                                                                <div className="space-y-1.5 pl-6">
+                                                                    {sub.details.map((detail, dIdx) => (
+                                                                        <p key={dIdx} className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed relative before:content-[''] before:absolute before:left-[-10px] before:top-[6px] before:w-1 before:h-1 before:bg-slate-300 dark:before:bg-slate-600 before:rounded-full">
+                                                                            {detail}
+                                                                        </p>
+                                                                    ))}
+                                                                </div>
                                                                 {sIdx < card.subSections.length - 1 && (
-                                                                    <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-5 ml-11" />
+                                                                    <div className="h-px bg-slate-100 dark:bg-slate-700/50 my-4 pl-6" />
                                                                 )}
                                                             </div>
                                                         );
                                                     })
                                                 ) : (
                                                     <>
-                                                        <div className="flex items-center gap-3 mb-3">
-                                                            <div className={`p-2 ${card.iconBgColor} ${card.iconTextColor} rounded-2xl`}>
-                                                                <CardIcon size={18} />
-                                                            </div>
-                                                            <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{card.title}</h4>
-                                                        </div>
                                                         {card.bullets && (
-                                                            <ul className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-11 list-disc list-outside space-y-1.5 pl-4 opacity-90">
+                                                            <ul className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed ml-6 list-disc list-outside space-y-1.5 pl-4 opacity-90">
                                                                 {card.bullets.map((bullet, bIdx) => (
                                                                     <li key={bIdx}>{bullet}</li>
                                                                 ))}
@@ -385,9 +387,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             <button
                                                 onClick={() => setShowChangelog(true)}
                                                 className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F0F9FF] dark:bg-[#0C4A6E]/40 text-[#005B94] dark:text-[#0284C7] rounded-lg text-[13px] font-black hover:bg-[#E0F2FE] dark:hover:bg-[#0C4A6E]/60 transition-colors"
-
-
-
                                             >
                                                 發行內容
                                             </button>
@@ -397,7 +396,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+                                    <div className="relative z-10 flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                                         <FileText size={24} className="text-brand-primary/50 mb-3" />
                                         <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">想了解更多功能細節？</h5>
                                         <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4 text-center max-w-[250px]">前往功能導覽，學習如何使用快捷鍵、資料夾管理及更多高階與隱藏技巧。</p>
@@ -434,7 +433,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             { name: 'Vite', license: 'MIT', url: 'https://vitejs.dev' },
                                             { name: 'Tailwind CSS', license: 'MIT', url: 'https://tailwindcss.com' },
                                         ].map((pkg) => (
-                                            <div key={pkg.name} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-brand-primary/20 dark:hover:border-brand-primary/40 transition-colors text-left">
+                                            <div key={pkg.name} className="relative z-10 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-brand-primary/20 dark:hover:border-brand-primary/40 transition-colors text-left">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{pkg.name}</span>
                                                     <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-tighter">{pkg.license} License</span>
@@ -446,7 +445,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
 
                                 <div className="rounded-2xl bg-brand-secondary/30 dark:bg-brand-primary/10 px-5 py-4 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed border border-brand-primary/15 dark:border-brand-primary/30 text-center">
-                                    © 2026 HUANGJYUNYING. 授權：MIT 開源協議。使用本軟體即代表您同意其<a href="/privacy.html" className="mx-1 underline">隱私政策</a>與<a href="/terms.html" className="mx-1 underline">服務條款</a>。
+                                    © {new Date().getFullYear()} Markdown Live Previewer. All rights reserved. <br />
+                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href="/privacy.html" className="mx-1 underline">隱私政策</a>與<a href="/terms.html" className="mx-1 underline">服務條款</a>。
                                 </div>
 
                             </div>

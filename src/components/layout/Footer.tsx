@@ -81,7 +81,10 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
         <div className={`flex flex-col sm:flex-row justify-between items-center gap-3 ${!isCollapsed ? 'border-t border-slate-100 dark:border-slate-800/50 pt-6' : ''}`}>
           <div className="flex items-center gap-5">
             <p className="text-[10px] text-slate-600 dark:text-slate-300 font-medium">
-              © {new Date().getFullYear()} HUANGJYUNYING. 本網站由 Huang Jyun Ying 開發維護，旨在提供純淨的技術創作工具。
+              © {new Date().getFullYear()} Markdown Live Previewer. All rights reserved.
+              <span className="hidden sm:inline-block">
+                {!isCollapsed && "　Maintained by Huang Jyun Ying."}
+              </span>
             </p>
             {isCollapsed && (
               <nav className="sm:flex items-center gap-5 hidden border-l border-slate-200 dark:border-slate-700 pl-4 animate-in fade-in duration-300">
