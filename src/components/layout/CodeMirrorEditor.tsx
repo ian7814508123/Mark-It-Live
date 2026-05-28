@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CodeMirror, { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { mermaid } from 'codemirror-lang-mermaid';
 import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
-import { EditorView, ViewPlugin, ViewUpdate, keymap, showPanel, panels } from '@codemirror/view';
-import { EditorState, StateField, StateEffect } from '@codemirror/state';
+import { EditorView, ViewPlugin, ViewUpdate, keymap } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
 import { searchKeymap, search } from '@codemirror/search';
 
 // ─── 型別定義 ─────────────────────────────────────────────────────────────────
@@ -26,121 +26,22 @@ interface StickyHeaderNode {
     pos: number;  // 在 CM 文件中的字元起始位置
 }
 
-// ─── StateEffect：通知 StateField 更新 headers ────────────────────────────────
-const updateStickyEffect = StateEffect.define<StickyHeaderNode[]>();
-
-// ─── 工具：比較兩組 headers（用 pos 比對即可，避免不必要的 dispatch）────────────
+// ─── 工具：比較兩組 headers ───────────────────────────────────────────────────
 function headersEqual(a: StickyHeaderNode[], b: StickyHeaderNode[]): boolean {
-    return a.length === b.length && a.every((h, i) => h.pos === b[i].pos);
-}
-
-// ─── Panel DOM 渲染（原地更新，不重建 DOM 元素，避免閃爍）────────────────────────
-function renderStickyBar(
-    container: HTMLDivElement,
-    headers: StickyHeaderNode[],
-    clickRef: React.MutableRefObject<((pos: number) => void) | null>
-): void {
-    container.innerHTML = '';
-
-    // 左側 gutter 佔位塊，寬度由 React 透過 CSS variable 動態寫入
-    const gutterBlock = document.createElement('div');
-    gutterBlock.style.cssText =
-        'flex-shrink:0;' +
-        'width:var(--gutter-w,44px);' +
-        'height:100%;' +
-        'background:var(--sg-gutter);' +
-        'border-right:1px solid var(--sg-border);' +
-        'margin-right:8px';
-    container.appendChild(gutterBlock);
-
-    headers.forEach((header, index) => {
-        // 麵包屑分隔符 ›
-        if (index > 0) {
-            const sep = document.createElement('span');
-            sep.textContent = '›';
-            sep.style.cssText = 'color:var(--sg-sep);padding:0 3px;flex-shrink:0;line-height:22px';
-            container.appendChild(sep);
-        }
-
-        const isLast = index === headers.length - 1;
-
-        // 可點擊的標題按鈕
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.style.cssText =
-            'background:none;border:none;padding:0 2px;margin:0;font:inherit;font-size:12px;' +
-            'line-height:22px;cursor:pointer;white-space:nowrap;flex-shrink:0;' +
-            `color:${isLast ? 'var(--sg-link)' : 'var(--sg-muted)'};` +
-            `font-weight:${isLast ? 600 : 400}`;
-        // # 前綴（顯示層級深度）
-        const hashPfx = document.createElement('span');
-        hashPfx.textContent = '#'.repeat(header.level) + ' ';
-        hashPfx.style.cssText = 'opacity:0.45;font-size:10px;font-weight:700;letter-spacing:-0.02em';
-        btn.appendChild(hashPfx);
-        btn.appendChild(document.createTextNode(header.text));
-
-        btn.addEventListener('click', () => clickRef.current?.(header.pos));
-        btn.addEventListener('mouseenter', () => {
-            btn.style.textDecoration = 'underline';
-            btn.style.color = 'var(--sg-active)';
-        });
-
-        btn.addEventListener('mouseleave', () => {
-            btn.style.textDecoration = 'none';
-            btn.style.color = isLast ? 'var(--sg-link)' : 'var(--sg-muted)';
-        });
-
-        container.appendChild(btn);
-    });
+    return a.length === b.length && a.every((h, i) =>
+        h.pos === b[i].pos &&
+        h.text === b[i].text &&
+        h.level === b[i].level
+    );
 }
 
 // ─── Sticky Scroll Extension Builder ─────────────────────────────────────────
-// 使用 showPanel（CodeMirror 原生 Panel API），讓 sticky bar 真正佔據高度，
-// 而非 position:absolute 蓋在內容上。這才是 VS Code 的正確行為。
+// 輕量化的 ViewPlugin：僅用於監聽滾動與文件變化，計算標題鏈，並直接透過 callback 回傳給 React。
+// 採用 mapPos 解決打字時頻繁觸發 DOM 重新渲染的效能問題，並改善邊界判斷以完美貼合 VS Code 滾動體驗。
 function buildStickyExtension(
-    clickRef: React.MutableRefObject<((pos: number) => void) | null>
+    onHeadersChange: (headers: StickyHeaderNode[]) => void
 ) {
-    // StateField：維護 panel DOM + 目前 headers + 穩定的 PanelConstructor
-    // DOM 只建立一次，ctor 函數也只建立一次，後續重用同一個 reference，避免 panel 被銷毀重建造成閃爍
-    const panelField = StateField.define<{
-        headers: StickyHeaderNode[];
-        dom: HTMLDivElement;
-        ctor: (view: EditorView) => { dom: HTMLDivElement; top: boolean };
-    }>({
-        create: () => {
-            const dom = document.createElement('div');
-            dom.className = 'cm-sticky-scroll';
-            dom.style.cssText =
-                'display:flex;align-items:center;overflow:hidden;height:22px;' +
-                'background:var(--sg-bg);border-bottom:1px solid var(--sg-border);' +
-                'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,' +
-                '"Liberation Mono","Courier New",monospace';
-            // ctor 只建立一次，showPanel 每次看到相同 reference 就不重建 panel DOM
-            const ctor = (_view: EditorView) => ({ dom, top: true });
-            return { headers: [], dom, ctor };
-        },
-
-        update: (state, tr) => {
-            for (const effect of tr.effects) {
-                if (effect.is(updateStickyEffect)) {
-                    // 原地更新 DOM 內容，保留同一個 dom 與 ctor 實例避免重建
-                    renderStickyBar(state.dom, effect.value, clickRef);
-                    return { headers: effect.value, dom: state.dom, ctor: state.ctor };
-                }
-            }
-            return state;
-        },
-
-        // 當 headers 不為空時，回傳 ctor（PanelConstructor），showPanel 會呼叫它取得 Panel
-        // 此 panel 真正佔據高度，內容被往下推 — 這就是「黏住」的感覺
-        provide: (field) =>
-            showPanel.from(field, (s) =>
-                s.headers.length > 0 ? s.ctor : null
-            ),
-    });
-
-    // ViewPlugin：監聽滾動與文件變化，計算麵包屑鏈並派發 Effect
-    const scrollPlugin = ViewPlugin.fromClass(
+    return ViewPlugin.fromClass(
         class {
             private last: StickyHeaderNode[] = [];
             private scrollListener: () => void;
@@ -158,8 +59,16 @@ function buildStickyExtension(
             }
 
             update(update: ViewUpdate) {
-                // 當文件內容改變時，也需要重新檢查與計算標題鏈
-                if (update.docChanged) {
+                // 當文件內容改變時，將上一組 headers 的 pos 映射到新文件的座標系中
+                if (update.docChanged && this.last.length > 0) {
+                    this.last = this.last.map(h => ({
+                        ...h,
+                        pos: update.changes.mapPos(h.pos)
+                    }));
+                }
+
+                // 當文件內容改變或滾動時，重新檢查與計算標題鏈
+                if (update.docChanged || update.heightChanged || update.viewportChanged) {
                     this.checkScroll(update.view);
                 }
             }
@@ -169,12 +78,10 @@ function buildStickyExtension(
                 const next: StickyHeaderNode[] = [];
 
                 if (scrollTop > 4) {
-                    // 取得可視區頂端的行號
                     try {
-                        // 取得可視區頂端的行號
-                        const topLineNum = view.state.doc.lineAt(
-                            view.lineBlockAtHeight(scrollTop).from
-                        ).number;
+                        // 取得可視區頂端的行塊
+                        const lineBlock = view.lineBlockAtHeight(scrollTop);
+                        const topLineNum = view.state.doc.lineAt(lineBlock.from).number;
                         let minLvl = Infinity;
 
                         // 從頂端行往上回溯，建立由外到內的標題鏈
@@ -184,6 +91,15 @@ function buildStickyExtension(
                             if (m) {
                                 const lvl = m[1].length;
                                 if (lvl < minLvl) {
+                                    // 檢查此標題行是否完全在可視區內
+                                    const isTopLine = i === topLineNum;
+                                    if (isTopLine) {
+                                        // 如果頂端行是標題，且它的 top >= scrollTop，代表完全可見，還沒開始滾出，不納入 sticky scroll
+                                        if (lineBlock.top >= scrollTop) {
+                                            continue;
+                                        }
+                                    }
+
                                     next.unshift({ level: lvl, text: m[2].trim(), pos: line.from });
                                     minLvl = lvl;
                                 }
@@ -195,31 +111,33 @@ function buildStickyExtension(
                         console.error('Sticky Scroll error:', e);
                     }
                 }
-                // 只在真正有變化時才 dispatch，避免不必要的狀態更新
+
+                // 只在真正有變化時才觸發 React 更新，避免不必要的渲染
                 if (!headersEqual(this.last, next)) {
                     this.last = next;
-                    view.dispatch({ effects: updateStickyEffect.of(next) });
+                    onHeadersChange(next);
                 }
             }
         }
     );
-    return [panelField, scrollPlugin];
 }
-// ─── PageUp/PageDown viewport 穩定修正 ───────────────────────────────────────
-const stableViewportExtension = EditorView.updateListener.of((update) => {
-    const scroller = update.view.scrollDOM;
-    if (scroller && scroller.style.minHeight !== '0px') {
-        scroller.style.minHeight = '0px';
-    }
-});
+
 // ─── 主元件 ──────────────────────────────────────────────────────────────────
 const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorProps>((props, ref) => {
     const { mode, code, setCode, isDarkMode, onScroll, placeholder, ariaLabel } = props;
     const wrapperRef = useRef<HTMLDivElement>(null);
-    // clickRef 永遠指向最新的 handleHeaderClick，讓 extension 的閉包不會失效
-    const clickRef = useRef<((pos: number) => void) | null>(null);
-    // ─── 偵測 CM gutter 實際寬度，透過 CSS variable 傳給 panel DOM ────────────
-    // 確保 sticky bar 左側 gutter 欄與行號欄完美對齊
+    const scrollWrapperRef = useRef<HTMLDivElement>(null);
+
+    // ─── 狀態管理 ───
+    const [stickyHeaders, setStickyHeaders] = useState<StickyHeaderNode[]>([]);
+    const stickyHeadersRef = useRef<StickyHeaderNode[]>([]);
+
+    useEffect(() => {
+        stickyHeadersRef.current = stickyHeaders;
+    }, [stickyHeaders]);
+
+    // ─── 偵測 CM gutter 實際寬度與 scroller 捲軸寬度，透過 CSS variable 傳給 panel DOM ────────────
+    // 確保 sticky bar 左側 gutter 欄與行號欄完美對齊，且右側避開垂直捲軸避免其被遮擋
     useEffect(() => {
         if (!wrapperRef.current) return;
         const measure = () => {
@@ -227,17 +145,34 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
             if (el) {
                 wrapperRef.current!.style.setProperty('--gutter-w', el.offsetWidth + 'px');
             }
+            const scroller = wrapperRef.current?.querySelector('.cm-scroller') as HTMLElement | null;
+            if (scroller) {
+                const scrollbarW = scroller.offsetWidth - scroller.clientWidth;
+                wrapperRef.current!.style.setProperty('--scrollbar-w', scrollbarW + 'px');
+            }
         };
         measure();
         const obs = new ResizeObserver(measure);
         obs.observe(wrapperRef.current);
         return () => obs.disconnect();
     }, [mode]);
+
+    // 當 stickyHeaders 改變時，自動向右滾動 scrollWrapper 以聚焦最新標題
+    useEffect(() => {
+        if (scrollWrapperRef.current) {
+            const scrollWrapper = scrollWrapperRef.current;
+            requestAnimationFrame(() => {
+                scrollWrapper.scrollLeft = scrollWrapper.scrollWidth;
+            });
+        }
+    }, [stickyHeaders]);
+
     // ─── Sticky Scroll Extension（markdown 模式才建立）────────────────────────
     const stickyExtension = useMemo(() => {
         if (mode !== 'markdown') return [];
-        return buildStickyExtension(clickRef);
+        return [buildStickyExtension(setStickyHeaders)];
     }, [mode]);
+
     // ─── Extensions 組裝 ──────────────────────────────────────────────────────
     const extensions = useMemo(() => [
         EditorView.lineWrapping,
@@ -247,8 +182,6 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
             '.cm-scroller': { overflow: 'auto' },
             '.cm-content, .cm-gutter': { lineHeight: '1.5' },
             '.cm-gutterElement': { fontStyle: 'italic' },
-            // Sticky panel 的底部陰影，讓它視覺上「懸浮」在內容之上
-            '.cm-panels-top': { boxShadow: '0 2px 6px rgba(0,0,0,0.12)' },
         }),
         mode === 'mermaid'
             ? mermaid()
@@ -258,20 +191,23 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         }),
         search({ top: true }),
         keymap.of(searchKeymap),
-        stableViewportExtension,
+        EditorView.scrollMargins.of(() => {
+            return {
+                top: stickyHeadersRef.current.length > 0 ? 22 : 0
+            };
+        }),
         EditorView.domEventHandlers({
             scroll: (event) => { if (onScroll) onScroll(event); }
         }),
-        // showPanel 需要 panels() 提供底層支援
-        panels(),
-        // Sticky Scroll（markdown 模式）
         ...stickyExtension,
     ], [mode, onScroll, ariaLabel, stickyExtension]);
+
     const theme = isDarkMode ? vscodeDark : vscodeLight;
     const handleChange = useCallback((value: string) => setCode(value), [setCode]);
     const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
         if (onScroll) onScroll(event);
     }, [onScroll]);
+
     // 點擊麵包屑標題 → 跳回該標題在編輯器的位置
     const handleHeaderClick = useCallback((pos: number) => {
         const cmRef = ref as React.RefObject<ReactCodeMirrorRef>;
@@ -281,10 +217,30 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
             view.focus();
         }
     }, [ref]);
-    // 每次 render 都把最新的 callback 同步到 clickRef，讓 extension 的 DOM 事件用到最新版
-    clickRef.current = handleHeaderClick;
-    // ─── CSS Variables：隨 isDarkMode 即時切換顏色，不需重建 extension ─────────
-    // panel DOM 用 var(--sg-*) 引用，React 只需更新 wrapper 的 CSS variable 即可
+
+    // ─── 智能收折演算法與 node 渲染資料計算 ───
+    type RenderNode = { isEllipsis: true } | { isEllipsis: false; node: StickyHeaderNode };
+
+    const displayNodes = useMemo<RenderNode[]>(() => {
+        const nodes: RenderNode[] = [];
+        if (stickyHeaders.length > 4) {
+            nodes.push({ isEllipsis: false, node: stickyHeaders[0] });
+            nodes.push({ isEllipsis: true });
+            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 3] });
+            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 2] });
+            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 1] });
+        } else {
+            stickyHeaders.forEach(h => nodes.push({ isEllipsis: false, node: h }));
+        }
+        return nodes;
+    }, [stickyHeaders]);
+
+    const collapsedTooltip = useMemo(() => {
+        if (stickyHeaders.length <= 4) return '';
+        const collapsedList = stickyHeaders.slice(1, -3);
+        return `已收折中間層級：` + collapsedList.map(h => `${'#'.repeat(h.level)} ${h.text}`).join(' › ');
+    }, [stickyHeaders]);
+
     return (
         <div
             ref={wrapperRef}
@@ -294,7 +250,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 width: '100%',
                 // VS Code 明/暗主題色票
                 ['--sg-bg' as string]: isDarkMode ? '#1e1e1e' : '#ffffff',
-                ['--sg-gutter' as string]: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+                //['--sg-gutter' as string]: isDarkMode ? '#1e1e1e' : '#f5f5f5',
                 ['--sg-border' as string]: isDarkMode ? '#404040' : '#e0e0e0',
                 ['--sg-link' as string]: isDarkMode ? '#9cdcfe' : '#0070c1',
                 ['--sg-muted' as string]: isDarkMode ? '#808080' : '#888888',
@@ -302,6 +258,147 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 ['--sg-sep' as string]: isDarkMode ? '#555555' : '#bbbbbb',
             }}
         >
+            {/* React 絕對定位懸浮 Overlay 麵包屑導覽 */}
+            {mode === 'markdown' && stickyHeaders.length > 0 && (
+                <div
+                    className="cm-sticky-scroll-overlay"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 'var(--scrollbar-w, 8px)',
+                        zIndex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        overflow: 'hidden',
+                        height: '22px',
+                        background: 'var(--sg-bg)',
+                        borderBottom: '1px solid var(--sg-border)',
+                        boxShadow: '0px 0px 0px rgba(0,0,0,0.12)',
+                        fontFamily: 'ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace',
+                    }}
+                >
+                    {/* 左側 gutter 佔位塊，完美對齊行號 */}
+                    <div
+                        style={{
+                            flexShrink: 0,
+                            width: 'var(--gutter-w, 40px)',
+                            height: '100%',
+                            background: 'var(--sg-gutter)',
+                            borderRight: '0px solid var(--sg-border)',
+                            marginRight: '5px',
+                        }}
+                    />
+
+                    {/* 滾動包裹器，隱藏滾動條且套用右側漸層遮罩 */}
+                    <div
+                        ref={scrollWrapperRef}
+                        className="cm-sticky-scroll-wrapper"
+                        style={{
+                            flexGrow: 1,
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            overflowX: 'auto',
+                            overflowY: 'hidden',
+                            whiteSpace: 'nowrap',
+                            scrollBehavior: 'smooth',
+                            paddingRight: '16px',
+                            maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+                        }}
+                    >
+                        {displayNodes.map((node, index) => {
+                            const isLast = index === displayNodes.length - 1;
+
+                            if (node.isEllipsis) {
+                                return (
+                                    <React.Fragment key={index}>
+                                        {/* 麵包屑分隔符 › */}
+                                        {index > 0 && (
+                                            <span
+                                                style={{
+                                                    color: 'var(--sg-sep)',
+                                                    padding: '0 3px',
+                                                    flexShrink: 0,
+                                                    lineHeight: '22px',
+                                                }}
+                                            >
+                                                ›
+                                            </span>
+                                        )}
+                                        {/* 渲染收折的 ellipsis ... 並提供完整的 hover tooltip 提示 */}
+                                        <span
+                                            title={collapsedTooltip}
+                                            style={{
+                                                color: 'var(--sg-muted)',
+                                                padding: '0 4px',
+                                                fontSize: '12px',
+                                                lineHeight: '22px',
+                                                cursor: 'default',
+                                                userSelect: 'none',
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            ...
+                                        </span>
+                                    </React.Fragment>
+                                );
+                            }
+
+                            // 這裡透過明確的 if (!node.isEllipsis) 判斷，確保型別 100% 收窄為 { isEllipsis: false; node: StickyHeaderNode }
+                            if (!node.isEllipsis) {
+                                const headerNode = node.node;
+
+                                return (
+                                    <React.Fragment key={index}>
+                                        {/* 麵包屑分隔符 › */}
+                                        {index > 0 && (
+                                            <span
+                                                style={{
+                                                    color: 'var(--sg-sep)',
+                                                    padding: '0 3px',
+                                                    flexShrink: 0,
+                                                    lineHeight: '22px',
+                                                }}
+                                            >
+                                                ›
+                                            </span>
+                                        )}
+                                        {/* 可點擊的標題按鈕 */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleHeaderClick(headerNode.pos)}
+                                            className="cm-sticky-scroll-btn"
+                                            style={{
+                                                color: isLast ? 'var(--sg-link)' : 'var(--sg-muted)',
+                                                fontWeight: isLast ? 600 : 400,
+                                            }}
+                                        >
+                                            {/* # 前綴 */}
+                                            <span
+                                                style={{
+                                                    opacity: 0.45,
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    letterSpacing: '-0.02em',
+                                                    marginRight: '2px',
+                                                }}
+                                            >
+                                                {'#'.repeat(headerNode.level)}
+                                            </span>
+                                            {headerNode.text}
+                                        </button>
+                                    </React.Fragment>
+                                );
+                            }
+
+                            return null;
+                        })}
+                    </div>
+                </div>
+            )}
+
             <CodeMirror
                 ref={ref}
                 value={code}
