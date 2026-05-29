@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, FileText, Image as ImageIcon, ChevronLeft, Zap, File, Ruler, BarChart2, GitBranch, Music } from 'lucide-react';
+import { X, Plus, FileText, Image as ImageIcon, ChevronLeft, Zap, FlaskConical, File, Ruler, BarChart2, GitBranch, Music } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 
 interface CreateDocModalProps {
@@ -13,8 +13,9 @@ interface CreateDocModalProps {
 const COMMON_ICONS = ['📝', '📊', '💡', '📅', '🚀', '🛠️', '🎨', '🔒', '🌟', '🎶', '🖼️'];
 
 const MD_TEMPLATES = [
-    { id: 'markdown-standard', name: '進階導覽', desc: '包含所有語法與進階引擎示範', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/40' },
     { id: 'basic', name: '基礎文字', desc: '純淨的標題、列表與文字樣式', icon: File, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/40' },
+    { id: 'markdown-standard', name: '進階導覽', desc: '包含所有語法與進階引擎示範', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/40' },
+    { id: 'markdown-beta', name: 'Beta 功能', desc: '測試語法第一時間將在此提供', icon: FlaskConical, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/40' },
     { id: 'math', name: '數學化學', desc: 'LaTeX 公式與化學方程式', icon: Ruler, color: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/40' },
     { id: 'charts', name: '數據圖表', desc: 'Vega-Lite 專業視覺化圖表', icon: BarChart2, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/40' },
     { id: 'mermaid', name: '內嵌圖表', desc: '在文章中畫流程圖與時序圖', icon: GitBranch, color: 'text-brand-primary', bg: 'bg-brand-secondary/60 dark:bg-brand-primary/20' },
@@ -23,6 +24,7 @@ const MD_TEMPLATES = [
 
 const MMD_TEMPLATES = [
     { id: 'mermaid-standard', name: '完整攻略', desc: 'Mermaid 所有語法與樣式大全', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/40' },
+    { id: 'mermaid-beta', name: 'Beta 功能', desc: '測試語法第一時間將在此提供', icon: FlaskConical, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/40' },
     { id: 'flowchart', name: '流程圖', desc: 'Flowchart: 節點、判斷與路徑', icon: GitBranch, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/40' },
     { id: 'sequence', name: '時序圖', desc: 'Sequence: 角交互、訊息傳遞', icon: FileText, color: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/40' },
     { id: 'gantt', name: '甘特圖', desc: 'Gantt: 專案開發進度與排程', icon: BarChart2, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/40' },

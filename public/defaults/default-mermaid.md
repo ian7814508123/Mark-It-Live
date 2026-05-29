@@ -85,56 +85,51 @@ graph TD
     %% 連線樣式 (linkStyle)
     linkStyle 0 stroke:#ff9800,stroke-width:4px;
   
-    %% ====================================
-    %% 其他圖表類型範例（取消註解即可使用）
-    %% ====================================
+    %% =========================================================================
+    %% 其他圖表類型與主題樣式連動教學 (Other Diagrams & Theme Styling Guide)
+    %% =========================================================================
     
-    %% 序列圖 (Sequence Diagram)
+    %% 💡 預覽器獨家：Mermaid 序列圖 (Sequence Diagram) 配色微調教學
+    %% -------------------------------------------------------------------------
+    %% 系統支援利用 CSS 變數，完美讓圖表配色跟隨目前主題或您的自訂樣式自動切換：
+    %%
+    %% 🎨 參與者 (Actor - 圖表中的角色方塊) 樣式變數：
+    %%   --mermaid-actor-bg      : 角色方塊的背景色 (例如：#e0f2fe 或 var(--brand-secondary))
+    %%   --mermaid-actor-text    : 角色文字的顏色   (例如：#0369a1 或 var(--theme-text-color))
+    %%   --mermaid-actor-border  : 角色方塊的邊框色 (例如：#0ea5e9 或 var(--code-border))
+    %%
+    %% 📝 備忘錄 (Note - 圖表中的註解方塊) 樣式變數：
+    %%   --mermaid-note-bg       : 備忘錄背景色     (例如：#fef9c3 或 var(--code-bg))
+    %%   --mermaid-note-text     : 備忘錄文字顏色   (例如：#854d0e 或 var(--theme-text-color))
+    %%   --mermaid-note-border   : 備忘錄邊框色     (例如：#eab308 或 var(--code-border))
+    %%
+    %% 🛠️ 具體如何使用與微調 (Mermaid 模式已完美原生支援！)：
+    %%   您現在可以直接在此 Mermaid 文件中，或是在您的 Markdown 文件中嵌入 <style> 標籤，
+    %%   來即時覆寫預覽區樣式。例如，您可取消下方 <style> 區塊與 sequenceDiagram 的註解（刪除 %%）
+    %%   即可直接在右側即時體驗深邃的「🌌 午夜極光」配色：
+    %%
+    %% <style>
+    %% .prose {
+    %%     --mermaid-actor-bg: #1e1b4b;     /* 參與者深靛藍背景 */
+    %%     --mermaid-actor-text: #c084fc;   /* 參與者亮紫文字 */
+    %%     --mermaid-actor-border: #6366f1; /* 參與者靛藍邊框 */
+    %%     --mermaid-note-bg: #064e3b;      /* 備忘錄深綠背景 */
+    %%     --mermaid-note-text: #34d399;    /* 備忘錄亮綠文字 */
+    %%     --mermaid-note-border: #059669;  /* 備忘錄綠色邊框 */
+    %%     --mermaid-line: #818cf8;          /* 連線箭頭主色 */
+    %% }
+    %% </style>
+    %%
+    %% 👇 取消下方序列圖的註解 (刪除每行最前方的 %%) 即可立即體驗與預覽：
+    
     %% sequenceDiagram
-    %%     participant 用戶
-    %%     participant 系統
-    %%     participant 資料庫
-    %%     用戶->>系統: 發送請求
-    %%     系統->>資料庫: 查詢資料
-    %%     資料庫-->>系統: 返回結果
-    %%     系統-->>用戶: 顯示結果
-    
-    %% 類別圖 (Class Diagram)
-    %% classDiagram
-    %%     class Animal {
-    %%         +String name
-    %%         +int age
-    %%         +makeSound()
-    %%     }
-    %%     class Dog {
-    %%         +String breed
-    %%         +bark()
-    %%     }
-    %%     Animal <|-- Dog
-    
-    %% 狀態圖 (State Diagram)
-    %% stateDiagram-v2
-    %%     [*] --> 待處理
-    %%     待處理 --> 處理中: 開始處理
-    %%     處理中 --> 已完成: 處理成功
-    %%     處理中 --> 失敗: 處理失敗
-    %%     失敗 --> 待處理: 重試
-    %%     已完成 --> [*]
-    
-    %% 甘特圖 (Gantt Chart)
-    %% gantt
-    %%     title 專案時程表
-    %%     dateFormat YYYY-MM-DD
-    %%     section 設計階段
-    %%     需求分析: 2024-01-01, 7d
-    %%     UI設計: 2024-01-08, 5d
-    %%     section 開發階段
-    %%     前端開發: 2024-01-13, 10d
-    %%     後端開發: 2024-01-13, 10d
-    
-    %% 圓餅圖 (Pie Chart)
-    %% pie title 專案時間分配
-    %%     "設計" : 30
-    %%     "開發" : 45
-    %%     "測試" : 15
-    %%     "部署" : 10
+    %%     actor 用戶 as 👤 用戶
+    %%     participant 系統 as 💻 編輯器系統
+    %%     participant 資料庫 as 🗄️ IndexedDB
+    %%     
+    %%     用戶->>系統: 1. 輸入 Markdown 或 Mermaid 程式碼
+    %%     Note right of 系統: 這裡的 Note 樣式<br/>由 --mermaid-note-* 變數控制
+    %%     系統->>資料庫: 2. 自動非同步持久化
+    %%     資料庫-->>系統: 3. 回傳成功狀態
+    %%     系統-->>用戶: 4. 即時在右側渲染優美畫面
+    %%     Note left of 用戶: 這裡的 Actor 樣式<br/>由 --mermaid-actor-* 變數控制

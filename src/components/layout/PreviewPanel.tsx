@@ -19,7 +19,6 @@ interface PrintPaperProps {
     printSessionId: number;
     isMergedPrint: boolean;
     previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
-    theme: any;
     isDarkMode: boolean;
     documents: any[];
     onSelectDocument?: (docId: string) => void;
@@ -46,7 +45,6 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     printSessionId,
     isMergedPrint,
     previewTheme,
-    theme,
     isDarkMode,
     documents,
     onSelectDocument,
@@ -111,7 +109,6 @@ interface MarkdownPreviewSectionProps {
     markdownDocIds: string[];
     currentDocId?: string | null;
     documents?: any[];
-    theme: any;
     isDarkMode: boolean;
     code: string;
     onSelectDocument?: (docId: string) => void;
@@ -132,7 +129,6 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
     markdownDocIds,
     currentDocId,
     documents,
-    theme,
     isDarkMode,
     code,
     onSelectDocument,
@@ -248,7 +244,6 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                                         printSessionId={printSessionId}
                                         isMergedPrint={isMergedMode}
                                         previewTheme={printSettings.previewTheme}
-                                        theme={theme}
                                         isDarkMode={isDarkMode}
                                         documents={documents}
                                         onSelectDocument={onSelectDocument}
@@ -287,7 +282,6 @@ interface PreviewPanelProps {
     onMouseUp: () => void;
     onWheel: (e: React.WheelEvent) => void;
     code: string;
-    theme: any; // Needed for markdown
     onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
     isDarkMode: boolean;
     onMouseEnter?: () => void;
@@ -299,6 +293,8 @@ interface PreviewPanelProps {
     // CSS 快取渲染用：所有已開啟分頁的 id 列表
     openDocIds?: string[];
     printSettings: any;
+    /** Markdown 預覽主題，用於 Mermaid 模式下將主題 class 注入至 SVG 容器 */
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
     isPrinting?: boolean;
     printSessionId?: number;
     isCommentMode?: boolean;
@@ -322,7 +318,6 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     onMouseUp,
     onWheel,
     code,
-    theme,
     onScroll,
     isDarkMode,
     onMouseEnter,
@@ -333,6 +328,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     currentDocId,
     openDocIds,
     printSettings,
+    previewTheme = 'default',
     isPrinting,
     printSessionId,
     isCommentMode,
@@ -379,7 +375,6 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 markdownDocIds={markdownDocIds}
                 currentDocId={currentDocId}
                 documents={documents}
-                theme={theme}
                 isDarkMode={isDarkMode}
                 code={code}
                 onSelectDocument={onSelectDocument}
@@ -555,7 +550,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                     {/* Mermaid Preview */}
                     {svgContent ? (
                         <div
-                            className="bg-white dark:bg-slate-900/95 p-16 rounded-[2.5rem] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent"
+                            className={`prose max-w-none bg-white dark:bg-slate-900/95 p-16 rounded-[2.5rem] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''}`}
                             style={{ transform: `scale(${zoom / 100})` }}
                             dangerouslySetInnerHTML={{ __html: svgContent }}
                         />

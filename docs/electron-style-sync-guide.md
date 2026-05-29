@@ -13,9 +13,9 @@
 
 ---
 
-## 🛠️ 同步樣式三大核心方案 (Core Sync Strategies)
+## 🛠️ 同步樣式四大核心方案 (Core Sync Strategies)
 
-根據不同的開發場景，我們提供以下三種同步策略。
+根據不同的開發場景，我們提供以下四種同步策略。
 
 ### 方案 A：精準樣式同步 (Selective Style Sync) —— ⭐ 極力推薦！
 
@@ -94,6 +94,47 @@
     git cherry-pick a1b2c3d
     ```
     *如果出現衝突，解決後執行 `git cherry-pick --continue` 即可。*
+
+---
+
+### 方案 D：長期維護分支同步 (Git Merge) —— 適用於存在永久性差異的分支
+
+在主線 (`origin/main`) 與桌面分支 (`origin/electron-desktop`) 存在永久性差異（例如 `vite.config.ts` 等分支特判設定檔）的場景下，長期使用 `git rebase` 會導致每一次同步都需要重複手動處理相同的衝突。這是因為 `rebase` 會不斷重寫歷史，使過去已經解決的衝突在新的基礎上被重新計算，進而落入重複的「衝突地獄」。
+
+為了避免每次同步時都經歷重複的衝突處理，我們推薦**適時使用 `git merge`**，並搭配 **Git 專屬的 `merge=ours` 屬性**來達到特定設定檔的自動防護與合併。
+
+#### 💡 `merge=ours` 機制介紹與配置：
+`merge=ours` 是 Git Attributes 中的一項進階屬性。它可以指定特定檔案在進行 Git 合併時，若與對方分支發生變更衝突，Git 會**自動、無條件保留我們當前分支（桌面版）的檔案內容**，且**不會產生任何合併衝突**。
+
+##### 1. 配置步驟（僅需配置一次）：
+*   **步驟一：建立 `.gitattributes`：** 在專案根目錄下建立 `.gitattributes` 檔案，並宣告受保護的檔案：
+    ```gitattributes
+    # 保護 Electron 分支的專屬設定檔，避免在 merge 時被 origin/main 覆蓋
+    vite.config.ts merge=ours
+    ```
+*   **步驟二：啟用本地 Git Ours 驅動：** 由於 Git 的安全防護設計，每位開發者均需在本地終端機執行以下命令，以啟用 `ours` 合併驅動：
+    ```bash
+    git config merge.ours.driver true
+    ```
+    > [!WARNING]
+    > **若未執行此命令**，Git 在合併時會忽略 `merge=ours` 屬性，依然會對該檔案報出一般的合併衝突！
+
+##### 2. 💻 執行合併步驟：
+當您想將 `origin/main` 的所有更新合併至桌面分支時，請執行以下步驟：
+1.  **確保切換至桌面分支且乾淨：**
+    ```bash
+    git checkout electron-desktop
+    ```
+2.  **拉取最新遠端變更：**
+    ```bash
+    git fetch origin
+    ```
+3.  **執行合併：**
+    ```bash
+    git merge origin/main
+    ```
+    *此時，由於我們配置了 `merge=ours`，即使 `origin/main` 上的 `vite.config.ts` 與桌面端不同，Git 也會**自動且無痛地保留桌面分支的版本**，不需再手動排除它的衝突！*
+4.  **處理其餘無法自動解決的代碼衝突，然後完成合併並提交。**
 
 ---
 

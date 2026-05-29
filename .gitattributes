@@ -1,0 +1,2 @@
+# 保護 Electron 分支的專屬設定檔，避免在 merge 時被 origin/main 覆蓋
+vite.config.ts merge=ours

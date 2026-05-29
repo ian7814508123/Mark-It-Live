@@ -5,6 +5,12 @@
    ========================================================================== */
 
 .theme-cosmic {
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     /* 1. 排版與基礎字體 (Typography & Layout) */
     --theme-font-family: "Fira Code", "JetBrains Mono", "Courier New", monospace;
     --theme-line-height: 1.6;
@@ -88,6 +94,18 @@
    深色模式變數覆蓋 (Dark Mode - WCAG 對比度對焦)
    -------------------------------------------------------------------------- */
 .dark .theme-cosmic {
+    /* Mermaid 樣式變數 (深色自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #1e293b);
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     --theme-text-color: #f8fafc; /* 星際無瑕太空白 */
     --theme-heading-color: #ffffff; /* 恆星純白 */
     --theme-accent-color: #a855f7; /* 螢光超新星紫 */

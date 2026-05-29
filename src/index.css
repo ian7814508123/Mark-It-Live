@@ -40,12 +40,7 @@
         --code-line-number-bg: var(--code-bg);
         --code-line-number-shadow: rgba(0, 0, 0, 0.05);
 
-        /* Mermaid 流程圖專用變數 (淺色預設) */
-        --mermaid-node-bg: #f1f5f9;
-        --mermaid-node-text: #1e293b;
-        --mermaid-node-border: #cbd5e1;
-        --mermaid-line: #64748b;
-        --mermaid-edge-bg: #ffffff;
+
 
         /* VS Code Light 語法高亮變數：確保程式碼塊在淺色背景下的可讀性 */
         --code-token-comment: #008000;
@@ -92,12 +87,7 @@
         --code-line-number-bg: var(--code-bg);
         --code-line-number-shadow: rgba(0, 0, 0, 0.25);
 
-        /* Mermaid 專用變數 (深色預設) */
-        --mermaid-node-bg: #1e293b;
-        --mermaid-node-text: #f1f5f9;
-        --mermaid-node-border: var(--code-border);
-        --mermaid-line: #94a3b8;
-        --mermaid-edge-bg: var(--mermaid-node-bg);
+
 
         /* VS Code Dark+ 語法高亮變數：經典的深色開發者配色 */
         --code-token-comment: #6A9955;
@@ -1165,5 +1155,29 @@
     .ellipsis-menu-enter {
         animation: ellipsis-menu-in 150ms var(--m3-easing-decelerate) both;
         transform-origin: top right;
+    }
+
+    /* ── Sticky Scroll Overlay (VS Code 級懸浮麵包屑) ── */
+    .cm-sticky-scroll-overlay {
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .cm-sticky-scroll-btn {
+        background: none;
+        border: none;
+        padding: 0 2px;
+        margin: 0;
+        font: inherit;
+        font-size: 12px;
+        line-height: 22px;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: color 0.15s ease;
+    }
+
+    .cm-sticky-scroll-btn:hover {
+        text-decoration: underline;
+        color: var(--sg-active) !important;
     }
 }
