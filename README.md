@@ -148,13 +148,31 @@ docker run -d --name markdown-previewer -p 8080:80 markdown-previewer:latest
 ### 🖥️ 4. Electron 桌面版自動發布 (CI/CD)
  
 專案已為桌面版配置了完全自動化的跨平台 CI/CD 建置與發布管線。
-*   **觸發機制**：當有程式碼推送 (push) 至 `electron-desktop` 分支時，GitHub Actions 會自動啟動發布流程。
+*   **觸發機制**：當在本地建立符合語意化版本（Semantic Versioning）的 Git Tag（例如 `v*.*.*`）並推送至遠端時，GitHub Actions 會自動啟動跨平台的打包與發布流程。
 *   **跨平台矩陣建置 (Matrix Build)**：Actions 會同時拉起三個虛擬環境 (Windows, macOS, Linux)，自動編譯前端與 Electron 主程式，並利用 `electron-builder` 打包出對應平台的專屬安裝檔：
     *   **Windows**：自動生成 `.exe` (NSIS 安裝版與 Portable 免安裝版)。
     *   **macOS**：自動生成 `.dmg` 安裝檔與 `.zip` 壓縮包。
     *   **Linux**：自動生成 `.AppImage` 獨立執行檔與 `.deb` 安裝包。
 *   **自動化 GitHub Release**：所有打包好的安裝套件將會自動上傳到同一個 GitHub Draft Release 中，您只需在 GitHub Releases 頁面中確認無誤後點擊發布，即可完成版本交付，無需在本地繁瑣地配置與建置多平台環境。
- 
+
+> [!TIP]
+> #### 💡 維護人員 Git Tag 發布操作指南
+> 為了順利進行桌面版版本控制與自動化發布，請參考以下常用的 Git Tag 指令與適用場景：
+> 
+> *   **1. 建立標籤 (Create)**
+>     *   **指令**：`git tag v4.1.6` (建立輕量標籤) 或 `git tag -a v4.1.6 -m "release: 發布 v4.1.6 桌面版"` (建立附註標籤，推薦)
+>     *   **場景**：當前分支的程式碼已完成測試，準備以此狀態打包發布桌面端新版本時。
+> *   **2. 推送標籤至遠端 (Push)**
+>     *   **指令**：`git push origin v4.1.6` (推送特定標籤，觸發 CI/CD) 或 `git push origin --tags` (推送本地所有標籤)
+>     *   **場景**：在本地建立好版本標籤後，推送到 GitHub 遠端倉庫以**正式觸發 GitHub Actions 跨平台打包發布流程**。
+> *   **3. 列出標籤 (List)**
+>     *   **指令**：`git tag` (列出所有標籤) 或 `git tag -l "v4.1.*"` (按模式篩選標籤)
+>     *   **場景**：在發布新版本前，確認目前已有的最新版本號，避免版本號衝突。
+> *   **4. 刪除標籤 (Delete)**
+>     *   **本地刪除**：`git tag -d v4.1.6`
+>     *   **遠端刪除**：`git push origin --delete v4.1.6`
+>     *   **場景**：當發現剛建立的標籤有重大錯誤需要緊急撤回，或是版本號標示錯誤時，可用於清理本地與遠端的錯誤標籤。
+
 ---
  
 ### ☁️ 5. 雲端平台託管方案
