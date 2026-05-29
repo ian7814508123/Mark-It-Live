@@ -5,6 +5,12 @@
    ========================================================================== */
 
 .theme-newspaper {
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     /* 1. 排版與基礎字體 */
     --theme-font-family: "Georgia", "Times New Roman", "Songti SC", "SimSun", serif;
     --theme-line-height: 1.65;
@@ -88,6 +94,18 @@
    深色模式變數覆蓋 (磨損鉛白與炭黑紙，在高對比與復古風中取得完美平衡)
    ========================================================================== */
 .dark .theme-newspaper {
+    /* Mermaid 樣式變數 (深色自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #1e293b);
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     --theme-text-color: #e2dbcd; /* 磨損紙張鉛白 */
     --theme-accent-color: #ffffff; /* 亮白 */
     --theme-heading-color: #ffffff;
@@ -417,6 +435,8 @@
    圖表原生所需的無襯線 Inter 字型與標準字級，解決文字在圖表節點內被截斷的問題。
    ========================================================================== */
 .theme-newspaper.prose .not-prose,
+.theme-newspaper.prose .mermaid,
+.theme-newspaper.prose svg,
 .theme-newspaper.prose .not-prose svg,
 .theme-newspaper.prose .not-prose svg text,
 .theme-newspaper.prose .not-prose span,
@@ -427,11 +447,20 @@
     letter-spacing: normal !important;
 }
 
-/* 徹底重置與洗淨 .not-prose 圖表內部段落的 ::first-letter 偽元素，防止首字放大干擾圖表文字 */
+/* 徹底重置與洗淨 .not-prose / .mermaid / svg 圖表內部段落的 ::first-letter 偽元素，防止首字放大干擾圖表文字 */
 .theme-newspaper.prose .not-prose p::first-letter,
 .theme-newspaper.prose .not-prose div::first-letter,
 .theme-newspaper.prose .not-prose span::first-letter,
-.theme-newspaper.prose .not-prose text::first-letter {
+.theme-newspaper.prose .not-prose text::first-letter,
+.theme-newspaper.prose .mermaid p::first-letter,
+.theme-newspaper.prose .mermaid div::first-letter,
+.theme-newspaper.prose .mermaid span::first-letter,
+.theme-newspaper.prose .mermaid text::first-letter,
+.theme-newspaper.prose svg text::first-letter,
+.theme-newspaper.prose svg p::first-letter,
+.theme-newspaper.prose svg div::first-letter,
+.theme-newspaper.prose svg span::first-letter,
+.theme-newspaper.prose text::first-letter {
     font-size: inherit !important;
     float: none !important;
     font-weight: inherit !important;
@@ -446,7 +475,12 @@
 .theme-newspaper.prose .not-prose .mermaid text,
 .theme-newspaper.prose .not-prose .mermaid .node text,
 .theme-newspaper.prose .not-prose .mermaid .edgeLabel text,
-.theme-newspaper.prose .not-prose .mermaid .label text {
+.theme-newspaper.prose .not-prose .mermaid .label text,
+.theme-newspaper.prose .mermaid text,
+.theme-newspaper.prose .mermaid .node text,
+.theme-newspaper.prose .mermaid .edgeLabel text,
+.theme-newspaper.prose .mermaid .label text,
+.theme-newspaper.prose svg text {
     font-family: Inter, system-ui, -apple-system, sans-serif !important;
     font-size: 13px !important;
 }

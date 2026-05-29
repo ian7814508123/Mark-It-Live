@@ -200,3 +200,104 @@
     border-bottom: none !important; /* 消除表格最後一行與外框重合的雙重底線 */
 }
 
+/* ── 7. Mermaid 圖表基礎骨架與預設變數 [NEW] ────────────────────────────────── */
+.prose {
+    /* Mermaid 基礎核心變數 (經典黑白極簡) */
+    --mermaid-node-bg: #f8fafc;
+    --mermaid-node-text: #0f172a;
+    --mermaid-node-border: #cbd5e1;
+    --mermaid-line: #475569;
+    --mermaid-edge-bg: #ffffff;
+}
+
+/* 深色模式下的預設黑白 */
+.dark .prose {
+    --mermaid-node-bg: #1e293b;
+    --mermaid-node-text: #f8fafc;
+    --mermaid-node-border: #334155;
+    --mermaid-line: #94a3b8;
+    --mermaid-edge-bg: #0f172a;
+}
+
+/* Mermaid SVG 居中與縮放防禦 */
+.diagram-block-container svg {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* 列印時的排版防禦 */
+@media print {
+    .diagram-block-container {
+        page-break-inside: avoid !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    
+    .diagram-block-container svg {
+        page-break-inside: avoid !important;
+        background-color: transparent !important;
+    }
+}
+
+/* ── 8. Mermaid SVG 外部樣式穿透與連動 [NEW] ────────────────────────────────── */
+/* 透過強制優先級 (!important)，完美壓過 Mermaid 生成的 SVG 內置 ID 樣式表，確保主題配色 100% 融合 */
+.prose .mermaid .node rect,
+.prose .mermaid .node circle,
+.prose .mermaid .node polygon,
+.prose .mermaid .node path {
+    fill: var(--mermaid-node-bg) !important;
+    stroke: var(--mermaid-node-border) !important;
+}
+
+.prose .mermaid .node text,
+.prose .mermaid .node .label {
+    fill: var(--mermaid-node-text) !important;
+    color: var(--mermaid-node-text) !important;
+}
+
+/* 連線、箭頭與連接線 */
+.prose .mermaid .edgePath .path {
+    stroke: var(--mermaid-line) !important;
+}
+
+.prose .mermaid .edgePath .marker,
+.prose .mermaid .marker {
+    fill: var(--mermaid-line) !important;
+    stroke: var(--mermaid-line) !important;
+}
+
+/* 連接線上文字標籤 (Edge Label) */
+.prose .mermaid .edgeLabel rect {
+    fill: var(--mermaid-edge-bg) !important;
+}
+
+.prose .mermaid .edgeLabel text {
+    fill: var(--mermaid-node-text) !important;
+}
+
+/* 序列圖 (Sequence Diagram) 參與者 */
+.prose .mermaid .actor {
+    fill: var(--mermaid-actor-bg, var(--mermaid-node-bg)) !important;
+    stroke: var(--mermaid-actor-border, var(--mermaid-node-border)) !important;
+}
+
+.prose .mermaid text.actor {
+    fill: var(--mermaid-actor-text, var(--mermaid-node-text)) !important;
+}
+
+/* 序列圖/狀態圖 備忘錄 (Note) */
+.prose .mermaid .note {
+    fill: var(--mermaid-note-bg, var(--mermaid-edge-bg)) !important;
+    stroke: var(--mermaid-note-border, var(--mermaid-node-border)) !important;
+}
+
+.prose .mermaid .noteText,
+.prose .mermaid .noteText > tspan {
+    fill: var(--mermaid-note-text, var(--mermaid-node-text)) !important;
+}
+

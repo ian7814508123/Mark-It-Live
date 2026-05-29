@@ -1,6 +1,12 @@
 /* Classical Theme: Traditional, Serif-based, Elegant, Cinnabar Red & Ink Black */
 
 .theme-classical {
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     /* 1. 排版與基礎字體 (Typography & Layout) */
     --theme-font-family: "Songti SC", "STSong", "SimSun", "Georgia", "Times New Roman", serif;
     --theme-line-height: 1.75;
@@ -97,6 +103,18 @@
 
 /* 深色模式下的變數覆蓋 (玄黑與玉白) */
 .dark .theme-classical {
+    /* Mermaid 樣式變數 (深色自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #1e293b);
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     --theme-text-color: #e5dfd3;
     /* 溫潤玉白 */
     --theme-accent-color: #c9423a;

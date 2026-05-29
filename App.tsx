@@ -30,7 +30,7 @@ import './src/styles/themes/cosmic.css';
 import './src/styles/themes/sunsetglow.css';
 import './src/styles/themes/neonrain.css';
 
-type Theme = 'default' | 'neutral' | 'dark' | 'forest';
+
 
 // ─── Mermaid Lazy Singleton ───────────────────────────────────────────────────
 // 不在頂層同步 import mermaid，改為首次進入 Mermaid 編輯器模式時才動態載入，
@@ -38,14 +38,16 @@ type Theme = 'default' | 'neutral' | 'dark' | 'forest';
 let mermaidInstance: typeof import('mermaid') | null = null;
 let mermaidInitialized = false;
 
-async function getMermaid(theme: string = 'neutral') {
+
+
+async function getMermaid() {
   if (!mermaidInstance) {
     mermaidInstance = await import('mermaid');
   }
   if (!mermaidInitialized) {
     mermaidInstance.default.initialize({
       startOnLoad: false,
-      theme: theme as any,
+      theme: 'base',
       securityLevel: 'loose',
       fontFamily: 'Inter',
     });
@@ -53,6 +55,76 @@ async function getMermaid(theme: string = 'neutral') {
   }
   return mermaidInstance.default;
 }
+
+/**
+ * 建立一個臨時 DOM 元素並動態提取當前主題的 CSS 變數值，用於 Mermaid 圖表客製化渲染。
+ * 完美避開了全域單例污染以及內建 dark 配色全黑的問題。
+ */
+const getThemeVariables = (theme: string, isDark: boolean) => {
+  const tempDiv = document.createElement('div');
+  tempDiv.className = `prose theme-${theme}`;
+
+  let wrapper: HTMLDivElement | null = null;
+  if (isDark) {
+    wrapper = document.createElement('div');
+    wrapper.className = 'dark';
+    wrapper.appendChild(tempDiv);
+    document.body.appendChild(wrapper);
+  } else {
+    document.body.appendChild(tempDiv);
+  }
+
+  const compStyle = getComputedStyle(tempDiv);
+
+  const nodeBg = compStyle.getPropertyValue('--mermaid-node-bg').trim();
+  const nodeText = compStyle.getPropertyValue('--mermaid-node-text').trim();
+  const nodeBorder = compStyle.getPropertyValue('--mermaid-node-border').trim();
+  const lineColor = compStyle.getPropertyValue('--mermaid-line').trim();
+  const edgeBg = compStyle.getPropertyValue('--mermaid-edge-bg').trim();
+
+  // 提取主題特有的 Actor / Note 等變數，若主題未宣告則 fallback 到 node 通用配色
+  const actorBg = compStyle.getPropertyValue('--mermaid-actor-bg').trim();
+  const actorText = compStyle.getPropertyValue('--mermaid-actor-text').trim();
+  const actorBorder = compStyle.getPropertyValue('--mermaid-actor-border').trim();
+  const noteBg = compStyle.getPropertyValue('--mermaid-note-bg').trim();
+  const noteText = compStyle.getPropertyValue('--mermaid-note-text').trim();
+  const noteBorder = compStyle.getPropertyValue('--mermaid-note-border').trim();
+  const fontFamily = compStyle.getPropertyValue('--theme-font-family').trim() || 'Inter, system-ui, -apple-system, sans-serif';
+
+  if (wrapper) {
+    document.body.removeChild(wrapper);
+  } else {
+    document.body.removeChild(tempDiv);
+  }
+
+  return {
+    fontFamily,
+    themeVars: {
+      primaryColor: nodeBg || (isDark ? '#1e293b' : '#f8fafc'),
+      primaryTextColor: nodeText || (isDark ? '#f8fafc' : '#0f172a'),
+      primaryBorderColor: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
+      lineColor: lineColor || (isDark ? '#94a3b8' : '#475569'),
+      background: edgeBg || (isDark ? '#0f172a' : '#ffffff'),
+
+      // 流程圖 Cluster 適配
+      clusterBkg: nodeBg || (isDark ? '#1e293b' : '#f1f5f9'),
+      clusterBorder: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
+
+      // 序列圖 (Sequence Diagram) 相關適配
+      actorBkg: actorBg || (isDark ? '#1e293b' : '#f1f5f9'),
+      actorBorder: actorBorder || (isDark ? '#334155' : '#cbd5e1'),
+      actorTextColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
+      actorLineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
+      signalColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
+      signalTextColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
+
+      // 註解 (Note) 適配
+      noteBkgColor: noteBg || (isDark ? '#1e293b' : '#ffffff'),
+      noteBorderColor: noteBorder || (isDark ? '#334155' : '#cbd5e1'),
+      noteTextColor: noteText || (isDark ? '#f1f5f9' : '#1e293b'),
+    }
+  };
+};
 
 
 
@@ -78,6 +150,7 @@ const App: React.FC = () => {
         // Define templates to load
         const mdTemplates = [
           { id: 'markdown-standard', path: 'defaults/default-markdown.md' },
+          { id: 'markdown-beta', path: 'defaults/markdown-beta.md' },
           { id: 'basic', path: 'defaults/markdown-basic.md' },
           { id: 'math', path: 'defaults/markdown-math.md' },
           { id: 'charts', path: 'defaults/markdown-charts.md' },
@@ -87,6 +160,7 @@ const App: React.FC = () => {
 
         const mermaidTemplates = [
           { id: 'mermaid-standard', path: 'defaults/default-mermaid.md' },
+          { id: 'mermaid-beta', path: 'defaults/mermaid-beta.md' },
           { id: 'flowchart', path: 'defaults/mermaid-flowchart.md' },
           { id: 'sequence', path: 'defaults/mermaid-sequence.md' },
           { id: 'gantt', path: 'defaults/mermaid-gantt.md' },
@@ -156,7 +230,7 @@ const App: React.FC = () => {
   const [svgContent, setSvgContent] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [theme, setTheme] = useState<Theme>('neutral');
+
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSyncScroll, setIsSyncScroll] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -287,7 +361,9 @@ const App: React.FC = () => {
   useEffect(() => {
     if (documents.length === 0 && defaultContents && !isLoadingDefaults && !isLoading) {
       createDocument('markdown', defaultContents.markdown['markdown-standard'], '預設 標記掉落 文檔', null, 'markdown-standard');
+      createDocument('markdown', defaultContents.markdown['markdown-beta'], '色彩實驗室 (Beta)', null, 'markdown-beta');
       createDocument('mermaid', defaultContents.mermaid['mermaid-standard'], '預設 美人魚 文檔', null, 'mermaid-standard');
+      createDocument('mermaid', defaultContents.mermaid['mermaid-beta'], '色彩實驗室 (Beta) [Mermaid]', null, 'mermaid-beta');
     }
   }, [documents.length, createDocument, defaultContents, isLoadingDefaults, isLoading]);
 
@@ -512,6 +588,9 @@ const App: React.FC = () => {
   useEffect(() => {
     setError(null);
     setSvgContent('');
+    // 清空自訂 Mermaid 模式樣式
+    const styleEl = document.getElementById('mermaid-custom-style-block');
+    if (styleEl) styleEl.textContent = '';
   }, [mode]);
 
   // 更新編輯器內容
@@ -529,6 +608,11 @@ const App: React.FC = () => {
       return;
     }
     switchDocument(docId);
+
+    // 清空自訂 Mermaid 模式樣式
+    const styleEl = document.getElementById('mermaid-custom-style-block');
+    if (styleEl) styleEl.textContent = '';
+
     // 只在手機版（小螢幕）自動關閉側邊欄，桌面版保持開啟以便雙擊重命名
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
@@ -590,15 +674,60 @@ const App: React.FC = () => {
     if (!mermaidCode.trim()) {
       setSvgContent('');
       setError(null);
+      // 清空自訂樣式
+      const styleEl = document.getElementById('mermaid-custom-style-block');
+      if (styleEl) styleEl.textContent = '';
       return;
     }
 
+    // ─── 預處理：動態提取並剔除內嵌 <style> 標籤 ───
+    let cleanedCode = mermaidCode;
+    let extractedStyle = '';
+
+    const styleRegex = /<style>([\s\S]*?)<\/style>/gi;
+    let match;
+    // 提取所有 <style> 內容
+    while ((match = styleRegex.exec(mermaidCode)) !== null) {
+      extractedStyle += match[1] + '\n';
+    }
+    // 剔除所有 <style> 標籤以防 Mermaid 語法錯誤
+    cleanedCode = mermaidCode.replace(styleRegex, '');
+
+    // 將提取出的樣式動態注入到 document.head 中
+    let styleEl = document.getElementById('mermaid-custom-style-block') as HTMLStyleElement;
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'mermaid-custom-style-block';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = extractedStyle;
+
     try {
-      // 動態載入 Mermaid Singleton（首次呼叫時才下載，後續直接返回快取實例）
-      const mermaid = await getMermaid(currentTheme);
-      // 切換主題時重新初始化
-      mermaid.initialize({ theme: currentTheme as any, startOnLoad: false, securityLevel: 'loose', fontFamily: 'Inter' });
-      const { svg } = await mermaid.render('mermaid-render-target', mermaidCode);
+      // 動態提取當前主題的 CSS 配色與字型變數
+      // （此時 getThemeVariables 內部的 tempDiv 會自動包含剛被注入的 extractedStyle 生效值）
+      const { fontFamily, themeVars } = getThemeVariables(currentTheme, isDarkMode);
+
+      // 動態載入 Mermaid Singleton（統一使用 base 主題配合自訂變數）
+      const mermaid = await getMermaid();
+
+      // 切換主題或更新時重新初始化。統一使用 'base' 主題，注入自主提取的 themeVariables 配色
+      mermaid.initialize({
+        theme: 'base' as any,
+        startOnLoad: false,
+        securityLevel: 'loose',
+        fontFamily: fontFamily,
+        themeVariables: themeVars
+      });
+
+      // 產生動態 id：將 currentTheme、isDarkMode、以及 extractedStyle 的 hash 一併納入運算！
+      // 確保使用者只修改了 <style> 中的變數而沒修改圖表代碼時，仍會強迫 Mermaid 重新渲染以套用新變數！
+      const renderId = `mermaid-mode-${hashString(cleanedCode + currentTheme + (isDarkMode ? 'dark' : 'light') + extractedStyle)}`;
+
+      // 清除可能殘留在 document 中的舊快取節點，避免 Mermaid 積累隱藏的過期元素
+      const staleNode = document.getElementById(renderId);
+      if (staleNode) staleNode.remove();
+
+      const { svg } = await mermaid.render(renderId, cleanedCode);
       setSvgContent(svg);
       setError(null);
     } catch (err: any) {
@@ -653,10 +782,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      renderDiagram(code, theme);
+      renderDiagram(code, settings.printSettings.previewTheme);
     }, 150); // 縮短 Mermaid 模式延遲 (300ms -> 150ms)
     return () => clearTimeout(timer);
-  }, [code, theme, renderDiagram]);
+  }, [code, settings.printSettings.previewTheme, renderDiagram]);
 
 
   // 清理檔案名稱中的非法字元
@@ -1127,7 +1256,7 @@ const App: React.FC = () => {
         if (!ctx) return;
 
         ctx.scale(scale, scale);
-        ctx.fillStyle = theme === 'dark' ? '#1e293b' : '#ffffff';
+        ctx.fillStyle = isDarkMode ? '#1e293b' : '#ffffff';
         ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
 
         // Draw image
@@ -1341,9 +1470,6 @@ const App: React.FC = () => {
         )}
         <Header
           mode={mode}
-          // setMode={handleModeSwitch} // Removed from UI
-          theme={theme}
-          setTheme={(t) => setTheme(t as Theme)}
           isDarkMode={isDarkMode}
           toggleDarkMode={handleToggleDarkMode}
           onDownloadMarkdown={downloadMarkdown}
@@ -1452,7 +1578,6 @@ const App: React.FC = () => {
               onWheel={handleWheel}
               onScroll={handlePreviewScroll}
               code={deferredCode}
-              theme={theme}
               isDarkMode={isDarkMode}
               onMouseEnter={() => {
                 isHoveringPreview.current = true;
@@ -1467,6 +1592,7 @@ const App: React.FC = () => {
               currentDocId={currentDocId}
               openDocIds={openDocIds}
               printSettings={settings.printSettings}
+              previewTheme={settings.printSettings.previewTheme}
               isPrinting={isPrinting}
               printSessionId={printSessionId}
               isCommentMode={isCommentMode}

@@ -50,6 +50,13 @@
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.04);
 
+    /* Mermaid 樣式變數 (學術淺色) */
+    --mermaid-node-bg: #f3f4f6;
+    --mermaid-node-text: #1a1a1a;
+    --mermaid-node-border: #d1d5db;
+    --mermaid-line: #4b5563;
+    --mermaid-edge-bg: #ffffff;
+
     /* 7. 語法高亮客製化 (嚴謹學術色調 - 去飽和度) */
     --code-token-comment: #71717a;
     /* 灰色註解 */
@@ -114,6 +121,13 @@
     /* Zinc 700 */
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 0, 0, 0.22);
+
+    /* Mermaid 樣式變數 (學術深色) */
+    --mermaid-node-bg: #27272a;
+    --mermaid-node-text: #e4e4e7;
+    --mermaid-node-border: #3f3f46;
+    --mermaid-line: #a1a1aa;
+    --mermaid-edge-bg: #18181b;
 
     /* 7. 語法高亮客製化 (深色學術色調) */
     --code-token-comment: #a1a1aa;
@@ -298,6 +312,13 @@
         --brand-accent: #4b5563 !important;
         --code-bg: #f9fafb !important; /* 學術淺灰代碼背景 */
         --code-border: #d1d5db !important;
+
+        /* Mermaid 樣式變數 (學術列印降級) */
+        --mermaid-node-bg: #f3f4f6 !important;
+        --mermaid-node-text: #1a1a1a !important;
+        --mermaid-node-border: #d1d5db !important;
+        --mermaid-line: #4b5563 !important;
+        --mermaid-edge-bg: #ffffff !important;
 
         /* 語法高亮學術淺色變數 */
         --code-token-comment: #71717a !important;

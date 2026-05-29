@@ -6,8 +6,6 @@ import InteractiveLogo from '../ui/InteractiveLogo';
 
 interface HeaderProps {
     mode: 'mermaid' | 'markdown';
-    theme: string;
-    setTheme: (theme: string) => void;
     isDarkMode: boolean;
     toggleDarkMode: (event?: React.MouseEvent) => void;
     onDownloadMarkdown: () => void;
@@ -32,8 +30,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
     mode,
-    theme,
-    setTheme,
     isDarkMode,
     toggleDarkMode,
     onDownloadMarkdown,
@@ -51,19 +47,8 @@ const Header: React.FC<HeaderProps> = ({
     hasOpenDocuments = false,
 }) => {
     const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
-    const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
     const downloadMenuRef = useRef<HTMLDivElement>(null);
-    const themeMenuRef = useRef<HTMLDivElement>(null);
     const [logoVariant, setLogoVariant] = useState<'v1' | 'v2'>('v1');
-
-    // 主顕選句映射
-    const THEMES: { value: string; label: string; emoji: string }[] = [
-        { value: 'default', label: '預設', emoji: '🎨' },
-        { value: 'neutral', label: '大自然', emoji: '🌿' },
-        { value: 'dark', label: '深色的', emoji: '🌙' },
-        { value: 'forest', label: '雨林', emoji: '🌲' },
-    ];
-    const currentTheme = THEMES.find(t => t.value === theme) ?? THEMES[0];
 
     const [hasPushedAd, setHasPushedAd] = useState(false);
     const adContainerRef = useRef<HTMLDivElement>(null);
@@ -72,9 +57,6 @@ const Header: React.FC<HeaderProps> = ({
         const handleClickOutside = (event: MouseEvent) => {
             if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
                 setIsDownloadMenuOpen(false);
-            }
-            if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
-                setIsThemeMenuOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -182,40 +164,6 @@ const Header: React.FC<HeaderProps> = ({
                         magneticOptions={{ maxOffset: 6, radius: 45 }}>
                         <Settings size={20} />
                     </MagneticButton>
-
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
-
-                    {/* 主題選擇器 */}
-                    <div className="relative ml-1" ref={themeMenuRef}>
-                        <button onClick={() => hasOpenDocuments && setIsThemeMenuOpen(!isThemeMenuOpen)}
-                            aria-label="開啟主題選擇選單"
-                            disabled={!hasOpenDocuments}
-                            style={{ position: 'relative', overflow: 'hidden' }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-50 hover:bg-slate-100 dark:hover:bg-white/10 transition-all select-none disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span className="text-[10px] font-bold text-slate-700 dark:text-slate-100 uppercase tracking-wide">主題</span>
-                            <span>{currentTheme.emoji} {currentTheme.label}</span>
-                            <ChevronDown size={12} className={`transition-transform duration-200 ${isThemeMenuOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        <div style={{
-                            position: 'absolute', left: 0, marginTop: '0.5rem', width: '11rem',
-                            opacity: isThemeMenuOpen ? 1 : 0,
-                            transform: isThemeMenuOpen ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.96)',
-                            pointerEvents: isThemeMenuOpen ? 'auto' : 'none',
-                            transition: 'opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1)',
-                            transformOrigin: 'top left',
-                        }} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl py-2 px-2 z-50 ring-1 ring-black/5">
-                            {THEMES.map(t => (
-                                <button key={t.value} onClick={() => { setTheme(t.value); setIsThemeMenuOpen(false); }}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-2xl text-sm transition-all border
-                                        ${t.value === theme
-                                            ? 'bg-brand-secondary dark:bg-brand-primary/30 text-brand-primary border-brand-primary/20 dark:border-brand-primary/40 font-semibold'
-                                            : 'text-slate-700 dark:text-slate-200 border-transparent hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/15 font-medium'
-                                        }`}>
-                                    <span>{t.emoji}</span><span>{t.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
 

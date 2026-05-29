@@ -3,7 +3,7 @@
   "author": "Ian Huang",
   "description": "A desktop application for live previewing Markdown files.",
   "private": true,
-  "version": "4.1.5",
+  "version": "4.1.6",
   "type": "module",
   "engines": {
     "node": ">=22"

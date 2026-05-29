@@ -40,12 +40,7 @@
         --code-line-number-bg: var(--code-bg);
         --code-line-number-shadow: rgba(0, 0, 0, 0.05);
 
-        /* Mermaid 流程圖專用變數 (淺色預設) */
-        --mermaid-node-bg: #f1f5f9;
-        --mermaid-node-text: #1e293b;
-        --mermaid-node-border: #cbd5e1;
-        --mermaid-line: #64748b;
-        --mermaid-edge-bg: #ffffff;
+
 
         /* VS Code Light 語法高亮變數：確保程式碼塊在淺色背景下的可讀性 */
         --code-token-comment: #008000;
@@ -92,12 +87,7 @@
         --code-line-number-bg: var(--code-bg);
         --code-line-number-shadow: rgba(0, 0, 0, 0.25);
 
-        /* Mermaid 專用變數 (深色預設) */
-        --mermaid-node-bg: #1e293b;
-        --mermaid-node-text: #f1f5f9;
-        --mermaid-node-border: var(--code-border);
-        --mermaid-line: #94a3b8;
-        --mermaid-edge-bg: var(--mermaid-node-bg);
+
 
         /* VS Code Dark+ 語法高亮變數：經典的深色開發者配色 */
         --code-token-comment: #6A9955;

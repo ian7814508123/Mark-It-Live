@@ -25,7 +25,6 @@ import { detectMarkdownFeatures } from '../../utils/markdownScanner';
 
 interface MarkdownPreviewProps {
     content: string;
-    theme?: 'default' | 'neutral' | 'dark' | 'forest';
     isDarkMode: boolean;
     documents?: any[];
     onSelectDocument?: (docId: string) => void;
@@ -34,7 +33,7 @@ interface MarkdownPreviewProps {
     isPrinting?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic';
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
@@ -56,25 +55,85 @@ const cleanMermaidSvg = (svgHtml: string) => {
         .replace(/style="max-width:.*?"/i, 'style="max-width: 100%"');
 };
 
-const MermaidBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
+const MermaidBlock: React.FC<{ 
+    code: string; 
+    isDarkMode: boolean; 
+    isPrinting?: boolean; 
+    printSessionId?: number; 
+    previewTheme?: string; 
+}> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0, previewTheme = 'default' }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         // 動態載入 Mermaid（首次渲染時才下載，後續使用已快取實例）
         const mermaid = (await import('mermaid')).default;
+
+        // 1. 向上爬 DOM 樹找到 .prose 容器，從那裡讀取 CSS 變數
+        // 主題變數（如 --mermaid-node-bg）宣告在 .theme-academic 上，
+        // 必須從攜帶主題 class 的 .prose 祖先元素讀取，才能取得正確的主題色
+        const themeRoot = container.closest('.prose') ?? container;
+        const computedStyle = window.getComputedStyle(themeRoot);
+        const fontFamily = computedStyle.getPropertyValue('--theme-font-family') || 'Inter, system-ui, sans-serif';
+
+        // 2. 提取核心必填變數 (Core)
+        const nodeBg = computedStyle.getPropertyValue('--mermaid-node-bg').trim();
+        const nodeText = computedStyle.getPropertyValue('--mermaid-node-text').trim();
+        const nodeBorder = computedStyle.getPropertyValue('--mermaid-node-border').trim();
+        const lineColor = computedStyle.getPropertyValue('--mermaid-line').trim();
+        const edgeBg = computedStyle.getPropertyValue('--mermaid-edge-bg').trim();
+
+        // 3. 提取選配進階變數，若無則自動 Fallback 繼承 Core 變數 (Fallback)
+        const actorBg = computedStyle.getPropertyValue('--mermaid-actor-bg').trim() || nodeBg;
+        const actorText = computedStyle.getPropertyValue('--mermaid-actor-text').trim() || nodeText;
+        const actorBorder = computedStyle.getPropertyValue('--mermaid-actor-border').trim() || nodeBorder;
+        const noteBg = computedStyle.getPropertyValue('--mermaid-note-bg').trim() || edgeBg;
+        const noteText = computedStyle.getPropertyValue('--mermaid-note-text').trim() || nodeText;
+        const noteBorder = computedStyle.getPropertyValue('--mermaid-note-border').trim() || nodeBorder;
+
+        // 4. 定義 themeVariables，為各主題注入專屬色彩與極簡黑白 fallback
+        const themeVars: Record<string, string> = {
+            background: 'transparent',
+            primaryColor: nodeBg || (isDark ? '#1e293b' : '#f1f5f9'),
+            primaryTextColor: nodeText || (isDark ? '#f1f5f9' : '#1e293b'),
+            primaryBorderColor: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
+            lineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
+            edgeLabelBackground: edgeBg || (isDark ? '#1e293b' : '#ffffff'),
+            
+            // 流程圖 Cluster 適配
+            clusterBkg: nodeBg || (isDark ? '#1e293b' : '#f1f5f9'),
+            clusterBorder: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
+            
+            // 序列圖 (Sequence Diagram) 相關適配
+            actorBkg: actorBg || (isDark ? '#1e293b' : '#f1f5f9'),
+            actorBorder: actorBorder || (isDark ? '#334155' : '#cbd5e1'),
+            actorTextColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
+            actorLineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
+            signalColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
+            signalTextColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
+            
+            // 註解 (Note) 適配
+            noteBkgColor: noteBg || (isDark ? '#1e293b' : '#ffffff'),
+            noteBorderColor: noteBorder || (isDark ? '#334155' : '#cbd5e1'),
+            noteTextColor: noteText || (isDark ? '#f1f5f9' : '#1e293b'),
+        };
+
+        // 5. 初始化 Mermaid，使用 base 主題
         mermaid.initialize({
-            theme: isDark ? 'dark' : 'neutral',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            securityLevel: 'loose'
+            theme: 'base',
+            fontFamily: fontFamily,
+            securityLevel: 'loose',
+            themeVariables: themeVars
         });
 
-        const id = `mermaid-${hashString(renderCode + (isDark ? 'dark' : 'light'))}`;
+        // 將 previewTheme 納入 id hash，確保切換主題時強制觸發 Mermaid 重新渲染
+        // 若沒有 theme，Mermaid 會快取相同 id 的 SVG，導致主題色永遠套用不上
+        const id = `mermaid-${hashString(renderCode + (isDark ? 'dark' : 'light') + previewTheme)}`;
 
-        // 1. 先進行語法檢查，避免 mermaid.render 回傳 "Syntax error in text" 的 SVG
+        // 先進行語法檢查，避免 mermaid.render 回傳 "Syntax error in text" 的 SVG
         await mermaid.parse(renderCode, { suppressErrors: false });
 
-        // 2. 只有語法正確才會執行到這裡
+        // 只有語法正確才會執行到這裡
         const { svg: renderedSvg } = await mermaid.render(id, renderCode);
         container.innerHTML = cleanMermaidSvg(renderedSvg);
-    }, []);
+    }, [previewTheme]);
 
     return (
         <DiagramBlock
@@ -687,7 +746,19 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const line = node?.position?.start?.line;
 
             if (isBlock) {
-                if (language === 'mermaid') return wrapWithComment(node, <div key={stableKey} className="not-prose"><MermaidBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
+                if (language === 'mermaid') {
+                    return wrapWithComment(
+                        node,
+                        <div key={`${stableKey}-${ctx.previewTheme}-${ctx.shouldShowDark}`} className="not-prose">
+                            <MermaidBlock
+                                code={codeString}
+                                isDarkMode={ctx.shouldShowDark}
+                                isPrinting={ctx.isPrinting}
+                                previewTheme={ctx.previewTheme}
+                            />
+                        </div>
+                    );
+                }
                 if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div key={stableKey} className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
                 if (language === 'smiles') return wrapWithComment(node, <div key={stableKey} className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
                 if (language === 'abc') return wrapWithComment(node, <React.Suspense key={stableKey} fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div></React.Suspense>);

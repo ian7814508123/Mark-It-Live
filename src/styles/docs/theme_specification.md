@@ -15,9 +15,17 @@
 ## 1. 命名與作用域 (Naming & Scoping)
 
 ### 1.1 命名慣例
-- 檔案命名必須為小寫英文，例如 `nature.css` 或 `cyberpunk.css`。
+- 檔案命名必須為小寫英文，例如 `nature.css` 或 `cyberpunk.css` (例如 `nordicforest.css`)。
 - 所有的 CSS 選擇器**必須**以 `.theme-[name]` 開頭，絕不允許污染全域樣式。
 - 例如：`.theme-academic.prose` 用於修飾基礎 HTML 元素。
+
+### 1.2 嚴格的樣式隔離防禦規範 (Strict CSS Scoping) [CRITICAL]
+- **【警告】絕對禁止在主題 CSS 中宣告不帶主題類名前綴的通用排版選擇器。**
+  - 例如，**絕對嚴禁**在主題 CSS 中直接寫 `.prose h1`、`.prose ol`、`.prose blockquote` 等。
+  - **原因**：由於系統會將所有主題 CSS 檔案同時打包引入，如果省略了 `.theme-[name]` 前綴，這些規則會直接變為全域污染，導致當用戶切換到其他主題時，該主題的標題、列表或引言樣式也會被強行篡改！
+  - **正確作法**：必須始終以 `.theme-[name]` 或 `.theme-[name].prose` 限定所有自訂樣式規則，確保極致的樣式防禦與完美隔離：
+    - ❌ **錯誤做法**：`.prose h1 { font-family: var(--theme-heading-font); }` (會污染其他所有主題)
+    - ✅ **正確做法**：`.theme-academic.prose h1 { font-family: var(--theme-heading-font); }` (完美隔離)
 
 ---
 
@@ -65,6 +73,18 @@
 | `--code-border` | **代碼區塊與圖表 (Diagram) 共同邊框色** |
 | `--code-line-number-bg` | **程式碼行數欄位（Line Number Column）不透明背景色** (預設引用 `var(--code-bg)`) |
 | `--code-line-number-shadow` | **程式碼向右捲動時，行數欄位右邊緣的動態投影顏色/強度** |
+| **圖表連動 (Mermaid Diagrams) [NEW]** | |
+| `--mermaid-node-bg` **(核心)** | Mermaid 流程圖、狀態圖等節點的背景色 |
+| `--mermaid-node-text` **(核心)**| Mermaid 節點內部的文字顏色 |
+| `--mermaid-node-border` **(核心)**| Mermaid 節點的描邊/邊框顏色 |
+| `--mermaid-line` **(核心)** | 連線、箭頭與連接線線條顏色 |
+| `--mermaid-edge-bg` **(核心)** | 連接線上文字標籤 (Edge Label) 的背景色 |
+| `--mermaid-actor-bg` | *選配 (Fallback ➔ core)* 序列圖參與者 (Actor) 背景色 |
+| `--mermaid-actor-text` | *選配 (Fallback ➔ core)* 序列圖參與者 (Actor) 文字顏色 |
+| `--mermaid-actor-border` | *選配 (Fallback ➔ core)* 序列圖參與者 (Actor) 邊框顏色 |
+| `--mermaid-note-bg` | *選配 (Fallback ➔ core)* 備忘錄 (Note) 背景色 |
+| `--mermaid-note-text` | *選配 (Fallback ➔ core)* 備忘錄 (Note) 文字顏色 |
+| `--mermaid-note-border` | *選配 (Fallback ➔ core)* 備忘錄 (Note) 邊框顏色 |
 | **標註系統 (Alerts)** | |
 | `--theme-alert-note-border` / `-bg` / `-text` | Note 標註的邊框色、背景色與文字/圖示色 |
 | `--theme-alert-tip-border` / `-bg` / `-text` | Tip 標註的邊框色、背景色與文字/圖示色 |
@@ -153,6 +173,60 @@
    - **深色模式 (Dark Mode) ➔ 2% - 3% 的微妙明度差**：代碼底色 `--code-bg` 相對於主背景 `--brand-surface`（通常為極深黑，明度 L=10% 左右）應**僅提升 2% 至 3% 的明度**（如 `#0d1124` 或 `#121d17`）。而邊框 `--code-border` 的明度應控制在 **15% - 17%** 左右，避免深色模式下的邊框與行號線喧賓奪主，確保細緻優雅。
 3. **設計優勢**：這能確保在任何文字排版、縮放比例或列印狀態下，程式碼卡片、引言盒子與表格表頭皆能像「實體卡片」般清晰立體地浮現於純淨的主背景之上，既不會發生背景重疊顯得髒亂，也不會因底色支離破碎而破壞專注度。
 
+### 3.6 Mermaid 圖表深度主題連動與自訂規範 [NEW]
+本系統將 Mermaid 與 Markdown 預覽區的主題配色進行了全方位打通。為了保證極致的設計美感與使用者自訂的高自由度，所有主題必須遵守以下開發規範：
+
+#### 1. 底層自適應運作機制與深色模式支援 (Dynamic DOM Variable Extraction) [NEW]
+- **動態 DOM 提取機制**：本系統目前已升級為全新的**「全自動動態 DOM 變數提取與統一 `base` 主題自適應渲染」**架構。
+  - 當用戶切換主題或切換深色模式時，預覽引擎會自動在背景建立臨時的 `div.prose.theme-[name]` 節點（若是深色模式，則自動包裹在 `div.dark` 容器中），掛載至 `body` 後利用 `getComputedStyle` 動態抓取主題宣告的所有 `--mermaid-` 變數與字型，並以此初始化全域的 Mermaid 單例。
+- **天生深色主題 (Dark-only Theme) 支援**：對於直接定位在深色（如 `cosmic`, `neonrain`, `developer`）的主題，開發者可以將變數直接寫在 `.theme-[name]` 下，提取器會以最優雅的方式自動捕獲它們，完全防禦獨立模式下的「全黑退化」問題。
+- **快取強制刷新**：當系統偵測到主題或深色模式發生切換時，會即時更新 `renderId` 快取鍵，強制 Mermaid 重新為當前主題生成全新的 SVG，消除任何主題殘留。
+
+#### 2. 雙層變數 Fallback 繼承架構 (Core & Optional variables)
+- **核心必填變數 (Core - 5個)**：主題開發者**僅需**在 `.theme-[name]` 與 `.dark .theme-[name]` 中填入這 5 個核心變數，即可完成 90% 圖表的最優雅適配：
+  - `--mermaid-node-bg` (節點背景色)
+  - `--mermaid-node-text` (節點文字色)
+  - `--mermaid-node-border` (節點邊框)
+  - `--mermaid-line` (箭頭與連線線條)
+  - `--mermaid-edge-bg` (連線上標籤文字背景)
+- **進階選配變數 (Optional)**：如序列圖專用的 `--mermaid-actor-*`、`--mermaid-note-*` 等。**若主題未定義這些進階變數，系統會自動 fallback 繼承對應的核心變數。** 這維持了主題開發的極致輕量，同時給予了精細設計極大的自訂度。
+- **自適應最佳實踐 (CSS 變數動態連動)**：主題開發者通常只需在 CSS 中將這些核心變數直接關聯到該主題現有的 CSS 變數，即能自動形成與主題美感高度協調的配色，極為優雅：
+  ```css
+  .theme-[name] {
+      /* 一鍵完成 Mermaid 主題連動 */
+      --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+      --mermaid-node-text: var(--theme-text-color, inherit);
+      --mermaid-node-border: var(--code-border);
+      --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+      --mermaid-edge-bg: var(--brand-surface, #ffffff);
+  }
+  ```
+
+#### 3. 強制性設計防禦規則 (CRITICAL SELECTOR SHIELD)
+- **【警告】嚴禁在主題 CSS 中使用 `!important` 覆蓋 `.mermaid` 內層節點樣式。**
+  - 例如，**嚴禁**撰寫 `.theme-[name] .mermaid rect { fill: #xxx !important; }`。這會發生「權重霸凌」，徹底誤殺使用者在 Markdown 中使用 `classDef` 或 `style` 語法為特定節點微調的彩色配色。
+  - **正確作法**：將配色變數宣告在 `.theme-[name]` 的變數列表中，渲染引擎會自動調用並作為 base 配色傳遞給 Mermaid。這樣使用者的行內自訂樣式（`classDef`）能以高權重自然蓋過預設主題，保留最棒的自訂度。
+- **【關鍵防禦】首字放大 (Drop Cap) 與圖表隔離規定 [NEW]**
+  - 如果主題使用了像 `.theme-[name].prose p::first-letter` 這樣的首字放大設計，**必須在 CSS 的防護重置段落中，加上對 `.mermaid` 容器以及 `svg text::first-letter` 的重置規則**，以防在沒有 `.not-prose` 包裹的獨立圖表預覽模式下，圖表文字被首字放大所誤傷導致排版截斷：
+    ```css
+    /* 徹底洗淨首字放大對圖表文字的污染，防護獨立圖表預覽 */
+    .theme-[name].prose .mermaid p::first-letter,
+    .theme-[name].prose .mermaid text::first-letter,
+    .theme-[name].prose svg text::first-letter,
+    .theme-[name].prose svg p::first-letter,
+    .theme-[name].prose svg span::first-letter,
+    .theme-[name].prose text::first-letter {
+        font-size: inherit !important;
+        float: none !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+        margin: 0 !important;
+        text-transform: none !important;
+        color: inherit !important;
+        font-family: inherit !important;
+    }
+    ```
+
 ---
 
 ## 4. 開箱即用之主題 CSS 模板骨架 (Standard Template Blueprint) [UPDATED]
@@ -230,6 +304,12 @@
     --theme-alert-caution-border: #ef4444;
     --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
     --theme-alert-caution-text: #dc2626;
+    /* 8. Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff); /*維持畫布底色為純白,不受任何主題改變*/
 }
 
 /* --------------------------------------------------------------------------
@@ -419,13 +499,52 @@
 
 ---
 
-## 7. 新增主題的完整工作流
+## 7. 新增主題的完整工作流與維護指引 (New Theme Workflow & TypeScript Registry) [UPDATED]
 
-1. 在 `src/styles/themes/` 建立 `<new-theme>.css`。
-2. 複製 **4. 主題 CSS 模板骨架**，填入您的專屬配色與排版樣式。
-3. 在 `src/App.tsx` 最上方引入您的 CSS 檔案：
+為本系統新增一個精美的主題需要完成 5 個關鍵步驟。為了防止編譯錯誤（TypeScript compile errors）並確保全系統（預覽、列印、彈窗設定、Mermaid 單例）的無縫契合，請遵循以下完整工作流：
+
+### 步驟 1：建立並撰寫主題 CSS 檔案
+1. 在 `src/styles/themes/` 目錄下建立 `<new-theme>.css`。
+2. 複製 **「4. 主題 CSS 模板骨架」**，填入您的客製配色變數與 Prose 微調。
+3. **首字放大防護（若有）**：若主題使用了首字下沉，必須在 CSS 結尾加上 **「3.6.3 關鍵防禦」** 的 Drop Cap 圖表洗淨重置。
+
+### 步驟 2：註冊 TypeScript 型別 (Type System Registry) [CRITICAL]
+為了防止型別檢查失敗，必須在以下 3 個關鍵檔案中，將新主題的 `value` 名稱（如 `'new-theme'`) 追加至 `previewTheme` 的型別聯合定義中：
+
+1. **[src/hooks/useAppSettings.ts]**：
+   - 尋找 `previewTheme` 的型別定義，追加您的主題。
+2. **[src/components/layout/PreviewPanel.tsx]**：
+   - 尋找 `PrintPaperProps.previewTheme` 與 `PreviewPanelProps.previewTheme` 的型別定義，追加您的主題。
+3. **[src/components/markdown/MarkdownPreview.tsx]**：
+   - 尋找 `MarkdownPreviewProps.previewTheme` 型別，追加您的主題。
+
+### 步驟 3：於主程式中導入主題 CSS [CRITICAL]
+打開 **[App.tsx]**：
+1. **導入 CSS 檔案**（在頂層導入區）：
    ```tsx
    import './src/styles/themes/new-theme.css';
    ```
-4. 在 `src/components/modals/SettingsModal.tsx` 的 `ThemeGridSelector` 選項列表中加入該主題選項。
-5. **視覺驗證**：切換至新主題，測試「淺色模式」、「深色模式」、「圖表畫布適配」以及 `Ctrl+P` 的列印排版。
+   *(註：由於系統現在採用極致先進的「全自動動態 DOM 變數提取」與統一 `'base'` 自適應渲染架構，您**不再需要**手動進行任何 Mermaid 主題映射或常數維護！單純導入 CSS 即可被背景引擎自動適配)*
+
+### 步驟 4：在偏好設定彈窗中加入 UI 選項
+打開 **[SettingsModal.tsx]**：
+在 `PdfSettingsPanel` 的 `ThemeGridSelector` 的 `options` 屬性陣列中，新增一個主題選項物件。格式如下：
+```typescript
+{
+    label: '新主題名稱',            // UI 顯示的繁體中文名稱 (如 '北歐森林')
+    value: 'new-theme',             // 主題字串識別 (必須與 CSS 中的 .theme-[name] 完全一致)
+    hint: 'New Theme Subtitle',     // 懸停時的副標題/特色簡述
+    icon: <Leaf size={16} />,       // Lucide React 圖示組件 (需在頂部 import 中加入)
+    color: '#2d4a36',               // 主題亮點代表色 (通常為十六進位，用於 UI 小圓點裝飾)
+    previewImg: '/image/themes/{new-theme-name}.png', // 主題縮圖路徑 (儲存於 public/image/themes/ 中)
+    description: '詳細描述這款主題的美學理念與適用場景。',
+    category: 'creative'            // 類別：'minimal' (極簡) | 'tech' (科技) | 'creative' (創意)
+}
+```
+
+### 步驟 5：執行高保真多重驗證 (Verification Workflow)
+完成上述設定後，執行以下 4 項視覺驗證以確保高品質：
+1. **淺色模式驗證**：在 Markdown 預覽區，確認背景色、標題大小、超連結與表格是否精美無瑕。
+2. **深色模式對比**：切換深色模式，檢查內文對比度（WCAG 2.1 是否滿足 4.5:1）以及語法高亮。
+3. **Mermaid 自適應圖表**：切換到 Mermaid 獨立模式，驗證圖表是否 100% 正確套用主題配色，無古典黃污染或死黑退化。如果是 `newspaper` 或使用了 Drop Cap 的主題，確認節點文字是否清晰，絕無首字放大所致的截斷。
+4. **匯出 PDF / 列印降級安全驗證**：按下 `Ctrl + P` 呼叫列印，確認系統是否正確將主題降級至淺色模式特色變數，且 layout 圓角、分頁等表現完美。

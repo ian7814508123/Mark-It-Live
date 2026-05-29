@@ -62,7 +62,7 @@ export function useDocumentStorage() {
                 // Step 4：若版本升級，清除內建預設文件，讓 App.tsx 重建
                 if (needsVersionCleaning && loaded.documents.length > 0) {
                     localStorage.setItem(LS_VERSION_KEY, DEFAULT_VERSION);
-                    const DEFAULT_NAMES = ['預設 標記掉落 文檔', '預設 美人魚 文檔'];
+                    const DEFAULT_NAMES = ['預設 標記掉落 文檔', '預設 美人魚 文檔', '色彩實驗室 (Beta)', '色彩實驗室 (Beta) [Mermaid]'];
                     const defaultDocs = loaded.documents.filter(d => DEFAULT_NAMES.includes(d.name));
 
                     // 從 IndexedDB 刪除舊預設文件

@@ -70,10 +70,29 @@
     --theme-alert-caution-border: #ef4444;
     --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
     --theme-alert-caution-text: #dc2626;
+
+    /* 8. Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
 }
 
 /* 深色模式下的變數覆蓋 */
 .dark .theme-implementation-plan {
+    /* Mermaid 樣式變數 (深色自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #1e293b);
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     --theme-text-color: #cbd5e1;
     --theme-heading-color: #f1f5f9;
     --theme-accent-color: #38bdf8;

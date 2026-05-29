@@ -5,6 +5,12 @@
    ========================================================================== */
 
 .theme-sunsetglow {
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     /* 1. 排版與基礎字體 (Typography & Layout) */
     --theme-font-family: "Inter", "PingFang TC", "Hiragino Sans GB", sans-serif;
     --theme-line-height: 1.75;
@@ -88,6 +94,18 @@
    深色模式變數覆蓋 (Dark Mode - WCAG 對比度對焦)
    -------------------------------------------------------------------------- */
 .dark .theme-sunsetglow {
+    /* Mermaid 樣式變數 (深色自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #1e293b);
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     --theme-text-color: #fdf6e3; /* 夕照亮白沙 */
     --theme-heading-color: #ffedd5; /* 夕陽溫慢橙白 */
     --theme-accent-color: #f97316; /* 暖螢光橘 */

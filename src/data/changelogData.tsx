@@ -19,6 +19,32 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v4.1.6 (2026/05/29) - 統一主題樣式與支援度',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: PackagePlus,
+        title: '新增功能 (New Features)',
+        details: [
+          <>
+            <strong>加入更多的樣式宣告語法:</strong> 詳情可以直接載入<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">Beta 功能</code> 試試看吧。
+          </>
+        ]
+      },
+      {
+        icon: Palette,
+        title: '介面與體驗優化 (Improvements)',
+        details: [
+          <>
+            <strong>統一主題樣式:</strong> Mermaid mode支援套用<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">預覽風格</code>中的顏色與字型。
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v4.1.5 (2026/05/28) - 編輯介面UX提升',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
