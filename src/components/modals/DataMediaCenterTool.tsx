@@ -11,7 +11,9 @@ import {
     FileText,
     Database,
     Info,
-    ArrowLeft
+    ArrowLeft,
+    Film,
+    Music
 } from 'lucide-react';
 import { useImageStorage, formatExpiryDate, formatFileSize } from '../../hooks/useImageStorage';
 import GlassRailSelector, { GlassRailOption } from '../ui/GlassRailSelector';
@@ -86,7 +88,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
     const tabOptions: GlassRailOption<'import' | 'data' | 'images'>[] = [
         { label: '文檔', value: 'import', icon: <FileUp size={13} /> },
         { label: '檔案與數據', value: 'data', icon: <Database size={13} /> },
-        { label: '圖片庫', value: 'images', icon: <ImageIcon size={13} /> }
+        { label: '媒體與圖片庫', value: 'images', icon: <ImageIcon size={13} /> }
     ];
 
     // 觸發檔案選取對話框
@@ -191,9 +193,14 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
         if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
     };
 
-    // 圖片：插入編輯器
-    const handleInsertImage = (id: string, name: string) => {
-        const ref = `![${name}](img-local://${id})`;
+    // 媒體/圖片：插入編輯器
+    const handleInsertImage = (id: string, name: string, mimeType: string) => {
+        let ref = `![${name}](img-local://${id})`;
+        if (mimeType.startsWith('video/')) {
+            ref = `<video src="img-local://${id}"></video>`;
+        } else if (mimeType.startsWith('audio/')) {
+            ref = `<audio src="img-local://${id}"></audio>`;
+        }
         onInsertIntoDoc(ref);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
@@ -386,7 +393,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                                 </p>
                                 <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
                                     {activeTab === 'images'
-                                        ? 'JPG · PNG · GIF · WebP · SVG'
+                                        ? '圖片庫 (JPG, PNG, SVG) · 影片 (MP4, WebM) · 音訊 (MP3, WAV)'
                                         : activeTab === 'import'
                                             ? 'Markdown · Excel · TXT · MMD'
                                             : 'JSON · CSV · TSV · TopoJSON'}
@@ -401,7 +408,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                     ref={fileInputRef}
                     type="file"
                     accept={activeTab === 'images'
-                        ? "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                        ? "image/jpeg,image/png,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/ogg,audio/mp3,audio/mpeg,audio/ogg,audio/wav,audio/x-wav"
                         : activeTab === 'import'
                             ? ".xlsx,.xls,.md,.txt,.mmd"
                             : ".json,.csv,.tsv,.topojson"}
@@ -442,7 +449,7 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                                 key={img.id}
                                 className="group flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors duration-150"
                             >
-                                <LocalThumbnail id={img.id} name={img.name} getImage={getImage} />
+                                <LocalThumbnail id={img.id} name={img.name} mimeType={img.mimeType} getImage={getImage} />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 truncate">{img.name}</p>
                                     <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
@@ -455,15 +462,15 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
                                     <button
-                                        onClick={() => handleInsertImage(img.id, img.name)}
-                                        title="插入圖片語法至編輯器"
+                                        onClick={() => handleInsertImage(img.id, img.name, img.mimeType)}
+                                        title="插入媒體語法至編輯器"
                                         className={`w-6 h-6 flex items-center justify-center rounded-lg transition-colors ${isCopied ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'hover:bg-brand-secondary dark:hover:bg-brand-primary/30 text-slate-400 hover:text-brand-primary'}`}
                                     >
                                         {isCopied ? <Check size={11} /> : <Copy size={11} />}
                                     </button>
                                     <button
                                         onClick={() => handleDeleteImage(img.id)}
-                                        title="刪除圖片"
+                                        title="刪除檔案"
                                         className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-500 transition-colors"
                                     >
                                         <Trash2 size={11} />
@@ -584,14 +591,15 @@ const DataMediaCenterTool: React.FC<DataMediaCenterToolProps> = ({
     );
 };
 
-// ─── 圖片庫懶加載縮圖 ───
+// ─── 媒體與圖片庫懶加載縮圖 ───
 interface LocalThumbnailProps {
     id: string;
     name: string;
+    mimeType: string;
     getImage: (id: string) => Promise<string | null>;
 }
 
-const LocalThumbnail: React.FC<LocalThumbnailProps> = ({ id, name, getImage }) => {
+const LocalThumbnail: React.FC<LocalThumbnailProps> = ({ id, name, mimeType, getImage }) => {
     const [src, setSrc] = React.useState<string | null>(null);
 
     React.useEffect(() => {
@@ -601,6 +609,22 @@ const LocalThumbnail: React.FC<LocalThumbnailProps> = ({ id, name, getImage }) =
         });
         return () => { cancelled = true; };
     }, [id, getImage]);
+
+    if (mimeType.startsWith('video/')) {
+        return (
+            <div className="w-9 h-9 shrink-0 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center text-brand-primary" title="影片檔案">
+                <Film size={14} />
+            </div>
+        );
+    }
+
+    if (mimeType.startsWith('audio/')) {
+        return (
+            <div className="w-9 h-9 shrink-0 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-500" title="音訊檔案">
+                <Music size={14} />
+            </div>
+        );
+    }
 
     if (!src) {
         return (

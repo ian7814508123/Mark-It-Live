@@ -107,10 +107,12 @@ const EllipsisMenu: React.FC<EllipsisMenuProps> = ({
         };
 
         // 父容器捲動時關閉（capture 確保捕獲所有捲動事件）
-        const handleScroll = () => {
+        const handleScroll = (e: Event) => {
             // 防禦性快閃保護：在開啟後 150 毫秒內，忽略任何滾動事件
             // 這是為了防止因 Portal 渲染、DOM 結構改變或焦點轉移引起的微小滾動觸發秒關（防閃退）
             if (Date.now() - openTimeRef.current < 150) return;
+            // 若滾動發生在選單內部（如資料夾子清單），不關閉選單
+            if (dropdownRef.current?.contains(e.target as Node)) return;
             close();
         };
 

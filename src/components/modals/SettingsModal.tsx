@@ -247,6 +247,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const [logoVariant, setLogoVariant] = useState<'v1' | 'v2'>('v1');
     const version = pkg.version;
 
+    // ─── 外部媒體隱私設定狀態 ──────────────────────────────────────────────
+    const [allowAllExternal, setAllowAllExternal] = useState(false);
+    const [trustedDomains, setTrustedDomains] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            try {
+                const allowAll = localStorage.getItem('markdown-previewer:allow-all-external-media') === 'true';
+                const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
+                setAllowAllExternal(allowAll);
+                setTrustedDomains(trustedStr ? JSON.parse(trustedStr) : []);
+            } catch (e) {
+                console.error('Failed to load external media settings in modal:', e);
+            }
+        }
+    }, [isOpen]);
+
+    const handleToggleAllowAll = (val: boolean) => {
+        setAllowAllExternal(val);
+        localStorage.setItem('markdown-previewer:allow-all-external-media', String(val));
+        window.dispatchEvent(new CustomEvent('external-media-settings-changed'));
+    };
+
+    const handleRemoveTrustedDomain = (domainToRemove: string) => {
+        const nextTrusted = trustedDomains.filter(d => d !== domainToRemove);
+        setTrustedDomains(nextTrusted);
+        localStorage.setItem('markdown-previewer:trusted-domains', JSON.stringify(nextTrusted));
+        window.dispatchEvent(new CustomEvent('external-media-settings-changed'));
+    };
+
     useEffect(() => {
         if (isOpen) {
             setJsonInput(JSON.stringify(currentMacros, null, 4));
@@ -481,6 +511,58 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                 <div className="absolute top-4 right-4 bg-red-50 dark:bg-red-950/80 text-red-600 dark:text-red-400 text-[10px] px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-900/50 flex items-center gap-2 animate-in fade-in duration-300 backdrop-blur-sm">
                                                     <AlertCircle size={12} />
                                                     {error}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* ─── 隱私與外部媒體設定區塊 (Privacy & External Media) ─── */}
+                                    <div className="mt-6 mb-6 p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-4">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary">
+                                                <Zap size={14} />
+                                            </div>
+                                            <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">隱私與外部媒體</p>
+                                        </div>
+
+                                        {/* 全域開關 */}
+                                        <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800/40">
+                                            <div className="space-y-0.5 max-w-[75%]">
+                                                <h5 className="text-[11px] font-bold text-slate-800 dark:text-slate-200">永遠自動載入外部媒體</h5>
+                                                <p className="text-[9px] text-slate-400 dark:text-slate-500 leading-normal">
+                                                    啟用後將直接載入所有的 iframe、影片與音訊。關閉時，系統會在首次載入該網域內容時封鎖並顯示隱私保護提示。
+                                                </p>
+                                            </div>
+                                            <DraggableSwitch
+                                                checked={allowAllExternal}
+                                                onChange={handleToggleAllowAll}
+                                            />
+                                        </div>
+
+                                        {/* 信任網域列表 */}
+                                        <div className="space-y-2 pt-1">
+                                            <h5 className="text-[11px] font-bold text-slate-800 dark:text-slate-200">已信任的外部網域白名單</h5>
+                                            {trustedDomains.length === 0 ? (
+                                                <p className="text-[9px] text-slate-400 dark:text-slate-500 italic pl-1">
+                                                    目前沒有已信任的網域。您可以在預覽中的隱私遮罩上點選「信任此網域」來新增。
+                                                </p>
+                                            ) : (
+                                                <div className="flex flex-wrap gap-2 pt-1 max-h-[100px] overflow-y-auto custom-scrollbar">
+                                                    {trustedDomains.map(domain => (
+                                                        <span
+                                                            key={domain}
+                                                            className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-brand-secondary/50 dark:bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[10px] font-mono font-bold"
+                                                        >
+                                                            {domain}
+                                                            <button
+                                                                onClick={() => handleRemoveTrustedDomain(domain)}
+                                                                className="w-3.5 h-3.5 rounded-full hover:bg-brand-primary/20 flex items-center justify-center transition-colors text-brand-primary/70 hover:text-brand-primary"
+                                                                title={`取消信任 ${domain}`}
+                                                            >
+                                                                <CircleX size={10} />
+                                                            </button>
+                                                        </span>
+                                                    ))}
                                                 </div>
                                             )}
                                         </div>

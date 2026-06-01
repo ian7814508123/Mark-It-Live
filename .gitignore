@@ -135,3 +135,6 @@ dist-ssr
 .vs
 # Google Verification
 public/google*.html
+
+# function/unit test
+tests/*

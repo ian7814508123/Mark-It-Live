@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { MathJax } from 'better-react-mathjax';
 import rehypeRaw from 'rehype-raw';
+import ExternalMediaShield, { extractDomain } from './ExternalMediaShield';
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import SmilesDrawer from 'smiles-drawer';
@@ -366,6 +367,168 @@ const LocalImage: React.FC<LocalImageProps & { getImage: (id: string) => Promise
 
 });
 
+// 將 base64 dataURL 轉換成 Blob 物件，提供高相容性流式播放
+const dataURLtoBlob = (dataUrl: string): Blob => {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || '';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+};
+
+// ─── 本地影片元件：非同步從 IndexedDB 讀取 Data URL 並播放 (按需載入) ──────────────────────
+interface LocalMediaProps {
+    id: string;
+    className?: string;
+    controls?: boolean;
+}
+
+const memoryMediaCache = new Map<string, string>();
+
+const LocalVideo: React.FC<LocalMediaProps & { getImage: (id: string) => Promise<string | null> }> = React.memo(({ id, className, controls = true, getImage }) => {
+    const cached = memoryMediaCache.get(id);
+    const [src, setSrc] = useState<string | null>(cached || null);
+    const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(cached ? 'loaded' : 'loading');
+
+    useEffect(() => {
+        if (cached) {
+            window.dispatchEvent(new CustomEvent('content-layout-ready'));
+            return;
+        }
+
+        let cancelled = false;
+        let objectUrl: string | null = null;
+        setStatus('loading');
+        
+        getImage(id).then(dataUrl => {
+            if (cancelled) return;
+            if (dataUrl) {
+                try {
+                    const blob = dataURLtoBlob(dataUrl);
+                    objectUrl = URL.createObjectURL(blob);
+                    
+                    memoryMediaCache.set(id, objectUrl);
+                    setSrc(objectUrl);
+                    setStatus('loaded');
+                } catch (e) {
+                    console.error('Failed to convert base64 video to blob url:', e);
+                    setStatus('error');
+                }
+            } else {
+                setStatus('error');
+            }
+            window.dispatchEvent(new CustomEvent('content-layout-ready'));
+        }).catch(() => {
+            if (!cancelled) {
+                setStatus('error');
+                window.dispatchEvent(new CustomEvent('content-layout-ready'));
+            }
+        });
+        
+        return () => { 
+            cancelled = true; 
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                memoryMediaCache.delete(id);
+            }
+        };
+    }, [id, getImage, cached]);
+
+    if (status === 'loading') {
+        return (
+            <div className={`flex flex-col items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800/50 w-full min-h-[150px] ${className || ''}`}>
+                <span className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs">
+                    <span className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin inline-block" />
+                    載入影片中…
+                </span>
+            </div>
+        );
+    }
+
+    if (status === 'error' || !src) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-500 text-xs">
+                ⚠️ 影片不存在或已到期: {id}
+            </span>
+        );
+    }
+
+    return (
+        <video src={src} controls={controls} className={className ?? 'w-full max-h-[500px] block'} />
+    );
+});
+
+// ─── 本地音訊元件：非同步從 IndexedDB 讀取 Data URL 並播放 (按需載入) ──────────────────────
+const LocalAudio: React.FC<LocalMediaProps & { getImage: (id: string) => Promise<string | null> }> = React.memo(({ id, className, controls = true, getImage }) => {
+    const cached = memoryMediaCache.get(id);
+    const [src, setSrc] = useState<string | null>(cached || null);
+    const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(cached ? 'loaded' : 'loading');
+
+    useEffect(() => {
+        if (cached) return;
+
+        let cancelled = false;
+        let objectUrl: string | null = null;
+        setStatus('loading');
+        
+        getImage(id).then(dataUrl => {
+            if (cancelled) return;
+            if (dataUrl) {
+                try {
+                    const blob = dataURLtoBlob(dataUrl);
+                    objectUrl = URL.createObjectURL(blob);
+                    
+                    memoryMediaCache.set(id, objectUrl);
+                    setSrc(objectUrl);
+                    setStatus('loaded');
+                } catch (e) {
+                    console.error('Failed to convert base64 audio to blob url:', e);
+                    setStatus('error');
+                }
+            } else {
+                setStatus('error');
+            }
+        }).catch(() => {
+            if (!cancelled) {
+                setStatus('error');
+            }
+        });
+        
+        return () => { 
+            cancelled = true; 
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                memoryMediaCache.delete(id);
+            }
+        };
+    }, [id, getImage, cached]);
+
+    if (status === 'loading') {
+        return (
+            <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs py-2 pl-4">
+                <span className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin inline-block" />
+                載入音訊中…
+            </div>
+        );
+    }
+
+    if (status === 'error' || !src) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-500 text-xs">
+                ⚠️ 音訊不存在或已到期: {id}
+            </span>
+        );
+    }
+
+    return (
+        <audio src={src} controls={controls} className={className ?? 'w-full max-w-2xl'} />
+    );
+});
+
 // ─── 可縮放圖片元件：整合 ResizableWrapper ───────────────────────────────────────────
 interface ResizableImageProps {
     src: string;
@@ -612,6 +775,74 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
     const { getImage } = useImageStorage();
+
+    // ─── 外部媒體隱私安全與授權狀態 ──────────────────────────────────────────────
+    const [temporarilyAllowedUrls, setTemporarilyAllowedUrls] = useState<Set<string>>(new Set());
+    const [trustedDomains, setTrustedDomains] = useState<string[]>([]);
+    const [allowAllExternal, setAllowAllExternal] = useState<boolean>(false);
+
+    const syncExternalMediaSettings = useCallback(() => {
+        try {
+            const allowAll = localStorage.getItem('markdown-previewer:allow-all-external-media') === 'true';
+            const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
+            const trusted = trustedStr ? JSON.parse(trustedStr) : [];
+            setAllowAllExternal(allowAll);
+            setTrustedDomains(Array.isArray(trusted) ? trusted : []);
+        } catch (e) {
+            console.error('Failed to sync external media settings:', e);
+        }
+    }, []);
+
+    useEffect(() => {
+        syncExternalMediaSettings();
+
+        // 監聽外部媒體偏好設定變更的自訂事件
+        window.addEventListener('external-media-settings-changed', syncExternalMediaSettings);
+        return () => {
+            window.removeEventListener('external-media-settings-changed', syncExternalMediaSettings);
+        };
+    }, [syncExternalMediaSettings]);
+
+    const handleAllowOnce = useCallback((url: string) => {
+        setTemporarilyAllowedUrls(prev => {
+            const next = new Set(prev);
+            next.add(url);
+            return next;
+        });
+    }, []);
+
+    const handleTrustDomain = useCallback((domain: string) => {
+        try {
+            const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
+            const currentTrusted = trustedStr ? JSON.parse(trustedStr) : [];
+            const nextTrusted = Array.isArray(currentTrusted) ? [...currentTrusted] : [];
+            
+            if (!nextTrusted.includes(domain)) {
+                nextTrusted.push(domain);
+                localStorage.setItem('markdown-previewer:trusted-domains', JSON.stringify(nextTrusted));
+                setTrustedDomains(nextTrusted);
+                // 通知系統設定與其他預覽實例已更新
+                window.dispatchEvent(new CustomEvent('external-media-settings-changed'));
+            }
+        } catch (e) {
+            console.error('Failed to trust domain:', e);
+        }
+    }, []);
+
+    const shouldBlock = useCallback((url: string) => {
+        if (!url) return false;
+        if (allowAllExternal) return false;
+        if (url.startsWith('img-local://') || url.startsWith('data-local://') || url.startsWith('data:')) return false;
+        if (temporarilyAllowedUrls.has(url)) return false;
+
+        const domain = extractDomain(url);
+        const isTrusted = trustedDomains.some(d => {
+            const trustedLower = d.toLowerCase();
+            return domain === trustedLower || domain.endsWith('.' + trustedLower);
+        });
+
+        return !isTrusted;
+    }, [allowAllExternal, temporarilyAllowedUrls, trustedDomains]);
 
     const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
     // 穩定化 lineComments 參照：避免空物件 {} 每次 render 都是新參照，
@@ -878,7 +1109,156 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 />
             );
         },
-    }), [wrapWithComment, urlTransform]);
+        // ─── 外部媒體解析：支援隱私遮罩、沙箱隔離與延遲載入 ────────────────────────────────────
+        iframe: ({ node, src, ...props }: any) => {
+            if (!src) return null;
+
+            // 🛡️ 安全過濾：僅放行安全加密的 HTTPS 來源
+            if (!src.toLowerCase().startsWith('https://')) {
+                return (
+                    <div className="my-4 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-mono" data-line={node?.position?.start?.line}>
+                        <span className="shrink-0 text-base">⚠️</span>
+                        <span>安全性警告：基於安全性考量，外部嵌入僅支援安全加密的 https:// 來源。已封鎖此內容：{src}</span>
+                    </div>
+                );
+            }
+
+            const blocked = shouldBlock(src);
+
+            if (blocked) {
+                return (
+                    <div className="my-6 w-full" data-line={node?.position?.start?.line}>
+                        <ExternalMediaShield
+                            url={src}
+                            onLoadOnce={() => handleAllowOnce(src)}
+                            onTrustDomain={handleTrustDomain}
+                        />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 my-6 shadow-md bg-slate-50 dark:bg-slate-900/50 group/iframe transition-all duration-300 hover:shadow-lg" data-line={node?.position?.start?.line}>
+                    <iframe
+                        src={src}
+                        className="absolute inset-0 w-full h-full"
+                        frameBorder="0"
+                        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                        loading="lazy"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        {...props}
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 backdrop-blur-sm text-[9px] text-slate-300 font-mono tracking-wider opacity-0 group-hover/iframe:opacity-100 transition-opacity duration-300 pointer-events-none select-none">
+                        SECURE HTTPS EMBED
+                    </div>
+                </div>
+            );
+        },
+        video: ({ node, src, ...props }: any) => {
+            if (!src) return null;
+            const ctx = renderContextRef.current;
+
+            const isLocal = src.startsWith('img-local://');
+            if (isLocal) {
+                const id = src.replace('img-local://', '');
+                return (
+                    <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-black/5 dark:bg-black/20 shadow-md" data-line={node?.position?.start?.line}>
+                        <LocalVideo id={id} getImage={ctx.getImage} />
+                    </div>
+                );
+            }
+
+            if (!src.toLowerCase().startsWith('https://')) {
+                return (
+                    <div className="my-4 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-mono" data-line={node?.position?.start?.line}>
+                        <span className="shrink-0 text-base">⚠️</span>
+                        <span>安全性警告：基於安全性考量，外部影片僅支援安全加密的 https:// 來源。已封鎖此內容：{src}</span>
+                    </div>
+                );
+            }
+
+            const blocked = shouldBlock(src);
+
+            if (blocked) {
+                return (
+                    <div className="my-6 w-full" data-line={node?.position?.start?.line}>
+                        <ExternalMediaShield
+                            url={src}
+                            onLoadOnce={() => handleAllowOnce(src)}
+                            onTrustDomain={handleTrustDomain}
+                        />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-black/5 dark:bg-black/20 shadow-md" data-line={node?.position?.start?.line}>
+                    <video
+                        src={src}
+                        controls
+                        preload="metadata"
+                        className="w-full max-h-[500px] block"
+                        {...props}
+                    >
+                        您的瀏覽器不支援播放此外部 HTTPS 影片。
+                    </video>
+                </div>
+            );
+        },
+        audio: ({ node, src, ...props }: any) => {
+            if (!src) return null;
+            const ctx = renderContextRef.current;
+
+            const isLocal = src.startsWith('img-local://');
+            if (isLocal) {
+                const id = src.replace('img-local://', '');
+                return (
+                    <div className="my-4 w-full flex justify-center py-2" data-line={node?.position?.start?.line}>
+                        <LocalAudio id={id} getImage={ctx.getImage} />
+                    </div>
+                );
+            }
+
+            if (!src.toLowerCase().startsWith('https://')) {
+                return (
+                    <div className="my-4 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-mono" data-line={node?.position?.start?.line}>
+                        <span className="shrink-0 text-base">⚠️</span>
+                        <span>安全性警告：基於安全性考量，外部音訊僅支援安全加密的 https:// 來源。已封鎖此內容：{src}</span>
+                    </div>
+                );
+            }
+
+            const blocked = shouldBlock(src);
+
+            if (blocked) {
+                return (
+                    <div className="my-6 w-full" data-line={node?.position?.start?.line}>
+                        <ExternalMediaShield
+                            url={src}
+                            onLoadOnce={() => handleAllowOnce(src)}
+                            onTrustDomain={handleTrustDomain}
+                        />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="my-4 w-full flex justify-center py-2" data-line={node?.position?.start?.line}>
+                    <audio
+                        src={src}
+                        controls
+                        preload="metadata"
+                        className="w-full max-w-2xl"
+                        {...props}
+                    >
+                        您的瀏覽器不支援播放此外部 HTTPS 音訊。
+                    </audio>
+                </div>
+            );
+        },
+    }), [wrapWithComment, urlTransform, shouldBlock, handleAllowOnce, handleTrustDomain]);
 
     // 監聽圖片載入完成，若有必要可觸發同步刷新
     useEffect(() => {
