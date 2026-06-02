@@ -69,6 +69,9 @@ function GlassRailSelector<T extends string | number>({
     const isDraggingRef = useRef(false);
     const [isPressed, setIsPressed] = useState(false);
 
+    // 新增：紀錄目前滑鼠 Hover 懸停的選項索引
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
     // 內部暫存的拖曳位置百分比（當為 null 時表示處於靜態或已放手吸附）
     const [dragLeftPercent, setDragLeftPercent] = useState<number | null>(null);
     // 用 ref 存儲即時百分比，避免 useEffect 中的事件監聽頻繁重新綁定
@@ -89,6 +92,16 @@ function GlassRailSelector<T extends string | number>({
 
     // 目前渲染使用的 left 百分比（拖曳中用拖曳位置，平時用選中位置）
     const currentLeft = dragLeftPercent !== null ? dragLeftPercent : staticLeftPercent;
+
+    // 當拖曳中，即時計算最靠近的 index；若非拖曳中則為 null
+    const dragIndex = dragLeftPercent !== null && totalOptions > 1
+        ? Math.max(0, Math.min(totalOptions - 1, Math.round((currentLeft / maxLeftPercent) * (totalOptions - 1))))
+        : null;
+
+    // 目前正在接近（即將高亮）的選項索引：拖曳中的 index 優先，再來是滑鼠 hover 懸停的 index，最後才是當前實際選中的 activeIndex
+    const approachingIndex = dragIndex !== null
+        ? dragIndex
+        : (hoveredIndex !== null ? hoveredIndex : activeIndex);
 
     /** 根據滑鼠 X 座標，計算滑塊應該在的百分比位置（讓滑塊中心對齊游標） */
     const getLeftPercentByX = (clientX: number) => {
@@ -159,52 +172,73 @@ function GlassRailSelector<T extends string | number>({
                 dragLeftPercentRef.current = startLeft;
                 setDragLeftPercent(startLeft);
             }}
-            style={{ userSelect: 'none', cursor: 'pointer' }}
+            style={{ userSelect: 'none', cursor: 'pointer', perspective: 1000, transformStyle: 'preserve-3d' }}
             className={[
                 // 軌道：磨砂玻璃底板
                 'relative flex rounded-2xl p-1 select-none',
-                'bg-slate-100/30 dark:bg-slate-950/20',
-                'border border-white/40 dark:border-white/10',
+                'bg-transparent dark:bg-slate-900',
+                'border border-black/10 dark:border-white/10',
                 'backdrop-blur-md',
                 className,
             ].join(' ')}
         >
-            <div className="relative flex w-full h-full">
-                {/* 玻璃滑塊：用 animate 驅動 spring 位移 */}
+            <div className="relative flex w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
+                {/* 玻璃滑塊定位外層 */}
                 <motion.div
-                    className="absolute top-0 bottom-0 px-1 py-0.5 rounded-xl pointer-events-none z-0"
+                    className="absolute top-0 bottom-0 px-1 py-0.5 pointer-events-none z-0"
                     animate={{ left: `${currentLeft}%` }}
-                    style={{ width: `${sliderWidthPercent}%` }}
+                    style={{ width: `${sliderWidthPercent}%`, transformStyle: 'preserve-3d' }}
                     transition={
                         dragLeftPercent !== null
-                            ? { duration: 0 } // 拖曳中：0 秒過渡，100% 即時跟手，無任何延遲
-                            : { type: 'spring', stiffness: 420, damping: 30, mass: 0.8 } // 放手吸附：Apple 風格彈性回彈
+                            ? { duration: 0 }
+                            : { type: 'spring', stiffness: 420, damping: 30, mass: 0.8 }
                     }
                 >
-                    {/* 玻璃質感：模擬 Apple Liquid Glass 的多層光影 */}
-                    <div className={`
-                        w-full h-full rounded-xl transition-all duration-300
-                        bg-white/85 dark:bg-white/10 
-                        backdrop-blur-xl
-                        border border-white/60 dark:border-white/25
-                        ring-1 ring-inset ring-white/50 dark:ring-white/10
-                        ${isPressed
-                            ? 'shadow-[0_8px_20px_-4px_rgba(0,0,0,0.15),0_0_0_1px_rgba(0,0,0,0.02)] scale-[0.98]'
-                            : 'shadow-[0_2px_4px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.01)] scale-100'
-                        }
-                    `} />
+                    {/* 玻璃質感滑塊本體：負責 3D 浮起與縮放，使用 framer-motion 來獲得彈簧過衝效果 */}
+                    <motion.div
+                        className="relative w-full h-full rounded-xl"
+                        animate={{
+                            scale: isPressed ? 1.12 : 1.0,
+                            // 利用 translateZ 來產生 3D 位移，這需要父容器有 perspective
+                            z: isPressed ? 15 : 0,
+                            rotateX: isPressed ? -2 : 0, // 微小的俯仰角，增強 3D 光影變化
+                            boxShadow: isPressed
+                                ? '0 8px 16px -4px rgba(0,0,0,0.12),0 2px 6px - 1px rgba(0, 0, 0, 0.05),inset 0 0 0 1px rgba(255,255,255,0.4),inset 0 -3px 6px -1px rgba(0,0,0,0.04)'
+                                : '0 2px 4px -1px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.01)',
+                        }}
+                        transition={{
+                            type: 'spring',
+                            stiffness: 350,
+                            damping: 18,
+                            mass: 0.8
+                        }}
+                        style={{
+                            transformStyle: 'preserve-3d',
+                        }}
+                    >
+                        {/* 1. 材質底層 (霧面 vs 玻璃) */}
+                        {/* 平時：高不透明度霧面 (bg-white/90)。拿起來：低不透明度 + 高強度模糊 (bg-white/30 + blur) */}
+                        <div className={`absolute inset-0 rounded-xl transition-all duration-300 
+                            ${isPressed
+                                ? 'bg-white/20 border-slate-100/20 dark:bg-white/10 '
+                                : 'bg-slate-100/80 dark:bg-slate-700/60'
+                            }
+                        `} />
+                    </motion.div>
                 </motion.div>
 
                 {/* 選項文字層 */}
-                {options.map((opt) => {
-                    const isActive = opt.value === value;
+                {options.map((opt, idx) => {
+                    const isHighlighted = idx === approachingIndex;
                     return (
                         <div
                             key={String(opt.value)}
-                            className="relative z-10 flex-1 flex flex-col items-center justify-center py-2 px-1 gap-0.5"
+                            className="relative z-10 flex-1 flex flex-col items-center justify-center py-2 px-1 gap-0.5 cursor-pointer"
+                            onMouseEnter={() => setHoveredIndex(idx)}
+                            onMouseLeave={() => setHoveredIndex(null)}
                         >
                             {opt.icon && (
-                                <span className={`transition-colors duration-200 ${isActive
+                                <span className={`transition-colors duration-200 ${isHighlighted
                                     ? 'text-brand-primary'
                                     : 'text-slate-400 dark:text-slate-500'
                                     }`}>
@@ -213,7 +247,7 @@ function GlassRailSelector<T extends string | number>({
                             )}
                             <span className={[
                                 'text-xs font-black tracking-wide leading-none transition-colors duration-200',
-                                isActive
+                                isHighlighted
                                     ? 'text-brand-primary'
                                     : 'text-slate-500 dark:text-slate-400',
                             ].join(' ')}>
@@ -222,7 +256,7 @@ function GlassRailSelector<T extends string | number>({
                             {opt.hint && (
                                 <span className={[
                                     'text-[9px] font-medium leading-none transition-colors duration-200',
-                                    isActive
+                                    isHighlighted
                                         ? 'text-brand-primary/60'
                                         : 'text-slate-400 dark:text-slate-500',
                                 ].join(' ')}>
@@ -233,7 +267,7 @@ function GlassRailSelector<T extends string | number>({
                     );
                 })}
             </div>
-        </div>
+        </div >
     );
 }
 
