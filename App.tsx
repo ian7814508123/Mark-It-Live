@@ -1025,6 +1025,8 @@ const App: React.FC = () => {
       @media print {
         @page { size: ${paperSize} ${orientation}; margin: ${marginMap[margin] ?? '1.5cm'}; }
         header, footer, aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
+        /* 靜默遮罩不應被列印 */
+        #app-print-mask { display: none !important; }
         .preview-panel { 
           overflow: visible !important; 
           width: 100% !important; 
@@ -1052,6 +1054,24 @@ const App: React.FC = () => {
       clearTimeout(printTimeoutRef.current);
     }
 
+    // ── 靜默遮罩：在移除 .dark 之前，先以不透明遮罩蓋住整個畫面，
+    //    讓底下的「深色→淺色」重繪過程對使用者完全不可見。
+    const mask = document.createElement('div');
+    mask.id = 'app-print-mask';
+    // 使用 background-color 而非 backdrop-filter，確保完全遮蔽且不影響列印
+    Object.assign(mask.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '2147483647',           // 最大 z-index，壓過所有 UI
+      backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', // 匹配當前背景色，視覺無縫
+      opacity: '1',
+      pointerEvents: 'none',          // 不阻擋後續 window.print() 的焦點事件
+      transition: 'none',             // 遮罩出現必須是瞬間的，不能有動畫
+    });
+    // 告知列印器忽略此遮罩元素
+    mask.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(mask);
+
     // 列印時防禦性地臨時移除 .dark，防止深色模式的主題變數在列印時被匹配並渲染
     if (isDarkMode) {
       document.documentElement.classList.remove('dark');
@@ -1073,17 +1093,25 @@ const App: React.FC = () => {
       document.title = prevTitle;
       setIsPrinting(false);
 
-      // 列印結束後恢復深色模式
+      // 列印結束後恢復深色模式（此時遮罩仍在，使用者看不到切換過程）
       if (isDarkMode) {
         document.documentElement.classList.add('dark');
       }
 
       document.getElementById('app-print-override')?.remove();
       printTimeoutRef.current = null;
+
+      // 深色模式已恢復後，以短淡出移除遮罩（視覺更柔和）
+      const removeMask = document.getElementById('app-print-mask');
+      if (removeMask) {
+        removeMask.style.transition = 'opacity 2000ms ease';
+        removeMask.style.opacity = '0';
+        setTimeout(() => removeMask.remove(), 2000);
+      }
     };
 
-    // 使用安全延遲 (1200ms) 以讓 DOM 重組並完成淺色主題與圖表非同步渲染，百分百防死鎖
-    printTimeoutRef.current = setTimeout(finalizePrint, 1200);
+    // 使用安全延遲 (1000~1200ms) 以讓 DOM 重組並完成淺色主題與圖表非同步渲染，百分百防死鎖
+    printTimeoutRef.current = setTimeout(finalizePrint, 1000);
   }, [mode, settings.printSettings, isDarkMode, documents, folders, currentDocument]);
 
   // 取消列印的受控回呼
@@ -1100,6 +1128,14 @@ const App: React.FC = () => {
     }
 
     document.getElementById('app-print-override')?.remove();
+
+    // 取消時同步移除靜默遮罩
+    const mask = document.getElementById('app-print-mask');
+    if (mask) {
+      mask.style.transition = 'opacity 150ms ease';
+      mask.style.opacity = '0';
+      setTimeout(() => mask.remove(), 160);
+    }
   }, [isDarkMode]);
 
   // 攔截 Ctrl + P (原生列印捷徑)
