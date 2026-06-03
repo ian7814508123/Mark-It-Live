@@ -262,23 +262,19 @@ const WordCountTool: React.FC<WordCountToolProps> = ({ currentDocContent }) => {
                         </div>
                     </div>
                 </div>
-
-                {/* ── 模式切換 Tab ── */}
-                <div className="px-1 py-0.5 text-center overflow-hidden [&_*]:whitespace-nowrap">
-                    <GlassRailSelector
-                        options={[
-                            { label: '目前文檔', value: 'current-doc', icon: <FileText size={14} /> },
-                            { label: '貼上文字', value: 'paste', icon: <ClipboardPaste size={14} /> },
-                        ]}
-                        value={mode}
-                        onChange={(v) => setMode(v as 'current-doc' | 'paste')}
-                    />
-                </div>
             </div>
 
             {/* ── 中間可滾動內容區 ── */}
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1.5 space-y-3 min-h-0">
                 {/* ── 模式說明 / 輸入區 ── */}
+                <GlassRailSelector
+                    options={[
+                        { label: '目前文檔', value: 'current-doc', icon: <FileText size={14} /> },
+                        { label: '貼上文字', value: 'paste', icon: <ClipboardPaste size={14} /> },
+                    ]}
+                    value={mode}
+                    onChange={(v) => setMode(v as 'current-doc' | 'paste')}
+                />
                 {mode === 'current-doc' ? (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-brand-secondary dark:bg-brand-primary/15 border border-brand-primary/20 dark:border-brand-primary/40">
                         <FileText size={13} className="text-brand-primary shrink-0" />

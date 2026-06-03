@@ -71,7 +71,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
 
     return (
         <section
-            className="flex-1 min-w-0 lg:min-w-0 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20 shadow-xl transition-colors duration-200 print:hidden"
+            className="flex-1 min-w-0 lg:min-w-0 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20  transition-colors duration-200 print:hidden"
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
@@ -107,11 +107,11 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                                     className={`
                                         flex items-center gap-1 px-3 text-[10px] font-medium cursor-pointer transition-all relative group
                                         ${isActive
-                                            ? 'bg-white dark:bg-slate-900 text-brand-primary rounded-t-xl shadow-[0_-4px_12px_rgba(0,0,0,0.05)] z-20 flex-[3_3_0%] min-w-[60px] h-9 mb-[-1px] mx-0.5'
-                                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/90 rounded-lg flex-1 min-w-[35px] h-7 mb-[3px] mx-1'
+                                            ? 'bg-white dark:bg-slate-900 text-brand-primary rounded-t-xl z-20 flex-[3_3_0%] min-w-[60px] h-9 mb-[0px] mx-0.5'
+                                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/90 rounded-lg flex-1 min-w-[30px] h-7 mb-[4px] mx-1'
                                         }
                                     `}
-                                    style={{ maxWidth: '170px' }}
+                                    style={{ maxWidth: '150px' }}
                                     title={doc.name}
                                 >
                                     {/* 垂直分隔線 */}

@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
     base,
     server: {
       port: 3000,
-      host: "0.0.0.0"
+      //host: "0.0.0.0"
     },
     plugins: [
       react(),
@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
           const verifyId = fromLoadEnv || fromProcessEnv;
 
           // Debug：確認環境變數注入狀況
-          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv  ? `"${fromLoadEnv}"` : '(empty)');
+          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv ? `"${fromLoadEnv}"` : '(empty)');
           console.log('[google-verify] process.env.VITE_GOOGLE_VERIFY_ID =', fromProcessEnv ? `"${fromProcessEnv}"` : '(empty)');
 
           if (verifyId) {

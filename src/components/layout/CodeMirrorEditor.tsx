@@ -136,26 +136,28 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         stickyHeadersRef.current = stickyHeaders;
     }, [stickyHeaders]);
 
-    // ─── 偵測 CM gutter 實際寬度與 scroller 捲軸寬度，透過 CSS variable 傳給 panel DOM ────────────
-    // 確保 sticky bar 左側 gutter 欄與行號欄完美對齊，且右側避開垂直捲軸避免其被遮擋
+    // ─── 測量 CodeMirror 的實際邊界與捲軸寬度，並動態設定為 CSS 變數 ───
+    const measure = useCallback(() => {
+        if (!wrapperRef.current) return;
+        const el = wrapperRef.current.querySelector('.cm-gutters') as HTMLElement | null;
+        if (el) {
+            wrapperRef.current.style.setProperty('--gutter-w', el.offsetWidth + 'px');
+        }
+        const scroller = wrapperRef.current.querySelector('.cm-scroller') as HTMLElement | null;
+        if (scroller) {
+            const scrollbarW = scroller.offsetWidth - scroller.clientWidth;
+            wrapperRef.current.style.setProperty('--scrollbar-w', scrollbarW + 'px');
+        }
+    }, []);
+
+    // 監聽容器大小變化，確保在視窗或外層容器 Resize 時仍能正確測量
     useEffect(() => {
         if (!wrapperRef.current) return;
-        const measure = () => {
-            const el = wrapperRef.current?.querySelector('.cm-gutters') as HTMLElement | null;
-            if (el) {
-                wrapperRef.current!.style.setProperty('--gutter-w', el.offsetWidth + 'px');
-            }
-            const scroller = wrapperRef.current?.querySelector('.cm-scroller') as HTMLElement | null;
-            if (scroller) {
-                const scrollbarW = scroller.offsetWidth - scroller.clientWidth;
-                wrapperRef.current!.style.setProperty('--scrollbar-w', scrollbarW + 'px');
-            }
-        };
         measure();
         const obs = new ResizeObserver(measure);
         obs.observe(wrapperRef.current);
         return () => obs.disconnect();
-    }, [mode]);
+    }, [mode, measure]);
 
     // 當 stickyHeaders 改變時，自動向右滾動 scrollWrapper 以聚焦最新標題
     useEffect(() => {
@@ -199,8 +201,14 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         EditorView.domEventHandlers({
             scroll: (event) => { if (onScroll) onScroll(event); }
         }),
+        // 核心：透過 CodeMirror 的更新監聽器 (updateListener) 捕捉 DOM 重建與 geometry 改變，即時同步 gutter 寬度
+        EditorView.updateListener.of((update) => {
+            if (update.geometryChanged || update.docChanged || update.viewportChanged) {
+                measure();
+            }
+        }),
         ...stickyExtension,
-    ], [mode, onScroll, ariaLabel, stickyExtension]);
+    ], [mode, onScroll, ariaLabel, stickyExtension, measure]);
 
     const theme = isDarkMode ? vscodeDark : vscodeLight;
     const handleChange = useCallback((value: string) => setCode(value), [setCode]);
@@ -272,6 +280,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                         alignItems: 'center',
                         overflow: 'hidden',
                         height: '22px',
+                        fontSize: '11px',
                         background: 'var(--sg-bg)',
                         borderBottom: '1px solid var(--sg-border)',
                         boxShadow: '0px 0px 0px rgba(0,0,0,0.12)',
@@ -286,11 +295,11 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                             height: '100%',
                             background: 'var(--sg-gutter)',
                             borderRight: '0px solid var(--sg-border)',
-                            marginRight: '5px',
+                            marginRight: '4px',
                         }}
                     />
 
-                    {/* 滾動包裹器，隱藏滾動條且套用右側漸層遮罩 */}
+                    {/* 滾動包裹器，隱藏捲軸且套用右側漸層遮罩 */}
                     <div
                         ref={scrollWrapperRef}
                         className="cm-sticky-scroll-wrapper"
@@ -303,7 +312,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                             overflowY: 'hidden',
                             whiteSpace: 'nowrap',
                             scrollBehavior: 'smooth',
-                            paddingRight: '16px',
+                            paddingRight: '12px',
                             maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
                             WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
                         }}
@@ -333,7 +342,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                             style={{
                                                 color: 'var(--sg-muted)',
                                                 padding: '0 4px',
-                                                fontSize: '12px',
+                                                fontSize: '11px',
                                                 lineHeight: '22px',
                                                 cursor: 'default',
                                                 userSelect: 'none',
@@ -357,7 +366,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                             <span
                                                 style={{
                                                     color: 'var(--sg-sep)',
-                                                    padding: '0 3px',
+                                                    padding: '0 1px',
                                                     flexShrink: 0,
                                                     lineHeight: '22px',
                                                 }}
@@ -382,7 +391,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     letterSpacing: '-0.02em',
-                                                    marginRight: '2px',
+                                                    marginRight: '1px',
                                                 }}
                                             >
                                                 {'#'.repeat(headerNode.level)}

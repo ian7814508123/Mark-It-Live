@@ -269,12 +269,12 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 `}
             >
                 {/* 標題列 (高度與主 Header 貼齊) */}
-                <div className="flex items-center justify-between px-6 h-16 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="flex items-center justify-between px-6 h-15 p-1.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-2">
                         <Files size={25} className="text-brand-primary opacity-80" />
                         <h2 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">我的文檔</h2>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                         <MagneticButton
                             variant="icon"
                             onClick={() => {
@@ -332,7 +332,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                             <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">建立檔案或資料夾開始</p>
                         </div>
                     ) : (
-                        <div className="py-2 space-y-4">
+                        <div className="py-1 space-y-4">
                             {/* 資料夾區域 (資料夾) */}
                             {folders.length > 0 && (
                                 <div className="space-y-1">
@@ -504,33 +504,26 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
                 {/* 底部按鈕與統計區域 */}
                 <div className="mt-auto border-t border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
-                    <button
-                        onClick={() => setIsToolsOpen(true)}
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-brand-primary transition-colors group"
-                    >
-                        <Wrench size={14} className="text-slate-400 group-hover:text-brand-primary transition-colors" />
-                        <span className="text-xs font-bold tracking-wide">更多工具</span>
-                    </button>
 
-                    <div className="px-4 py-3 bg-slate-50/50 dark:bg-slate-800/50">
+                    <div className="px-4 py-2">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex-1 text-center">
-                                <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold mb-0.5">文檔數</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{documents.length} / 50</p>
+                                <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold mb-1">文檔數 <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{documents.length} / 50</span></p>
+                                <div
+                                    className={`h-1 transition-all duration-500 ${storageUsage > 80 ? 'bg-red-500' : storageUsage > 50 ? 'bg-amber-500' : 'bg-brand-primary'} overflow-hidden mb-1`}
+                                    style={{ width: `${storageUsage}%` }}
+                                />
                             </div>
                             <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
-                            <div className="flex-1 text-center">
-                                <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold mb-0.5">預存空間</p>
-                                <div className="flex flex-col items-center">
-                                    <div className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-1">
-                                        <div
-                                            className={`h-full transition-all duration-500 ${storageUsage > 80 ? 'bg-red-500' : storageUsage > 50 ? 'bg-amber-500' : 'bg-brand-primary'}`}
-                                            style={{ width: `${storageUsage}%` }}
-                                        />
-                                    </div>
-                                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">{storageUsage}%</p>
-                                </div>
-                            </div>
+                            <button
+                                onClick={() => setIsToolsOpen(true)}
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-brand-primary hover:bg-slate-50/100 dark:hover:bg-slate-800/50 rounded-full transition-colors group"
+                                aria-label='More tools'
+                                title='更多工具'
+                            >
+                                <Wrench size={14} className="text-slate-400 group-hover:text-brand-primary transition-colors" />
+                                <span className="text-xs font-bold tracking-wide">更多工具</span>
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1162,13 +1162,22 @@
         transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
+    .cm-sticky-scroll-wrapper {
+        /* 隱藏原生捲軸*/
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    .cm-sticky-scroll-wrapper::-webkit-scrollbar {
+        display: none !important; 
+    }
+
     .cm-sticky-scroll-btn {
         background: none;
         border: none;
         padding: 0 2px;
         margin: 0;
         font: inherit;
-        font-size: 12px;
+        font-size: 11px; /* 從 12px 調降至 11px 以防止在 22px 高度下被截斷 */
         line-height: 22px;
         cursor: pointer;
         white-space: nowrap;
