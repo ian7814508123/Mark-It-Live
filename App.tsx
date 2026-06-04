@@ -369,8 +369,8 @@ const App: React.FC = () => {
     if (documents.length === 0 && defaultContents && !isLoadingDefaults && !isLoading) {
       // 第一個建立的文檔會預設成為啟用的文檔（因為 IndexedDB 寫入順序或 createDocument 實作）
       // 使用 basic 與 flowchart 取代原本的標準版，大幅降低首屏的元件複雜度（不含 MathJax/進階 Mermaid 等），以提升 Lighthouse 首屏分數
-      createDocument('markdown', defaultContents.markdown['basic'], '標記掉落 入門指南', null, 'basic');
-      createDocument('mermaid', defaultContents.mermaid['flowchart'], '美人魚 入門指南', null, 'flowchart');
+      createDocument('markdown', defaultContents.markdown['basic'], '標記掉落 入門指南', null, 'basic', undefined, false);
+      createDocument('mermaid', defaultContents.mermaid['flowchart'], '美人魚 入門指南', null, 'flowchart', undefined, false);
     }
   }, [documents.length, createDocument, defaultContents, isLoadingDefaults, isLoading]);
 

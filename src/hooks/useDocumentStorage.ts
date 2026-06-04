@@ -109,7 +109,8 @@ export function useDocumentStorage() {
         name?: string,
         folderId: string | null = null,
         templateId: string | null = null,
-        icon?: string
+        icon?: string,
+        setActive: boolean = true
     ) => {
         const id = generateId();
 
@@ -160,11 +161,14 @@ export function useDocumentStorage() {
             idbPutDocument(newDoc).catch(err =>
                 console.error('[useDocumentStorage] createDocument 持久化失敗:', err)
             );
-            idbSetMeta('currentDocId', id).catch(() => {});
+            
+            if (setActive) {
+                idbSetMeta('currentDocId', id).catch(() => {});
+            }
 
             return {
                 ...prev,
-                currentDocId: id,
+                currentDocId: setActive ? id : prev.currentDocId,
                 documents: [...prev.documents, newDoc],
             };
         });
