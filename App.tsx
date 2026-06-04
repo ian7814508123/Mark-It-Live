@@ -12,7 +12,6 @@ import SettingsModal from './src/components/modals/SettingsModal';
 import SEOContent from './src/components/markdown/SEOContent';
 import Footer from './src/components/layout/Footer';
 import IntroModal from './src/components/modals/IntroModal';
-import InteractiveLogo from './src/components/ui/InteractiveLogo';
 import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
 import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollTop } from './src/utils';

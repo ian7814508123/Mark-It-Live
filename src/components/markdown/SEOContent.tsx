@@ -2,251 +2,184 @@ import React from 'react';
 
 /**
  * SEO Accessibility Content Component
- * 
- * 這個隱藏的內容區域專為搜尋引擎爬蟲和螢幕閱讀器設計。
- * 它提供豐富的文字描述，幫助 Google 理解應用程式的功能和內容。
- * 
- * 對於單頁應用(SPA)特別重要，因為 JavaScript 加載前爬蟲主要看這裡。
+ *
+ * 這個隱藏的內容區域專為搜尋引擎爬蟲 (Googlebot) 和螢幕閱讀器設計。
  */
 const SEOContent: React.FC = () => {
   return (
     <div className="sr-only" role="main" aria-label="Markdown 編輯器主要區域">
-      <h1>Markdown Live Previewer - 專業在線 Markdown 編輯器與圖表工具</h1>
 
-      <h2>關於 Markdown Live Previewer</h2>
+      {/* ── 全頁唯一 H1 ──────────────────────────────────────────────────────
+          核心關鍵字自然融入，同時兼顧 Google 判斷頁面主題的準確性。
+          English title is handled as H2 below to maintain single-H1 rule.
+          ────────────────────────────────────────────────────────────────── */}
+      <h1>Markdown Live Previewer — 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表與 LaTeX 公式</h1>
+
+      {/* ==========================================
+          CHINESE SEO CONTENT (中文 SEO 關鍵字最佳化)
+          ========================================== */}
+
       <p>
-        Markdown Live Previewer 是一款功能完整的在線 Markdown 編輯器，提供實時預覽、
-        多種導出格式支持以及進階編輯功能。該應用程式完全運行在瀏覽器端，無需上傳到雲端，
-        確保用戶數據隱私和安全。
+        歡迎使用 Markdown Live Previewer，這是一款功能強大的<strong>免費線上 Markdown 編輯器</strong>。
+        我們提供最流暢的<strong>Markdown 即時預覽</strong>與<strong>線上預覽</strong>服務，
+        無須安裝任何軟體或擴充功能，打開瀏覽器即可開始寫作。
+        本工具注重您的數據隱私，所有編輯、渲染與導出操作皆在本地端完成，無須上傳雲端，是您最安全的線上 Markdown 編輯工具。
       </p>
 
-      <h2>核心功能模塊</h2>
-
-      <h3>1. Markdown 編輯與預覽</h3>
-      <ul>
-        <li>實時同步滾動預覽 - 在編輯 Markdown 時實時看到渲染結果</li>
-        <li>支持完整的 GFM (GitHub Flavored Markdown) 語法</li>
-        <li>代碼高亮顯示 - 支持多種程式語言語法著色</li>
-        <li>表格支持 - 輕松創建和格式化 Markdown 表格</li>
-        <li>任務列表 - 支持可交互的任務追蹤列表</li>
-      </ul>
-
-      <h3>2. Mermaid 圖表渲染</h3>
-      <p>支持以下 Mermaid 圖表類型：</p>
-      <ul>
-        <li>流程圖 (Flowchart) - 描述業務流程和工作流</li>
-        <li>時序圖 (Sequence Diagram) - 展示系統交互和消息順序</li>
-        <li>甘特圖 (Gantt Chart) - 項目時間表和里程碑規劃</li>
-        <li>類圖 (Class Diagram) - 面向對象的結構設計</li>
-        <li>狀態圖 (State Diagram) - 系統狀態和轉換</li>
-        <li>實體關係圖 (ER Diagram) - 數據庫架構設計</li>
-        <li>用戶旅程圖 (User Journey) - 用戶行為路徑分析</li>
-      </ul>
-      <p>所有圖表支持多種主題切換，包括默認、中立、深色和森林主題。</p>
-
-      <h3>3. LaTeX 數學公式與科學符號</h3>
-      <ul>
-        <li>行內數學公式 - 在文本中嵌入數學表達式</li>
-        <li>塊級數學公式 - 獨立行展示複雜公式</li>
-        <li>化學符號支持 - 使用 SMILES 表示法表示化學結構</li>
-        <li>高級數學符號 - 支持 AMS 和 HTML 數學擴展包</li>
-        <li>自訂巨集 - 用戶可定義自訂 LaTeX 巨集</li>
-      </ul>
-
-      <h3>4. Vega-Lite 數據可視化</h3>
-      <ul>
-        <li>交互式圖表 - 創建響應式和可交互的數據可視化</li>
-        <li>多種圖表類型 - 柱狀圖、折線圖、散點圖、熱力圖等</li>
-        <li>數據轉換 - 在圖表中直接轉換和聚合數據</li>
-        <li>主題定制 - 根據需要自訂圖表外觀</li>
-      </ul>
-
-      <h3>5. WikiLinks 雙向連結</h3>
-      <ul>
-        <li>雙向連結支持 - 使用 [[文檔名]] 語法創建文檔間連結</li>
-        <li>自動創建文檔 - 連結不存在的文檔時自動創建</li>
-        <li>反向連接追蹤 - 查看哪些文檔連結到當前文檔</li>
-        <li>知識圖譜 - 構建個人或團隊知識庫</li>
-      </ul>
-
-      <h2>文件導出與轉換</h2>
-      <p>Markdown Live Previewer 支持多種導出格式：</p>
-      <ul>
-        <li>PDF 導出 - 高質量的便攜式文檔格式，完美用於打印和分享</li>
-        <li>PNG 導出 - 光柵圖像格式，適合網絡發布和演示</li>
-        <li>SVG 導出 - 矢量圖形格式，支持無損縮放</li>
-        <li>JPG 導出 - 壓縮圖像格式，文件大小較小</li>
-        <li>Markdown 導出 - 原始 Markdown 格式，便於版本控制</li>
-      </ul>
-
-      <h2>進階工具與功能</h2>
-
-      <h3>PDF 管理工具</h3>
-      <ul>
-        <li>PDF 合併 - 將多個 PDF 文件合併為一個</li>
-        <li>頁面重新排序 - 調整 PDF 頁面順序</li>
-        <li>內建 PDF 查看器 - 直接在應用中查看和管理 PDF</li>
-      </ul>
-
-      <h3>Excel 到 Markdown 轉換</h3>
-      <ul>
-        <li>表格導入 - 將 Excel 文件轉換為 Markdown 表格</li>
-        <li>格式保留 - 自動保留單元格格式和內容</li>
-        <li>快速編輯 - 轉換後可直接在編輯器中修改</li>
-      </ul>
-
-      <h3>圖片上傳與優化</h3>
-      <ul>
-        <li>本地上傳 - 從計算機上傳圖片文件</li>
-        <li>自動優化 - 智能壓縮和轉換圖片格式</li>
-        <li>嵌入支持 - 將圖片嵌入到 Markdown 文檔中</li>
-        <li>隱私保護 - 所有圖片處理都在本地進行</li>
-      </ul>
-
-      <h3>字數統計與分析</h3>
-      <ul>
-        <li>實時統計 - 顯示字數、單詞數、行數、段落數</li>
-        <li>深度分析 - 不同語言的字數計算支持</li>
-        <li>讀取時間估計 - 根據內容估計閱讀時間</li>
-      </ul>
-
-      <h2>編輯器特性</h2>
-      <ul>
-        <li>代碼鏡像編輯器 - 基於 CodeMirror 6 的專業編輯體驗</li>
-        <li>標籤式編輯 - 同時打開並編輯多個文檔</li>
-        <li>文檔分組 - 使用資料夾組織和管理文檔</li>
-        <li>本地存儲 - 使用瀏覽器 IndexedDB 持久化存儲</li>
-        <li>歷史記錄 - 查看和回復文檔編輯歷史</li>
-        <li>快捷鍵支持 - 提高編輯效率的鍵盤快捷鍵</li>
-      </ul>
-
-      <h2>用戶界面與體驗</h2>
-      <ul>
-        <li>深色模式 - 支持淺色和深色主題，保護視力</li>
-        <li>響應式設計 - 完美適配桌面、平板和手機</li>
-        <li>直覺式界面 - 易於使用的用戶界面，最小化學習曲線</li>
-        <li>快捷操作 - 常用功能的快速訪問按鈕</li>
-        <li>拖放支持 - 直觀的拖放交互體驗</li>
-      </ul>
-
-      <h2>數據安全與隱私</h2>
-      <ul>
-        <li>完全本地運行 - 所有處理都在瀏覽器中完成，無服務器上傳</li>
-        <li>無雲存儲 - 數據完全存儲在本地設備，不依賴云服務</li>
-        <li>隱私優先 - 不收集用戶信息或分析數據</li>
-        <li>開源代碼 - 源代碼公開透明，社區可審計</li>
-        <li>無廣告追蹤 - 不使用第三方跟蹤或分析</li>
-      </ul>
-
-      <h2>適用場景與用戶</h2>
-
-      <h3>軟件開發者與技術寫手</h3>
-      <p>編寫技術文檔、API 文檔、README 文件、項目設計文檔等。</p>
-
-      <h3>學生與教育工作者</h3>
-      <p>筆記記錄、論文撰寫、研究文檔、教學材料準備。</p>
-
-      <h3>博客作者與內容創作者</h3>
-      <p>文章撰寫、內容規劃、發布前預覽、多格式導出。</p>
-
-      <h3>數據分析師與業務人士</h3>
-      <p>數據報告生成、業務分析文檔、演示文稿準備。</p>
-
-      <h3>產品經理與項目經理</h3>
-      <p>需求文檔、項目規劃、時間表管理、決策文檔。</p>
-
-      <h3>設計師與 UX 專家</h3>
-      <p>設計稿描述、用戶流程文檔、標註和評論。</p>
-
-      <h3>研究人員與學術界</h3>
-      <p>研究筆記、論文初稿、數學公式撰寫、圖表繪製。</p>
-
-      <h2>技術架構與框架</h2>
-      <ul>
-        <li>構建技術 - 使用 Vite 進行快速構建和開發</li>
-        <li>前端框架 - React 18 及現代 JavaScript/TypeScript</li>
-        <li>編輯器 - CodeMirror 6 提供強大的代碼編輯功能</li>
-        <li>圖表渲染 - Mermaid.js 用於 UML 和流程圖</li>
-        <li>數學公式 - MathJax 4 支持 LaTeX 和化學符號</li>
-        <li>數據可視化 - Vega-Lite 用於互動式圖表</li>
-        <li>樣式系統 - Tailwind CSS 提供現代化設計</li>
-        <li>存儲方案 - IndexedDB 用於大容量本地存儲</li>
-      </ul>
-
-      <h2>支持的輸入格式</h2>
-      <ul>
-        <li>Markdown (.md) - 標準 Markdown 文件格式</li>
-        <li>Mermaid (.mmd) - 圖表定義文件</li>
-        <li>文本文件 (.txt) - 純文本格式</li>
-        <li>Excel 文件 (.xlsx, .csv) - 表格數據轉換</li>
-        <li>圖片格式 (.jpg, .png, .svg, .gif) - 圖片上傳和優化</li>
-        <li>PDF 文件 - PDF 查看和合併</li>
-      </ul>
-
-      <h2>支持的輸出格式</h2>
-      <ul>
-        <li>PDF Document - 可打印的高質量文檔</li>
-        <li>PNG Image - 便於共享的光柵圖像</li>
-        <li>SVG Vector - 無損縮放的矢量圖形</li>
-        <li>JPG Image - 壓縮的圖像格式</li>
-        <li>Markdown File - 原始 Markdown 文本</li>
-      </ul>
-
-      <h2>主題和自訂選項</h2>
-      <ul>
-        <li>編輯器主題 - 支持多種顏色方案（深色、淺色等）</li>
-        <li>圖表主題 - Default、Neutral、Dark、Forest 四種主題</li>
-        <li>字體選擇 - 代碼編輯區支持等寬字體</li>
-        <li>排版設置 - 自訂行高、縮進、字號等</li>
-        <li>打印設置 - 紙張大小、方向、邊距等打印參數</li>
-      </ul>
-
-      <h2>免費與開源</h2>
+      {/* H2：融入「線上 Markdown 工具」關鍵字群，提升該主題的搜尋能見度 */}
+      <h2>線上 Markdown 編輯器核心功能：為什麼選擇我們？</h2>
       <p>
-        Markdown Live Previewer 完全免費使用，無隱藏費用或訂閱要求。
-        這是一個開源項目，源代碼托管在 GitHub，歡迎社區貢獻和改進。
+        不論您是需要編寫 GitHub README 說明文件、學術論文、技術 API 規格書，還是進行日常筆記整理，
+        我們的線上 Markdown 工具都提供了最全面的技術支援：
       </p>
 
-      <h2>性能與兼容性</h2>
+      {/* H3 */}
+      <h3>1. Markdown 線上編輯與即時同步預覽</h3>
       <ul>
-        <li>快速加載 - 優化的包大小和懶加載技術</li>
-        <li>流暢性能 - 高效的渲染和更新機制</li>
-        <li>跨瀏覽器支持 - 支持所有現代主流瀏覽器</li>
-        <li>離線能力 - 首次加載後可離線工作</li>
-        <li>設備兼容 - 完美支持桌面、平板和移動設備</li>
+        <li>實時雙向滾動同步 - 編輯區與預覽區精準滾動對齊，即時查看渲染效果</li>
+        <li>支援完整 GFM 語法 - GitHub Flavored Markdown 規格相容</li>
+        <li>語法高亮著色 - 自動偵測並著色數十種熱門程式語言代碼</li>
+        <li>智慧表格工具 - 輕鬆建立並格式化 Markdown 表格</li>
+        <li>互動式任務清單 - 支援在預覽區直接點擊勾選 Task List</li>
       </ul>
 
-      <h2>快速開始指南</h2>
-      <ol>
-        <li>訪問應用 - 在瀏覽器中打開 Markdown Live Previewer</li>
-        <li>開始編輯 - 在左側編輯器中輸入或粘貼內容</li>
-        <li>實時預覽 - 右側自動顯示渲染結果</li>
-        <li>導出內容 - 點擊導出按鈕選擇所需格式</li>
-        <li>保存文檔 - 應用自動保存到本地存儲</li>
-      </ol>
-
-      <h2>常見用途示例</h2>
+      <h3>2. Mermaid 線上流程圖與 UML 繪圖</h3>
+      <p>無須額外軟體，即可在 Markdown 中使用 Mermaid 語法繪製並預覽以下圖表：</p>
       <ul>
-        <li>從 Excel 轉換表格到 Markdown 文檔中</li>
-        <li>使用 Mermaid 繪製系統架構圖</li>
-        <li>編寫包含數學公式的科學論文</li>
-        <li>創建支持圖表的 README 文件</li>
-        <li>生成多種格式的最終文檔</li>
-        <li>維護組織化的文檔知識庫</li>
-        <li>合併多個 PDF 文件</li>
+        <li>業務流程圖 (Flowchart) - 梳理工作流與邏輯</li>
+        <li>順序圖 / 時序圖 (Sequence Diagram) - 描述系統交互與訊息傳遞</li>
+        <li>甘特圖 (Gantt Chart) - 專案時程與進度規劃</li>
+        <li>類別圖 (Class Diagram) 與狀態圖 (State Diagram) - 軟體架構設計</li>
+        <li>實體關係圖 (ER Diagram) - 資料庫 Schema 設計</li>
+        <li>使用者旅程圖 (User Journey) - 分析使用者行為路徑</li>
       </ul>
 
-      <h2>關鍵特點總結</h2>
+      <h3>3. LaTeX 數學公式與科學符號編輯</h3>
+      <ul>
+        <li>LaTeX 行內公式與塊級公式 - 完美支援複雜數學方程與物理公式</li>
+        <li>化學結構支援 - 透過 SMILES 表記法呈現化學符號</li>
+        <li>自訂 LaTeX 巨集 - 支援自定義常用的數學表示法</li>
+      </ul>
+
+      <h3>4. Vega-Lite 數據可視化圖表</h3>
+      <ul>
+        <li>互動式數據圖表 - 在 Markdown 中直接嵌入折線圖、柱狀圖與散點圖</li>
+        <li>數據即時轉換 - 支援在代碼塊中進行數據聚合與呈現</li>
+      </ul>
+
+      <h3>5. Excel 轉 Markdown 表格與多格式導出</h3>
+      <ul>
+        <li>Excel 表格直接轉換 - 複製 Excel 或 CSV 內容即可一鍵轉換為 Markdown 表格</li>
+        <li>高質量 PDF 導出 - 支援自訂邊距、紙張大小，完美將 Markdown 轉為 PDF</li>
+        <li>多元圖像導出 - 支援導出 PNG、SVG 與 JPG 向量或光柵圖檔</li>
+        <li>PDF 合併工具 - 將多份 PDF 與圖片合併為單一文件</li>
+      </ul>
+
+      <h3>6. 12 種精選排版主題，打造個性化寫作體驗</h3>
+      <p>提供多種精心設計的視覺排版主題，滿足不同寫作情境與審美需求：</p>
+      <ul>
+        <li>預設 / 學術 (Academic) / 極簡 (Minimal) — 均衡排版，適合技術文件與學術論文</li>
+        <li>工程師 (Developer) / 實作計畫 — 全等寬字體與終端機風格，技術感十足</li>
+        <li>古典宣紙 / 復古報紙 — 人文古意與印刷質感，適合創意寫作</li>
+        <li>北歐森林 / 落日餘暉 — 沉浸式自然情境主題，適合日記與隨筆</li>
+        <li>潛境太空 / 極光冰原 / 霓虹雨夜 — 高科技深色主題，適合深夜開發</li>
+        <li>支持收藏常用主題，下次快速切換</li>
+      </ul>
+
+      <h3>7. 隱私優先的外部媒體保護盾</h3>
+      <ul>
+        <li>自動偵測並遮蔽外部 iframe、YouTube 影片、音訊嵌入，保護您的瀏覽隱私</li>
+        <li>白名單網域管理 - 信任一次，永遠自動放行該網域內容</li>
+        <li>所有操作 100% 在瀏覽器本地完成，零雲端傳輸，無任何數據洩漏風險</li>
+      </ul>
+
+      <h3>8. 進階 Markdown 語法擴展</h3>
+      <ul>
+        <li>GitHub Alerts 提示框 — 支援 NOTE / TIP / IMPORTANT / WARNING / CAUTION 語法</li>
+        <li>分頁斷行標記 (Page Break) — 精確控制 PDF 導出時的頁面分隔位置</li>
+        <li>WikiLinks 雙向連結 — 在文件間建立知識網路，打造個人知識庫</li>
+        <li>ABC Notation 樂譜渲染 — 直接在 Markdown 中撰寫並預覽音樂樂譜</li>
+      </ul>
+
+      <hr />
+
+      {/* ==========================================
+          ENGLISH SEO CONTENT (GLOBAL SEO OPTIMIZATION)
+          ========================================== */}
+
+      {/* H2：讓 Google 同時掌握中英文搜尋意圖 */}
+      <h2>Free Online Markdown Editor with Live Preview — Key Features</h2>
       <p>
-        Markdown Live Previewer 是一個功能豐富、隱私優先、完全免費的在線編輯工具。
-        無論您是開發者、學生、作家還是數據分析師，都能找到合適的功能。
-        所有數據都保存在本地，無需擔心隱私問題。立即開始使用，提高您的編輯和文檔製作效率！
+        Markdown Live Previewer is a free, feature-rich <strong>online Markdown editor</strong>
+        providing seamless <strong>live Markdown preview</strong>. Write, edit, and visualize
+        Markdown files in real-time right in your browser. With a privacy-first architecture,
+        all editing, rendering, and exporting are processed locally on your device, ensuring
+        your document data never leaves your computer.
       </p>
 
-      <h2>開發者信息</h2>
+      <h3>Live Markdown Editing & Sync Scroll</h3>
+      <ul>
+        <li>Real-time Synchronized Scrolling - Edit on the left and see the rendered Markdown instantly on the right.</li>
+        <li>GitHub Flavored Markdown (GFM) Compatibility - Full support for tables, task lists, and autolinks.</li>
+        <li>Syntax Highlighting - Beautiful syntax coloring for code blocks across dozens of programming languages.</li>
+        <li>Markdown Table Editor - Effortlessly create, edit, and align tables online.</li>
+      </ul>
+
+      <h3>Mermaid Diagramming Online</h3>
+      <p>Render professional diagrams directly within your Markdown using Mermaid.js syntax:</p>
+      <ul>
+        <li>Flowcharts & Workflows - Map out business logic and processes.</li>
+        <li>Sequence Diagrams - Visualize system interactions and message flows.</li>
+        <li>Gantt Charts - Plan project timelines and milestones.</li>
+        <li>ER Diagrams - Design database schemas and entities.</li>
+        <li>Class & State Diagrams - Model object-oriented structures.</li>
+      </ul>
+
+      <h3>LaTeX Math Equations & Scientific Notation</h3>
+      <ul>
+        <li>Inline & Block Math Formulas - Write complex mathematical and physical equations using standard LaTeX.</li>
+        <li>Chemical Structures - Render chemistry notations using SMILES strings.</li>
+        <li>Custom LaTeX Macros - Define custom macros for faster writing.</li>
+      </ul>
+
+      <h3>12 Premium Markdown Themes for Every Writing Style</h3>
+      <p>Choose from 12 carefully crafted visual themes to match your writing context:</p>
+      <ul>
+        <li>Academic, Minimal & Default - Perfect for technical docs and research papers.</li>
+        <li>Developer & Implementation Plan - Monospace terminal aesthetic for coders.</li>
+        <li>Classical, Newspaper - Creative and humanistic print-inspired layouts.</li>
+        <li>Nordic Forest, Sunset Glow - Immersive nature-inspired writing moods.</li>
+        <li>Cosmic, Aurora, Neon Rain - Dark high-tech themes for late-night sessions.</li>
+      </ul>
+
+      <h3>Privacy-First External Media Shield</h3>
+      <ul>
+        <li>Automatically blocks external iframes, YouTube embeds, and audio for privacy protection.</li>
+        <li>Trusted domain whitelist - approve once, always allowed thereafter.</li>
+        <li>100% local processing - zero cloud uploads, zero data leakage.</li>
+      </ul>
+
+      <h3>Advanced Markdown Syntax Extensions</h3>
+      <ul>
+        <li>GitHub Alerts - NOTE, TIP, IMPORTANT, WARNING, CAUTION callout boxes.</li>
+        <li>Page Break markers for precise PDF pagination control.</li>
+        <li>WikiLinks for bidirectional document linking and personal knowledge base.</li>
+        <li>ABC Notation for rendering musical scores inside Markdown.</li>
+      </ul>
+
+      <h2>Frequently Asked Questions About Our Markdown Editor</h2>
+      <ul>
+        <li>How to preview Markdown online? Simply paste or write your text in our editor, and the live preview renders immediately on the right panel.</li>
+        <li>Can I export Markdown to PDF? Yes, our tool supports high-quality PDF export with customizable paper size, orientation, and margins.</li>
+        <li>Is my data safe? Absolutely. We run 100% locally in your browser. No files are ever uploaded to any server.</li>
+        <li>How many themes are available? We offer 12 premium themes including Academic, Developer, Nordic Forest, Aurora, Neon Rain, and more.</li>
+        <li>Does it support offline use? After the first load, the app is cached and can be used offline for editing and previewing existing documents.</li>
+      </ul>
+
+      <h2>Developer Information & Open Source</h2>
       <p>
-        由 Huang Jyun Ying 開發並維護。
-        這個項目是開源的，歡迎在 GitHub 上提交問題報告和功能請求。
+        Developed and maintained by Huang Jyun Ying. This online Markdown previewer is free and open-source.
+        Contribute to our repository on GitHub, report issues, or suggest new features to help the community.
       </p>
     </div>
   );
