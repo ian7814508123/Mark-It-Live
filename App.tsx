@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, Suspense } from 'react';
 import { flushSync } from 'react-dom';
-import { MathJaxContext } from 'better-react-mathjax';
+const LazyMathJaxProvider = React.lazy(() => import('./src/components/LazyMathJaxProvider'));
 
 import Header from './src/components/layout/Header';
 import Editor from './src/components/layout/Editor';
@@ -1487,16 +1487,19 @@ const App: React.FC = () => {
   };
 
   return (
-    <MathJaxContext config={mathJaxConfig}>
-      <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+    // Suspense fallback 直接渲染空白元素（MathJax 在背景静默載入，UI 不會閃爍）
+    // 首次 render 後 LazyMathJaxProvider 即被証實，前後大約 ~100ms 的差異對使用者完全無感
+    <Suspense fallback={<div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900" />}>
+      <LazyMathJaxProvider config={mathJaxConfig}>
+        <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
-        {/* ── premium 列印 Loading Overlay ──────────────────────────────── */}
-        {isPrinting && (
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300 print:hidden"
-            aria-live="polite"
-          >
-            {/* <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
+          {/* ── premium 列印 Loading Overlay ──────────────────────────────── */}
+          {isPrinting && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300 print:hidden"
+              aria-live="polite"
+            >
+              {/* <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
               <InteractiveLogo size={48} loading={true} showBg={false} variant="v1" className="mb-2" />
               <div className="flex flex-col gap-1.5 mt-2">
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">正在最佳化 PDF 文件與圖表配置...</p>
@@ -1509,167 +1512,168 @@ const App: React.FC = () => {
                 取消列印
               </button>
             </div> */}
-          </div>
-        )}
-        <Header
-          mode={mode}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={handleToggleDarkMode}
-          onDownloadMarkdown={downloadMarkdown}
-          onExportImage={exportAsImage}
-          isSyncScroll={isSyncScroll}
-          setIsSyncScroll={setIsSyncScroll}
-          onInsertCode={(newCode) => handleCodeChange(code + '\n\n' + newCode)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onPrint={() => handlePrint(mode)}
-          isInFolder={!!currentDocument?.folderId}
-          printSettings={settings.printSettings}
-          onUpdatePrintSettings={updatePrintSettings}
-          isCommentMode={isCommentMode}
-          setIsCommentMode={setIsCommentMode}
-          hasOpenDocuments={openDocIds.length > 0}
-        />
-
-        <main className="flex-1 flex justify-center overflow-hidden print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20">
-          {/* 歷史側邊欄 */}
-          <HistorySidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            documents={documents}
-            currentDocId={currentDocId}
-            currentDocContent={code}
-            currentDocMode={mode}
-            onInsertIntoDoc={handleInsertIntoDoc}
-            onSelectDocument={handleDocumentSwitch}
-            onCreateDocument={(fId) => handleOpenCreateModal('', fId)}
-            onDeleteDocument={deleteDocument}
-            onRenameDocument={renameDocument}
-            storageUsage={storageUsage}
-            getBacklinks={getBacklinks}
-            folders={folders}
-            onCreateFolder={createFolder}
-            onDeleteFolder={deleteFolder}
-            onRenameFolder={renameFolder}
-            onMoveDocument={moveDocument}
-            onReorderDocuments={reorderDocuments}
-            onImportFiles={handleProcessFiles}
-            onImportAsNewDoc={handleImportAsNewDoc}
+            </div>
+          )}
+          <Header
+            mode={mode}
+            isDarkMode={isDarkMode}
+            toggleDarkMode={handleToggleDarkMode}
+            onDownloadMarkdown={downloadMarkdown}
+            onExportImage={exportAsImage}
+            isSyncScroll={isSyncScroll}
+            setIsSyncScroll={setIsSyncScroll}
+            onInsertCode={(newCode) => handleCodeChange(code + '\n\n' + newCode)}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onPrint={() => handlePrint(mode)}
+            isInFolder={!!currentDocument?.folderId}
+            printSettings={settings.printSettings}
+            onUpdatePrintSettings={updatePrintSettings}
+            isCommentMode={isCommentMode}
+            setIsCommentMode={setIsCommentMode}
+            hasOpenDocuments={openDocIds.length > 0}
           />
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept=".xlsx,.xls,.csv,.md,.txt,.mmd"
-            onChange={handleFileChange}
-          />
-
-          {/* Create Document Modal */}
-          <CreateDocModal
-            isOpen={isCreateModalOpen}
-            onClose={() => {
-              setIsCreateModalOpen(false);
-              setPendingFolderId(null);
-            }}
-            onCreate={handleCreateDocument}
-            initialName={initialDocName}
-          />
-          {/* 移除 key={docFadeKey} 以防止全組件樹重掛造成的渲染跳動 */}
-          <div className="layout-main-content print:block">
-            <Editor
-              ref={editorRef}
-              mode={mode}
-              code={code}
-              setCode={handleCodeChange}
-              onCopy={handleCopy}
-              onReset={handleReset}
-              onClear={handleClear}
-              copied={copied}
-              onScroll={handleEditorScroll}
-              isDarkMode={isDarkMode}
-              onMouseEnter={() => {
-                isHoveringEditor.current = true;
-                if (!rafId.current) scrollSource.current = null;
-              }}
-              onMouseLeave={() => {
-                isHoveringEditor.current = false;
-              }}
-              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-              openDocIds={openDocIds}
+          <main className="flex-1 flex justify-center overflow-hidden print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20">
+            {/* 歷史側邊欄 */}
+            <HistorySidebar
+              isOpen={isSidebarOpen}
+              onClose={() => setIsSidebarOpen(false)}
+              documents={documents}
               currentDocId={currentDocId}
-              documents={documents}
-              onSwitchTab={handleDocumentSwitch}
-              onCloseTab={handleCloseTab}
-              hasOpenDocuments={openDocIds.length > 0}
-            />
-
-            <PreviewPanel
-              ref={previewRef}
-              mode={mode}
-              error={error}
-              setError={setError}
-              svgContent={svgContent}
-              zoom={zoom}
-              position={position}
-              isDragging={isDragging}
-              onZoom={handleZoom}
-              onSetZoom={setZoom}
-              onResetNav={resetNavigation}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onWheel={handleWheel}
-              onScroll={handlePreviewScroll}
-              code={deferredCode}
-              isDarkMode={isDarkMode}
-              onMouseEnter={() => {
-                isHoveringPreview.current = true;
-                if (!rafId.current) scrollSource.current = null;
-              }}
-              onMouseLeave={() => {
-                isHoveringPreview.current = false;
-              }}
-              documents={documents}
+              currentDocContent={code}
+              currentDocMode={mode}
+              onInsertIntoDoc={handleInsertIntoDoc}
               onSelectDocument={handleDocumentSwitch}
-              onCreateMissing={handleOpenCreateModal}
-              currentDocId={currentDocId}
-              openDocIds={openDocIds}
-              printSettings={settings.printSettings}
-              previewTheme={settings.printSettings.previewTheme}
-              isPrinting={isPrinting}
-              printSessionId={printSessionId}
-              isCommentMode={isCommentMode}
-              setIsCommentMode={setIsCommentMode}
-              onUpdateLineComment={updateLineComment}
+              onCreateDocument={(fId) => handleOpenCreateModal('', fId)}
+              onDeleteDocument={deleteDocument}
+              onRenameDocument={renameDocument}
+              storageUsage={storageUsage}
+              getBacklinks={getBacklinks}
+              folders={folders}
+              onCreateFolder={createFolder}
+              onDeleteFolder={deleteFolder}
+              onRenameFolder={renameFolder}
+              onMoveDocument={moveDocument}
+              onReorderDocuments={reorderDocuments}
+              onImportFiles={handleProcessFiles}
+              onImportAsNewDoc={handleImportAsNewDoc}
             />
-          </div>
-        </main>
 
-        {/* 可見的頁腳 - 增加 AdSense 文字密度與連結 */}
-        <Footer showIntroTrigger={openDocIds.length > 0} onOpenIntro={() => setIsIntroModalOpen(true)} />
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".xlsx,.xls,.csv,.md,.txt,.mmd"
+              onChange={handleFileChange}
+            />
 
-        <IntroModal isOpen={isIntroModalOpen} onClose={() => setIsIntroModalOpen(false)} />
+            {/* Create Document Modal */}
+            <CreateDocModal
+              isOpen={isCreateModalOpen}
+              onClose={() => {
+                setIsCreateModalOpen(false);
+                setPendingFolderId(null);
+              }}
+              onCreate={handleCreateDocument}
+              initialName={initialDocName}
+            />
+            {/* 移除 key={docFadeKey} 以防止全組件樹重掛造成的渲染跳動 */}
+            <div className="layout-main-content print:block">
+              <Editor
+                ref={editorRef}
+                mode={mode}
+                code={code}
+                setCode={handleCodeChange}
+                onCopy={handleCopy}
+                onReset={handleReset}
+                onClear={handleClear}
+                copied={copied}
+                onScroll={handleEditorScroll}
+                isDarkMode={isDarkMode}
+                onMouseEnter={() => {
+                  isHoveringEditor.current = true;
+                  if (!rafId.current) scrollSource.current = null;
+                }}
+                onMouseLeave={() => {
+                  isHoveringEditor.current = false;
+                }}
+                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                openDocIds={openDocIds}
+                currentDocId={currentDocId}
+                documents={documents}
+                onSwitchTab={handleDocumentSwitch}
+                onCloseTab={handleCloseTab}
+                hasOpenDocuments={openDocIds.length > 0}
+              />
 
-        {/* SEO Content - Hidden from visual display but visible to search engines */}
-        <SEOContent />
+              <PreviewPanel
+                ref={previewRef}
+                mode={mode}
+                error={error}
+                setError={setError}
+                svgContent={svgContent}
+                zoom={zoom}
+                position={position}
+                isDragging={isDragging}
+                onZoom={handleZoom}
+                onSetZoom={setZoom}
+                onResetNav={resetNavigation}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
+                onWheel={handleWheel}
+                onScroll={handlePreviewScroll}
+                code={deferredCode}
+                isDarkMode={isDarkMode}
+                onMouseEnter={() => {
+                  isHoveringPreview.current = true;
+                  if (!rafId.current) scrollSource.current = null;
+                }}
+                onMouseLeave={() => {
+                  isHoveringPreview.current = false;
+                }}
+                documents={documents}
+                onSelectDocument={handleDocumentSwitch}
+                onCreateMissing={handleOpenCreateModal}
+                currentDocId={currentDocId}
+                openDocIds={openDocIds}
+                printSettings={settings.printSettings}
+                previewTheme={settings.printSettings.previewTheme}
+                isPrinting={isPrinting}
+                printSessionId={printSessionId}
+                isCommentMode={isCommentMode}
+                setIsCommentMode={setIsCommentMode}
+                onUpdateLineComment={updateLineComment}
+              />
+            </div>
+          </main>
 
-        {/* Settings Modal */}
-        <SettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          mode={mode}
-          currentMacros={settings.customMacros}
-          onSaveMacros={updateMacros}
-          onRestoreDefaults={restoreDefaults}
-          currentPrintSettings={settings.printSettings}
-          onSavePrintSettings={updatePrintSettings}
-          isStandalone={!documents.find(d => d.id === currentDocId)?.folderId}
-          onOpenIntro={() => setIsIntroModalOpen(true)}
-          favoriteThemes={settings.favoriteThemes || []}
-          onToggleFavoriteTheme={toggleFavoriteTheme}
-        />
-      </div>
-    </MathJaxContext>
+          {/* 可見的頁腳 - 增加 AdSense 文字密度與連結 */}
+          <Footer showIntroTrigger={openDocIds.length > 0} onOpenIntro={() => setIsIntroModalOpen(true)} />
+
+          <IntroModal isOpen={isIntroModalOpen} onClose={() => setIsIntroModalOpen(false)} />
+
+          {/* SEO Content - Hidden from visual display but visible to search engines */}
+          <SEOContent />
+
+          {/* Settings Modal */}
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            mode={mode}
+            currentMacros={settings.customMacros}
+            onSaveMacros={updateMacros}
+            onRestoreDefaults={restoreDefaults}
+            currentPrintSettings={settings.printSettings}
+            onSavePrintSettings={updatePrintSettings}
+            isStandalone={!documents.find(d => d.id === currentDocId)?.folderId}
+            onOpenIntro={() => setIsIntroModalOpen(true)}
+            favoriteThemes={settings.favoriteThemes || []}
+            onToggleFavoriteTheme={toggleFavoriteTheme}
+          />
+        </div>
+      </LazyMathJaxProvider>
+    </Suspense>
   );
 };
 

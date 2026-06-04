@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback, Suspense } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import { MathJax } from 'better-react-mathjax';
 import rehypeRaw from 'rehype-raw';
 import ExternalMediaShield, { extractDomain } from './ExternalMediaShield';
-
-import { PrismAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { remarkGithubAlerts } from './remarkGithubAlerts';
 import { remarkWikiLink } from './remarkWikiLink';
 import { remarkPageBreak } from './remarkPageBreak';
@@ -55,12 +52,12 @@ const cleanMermaidSvg = (svgHtml: string) => {
         .replace(/style="max-width:.*?"/i, 'style="max-width: 100%"');
 };
 
-const MermaidBlock: React.FC<{ 
-    code: string; 
-    isDarkMode: boolean; 
-    isPrinting?: boolean; 
-    printSessionId?: number; 
-    previewTheme?: string; 
+const MermaidBlock: React.FC<{
+    code: string;
+    isDarkMode: boolean;
+    isPrinting?: boolean;
+    printSessionId?: number;
+    previewTheme?: string;
 }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0, previewTheme = 'default' }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         // 動態載入 Mermaid（首次渲染時才下載，後續使用已快取實例）
@@ -96,11 +93,11 @@ const MermaidBlock: React.FC<{
             primaryBorderColor: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
             lineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
             edgeLabelBackground: edgeBg || (isDark ? '#1e293b' : '#ffffff'),
-            
+
             // 流程圖 Cluster 適配
             clusterBkg: nodeBg || (isDark ? '#1e293b' : '#f1f5f9'),
             clusterBorder: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
-            
+
             // 序列圖 (Sequence Diagram) 相關適配
             actorBkg: actorBg || (isDark ? '#1e293b' : '#f1f5f9'),
             actorBorder: actorBorder || (isDark ? '#334155' : '#cbd5e1'),
@@ -108,7 +105,7 @@ const MermaidBlock: React.FC<{
             actorLineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
             signalColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
             signalTextColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
-            
+
             // 註解 (Note) 適配
             noteBkgColor: noteBg || (isDark ? '#1e293b' : '#ffffff'),
             noteBorderColor: noteBorder || (isDark ? '#334155' : '#cbd5e1'),
@@ -271,6 +268,16 @@ const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bo
 
 const AbcBlock = React.lazy(() => import('./AbcBlock'));
 
+// ─── 懶載入程式碼區塊（react-syntax-highlighter 只在有程式碼區塊時才下載）────────────────
+// 這是告知 Lighthouse「此為合法懶載入」的關鍵：
+// React.lazy() + 動態 import() → Vite 建立真正的 async chunk
+// Lighthouse 不再將其標記為「Reduce unused JavaScript」
+const LazyEnhancedCodeBlock = React.lazy(() => import('./EnhancedCodeBlock'));
+
+// ─── 懶載入 MathJax 渲染器（better-react-mathjax + mathjax-full 只在有數學公式時才下載）
+// 與 LazyMathJaxProvider（在 App.tsx）共享同一個 vendor-mathjax async chunk
+const LazyMathRenderer = React.lazy(() => import('./MemoizedMathJaxRenderer'));
+
 // ─── GitHub-style Alert 標註解析輔助 ──────────────────────────────────────────
 const alertConfig: Record<string, { icon: React.ReactNode; label: string; className: string }> = {
     note: {
@@ -406,14 +413,14 @@ const LocalVideo: React.FC<LocalMediaProps & { getImage: (id: string) => Promise
         let cancelled = false;
         let objectUrl: string | null = null;
         setStatus('loading');
-        
+
         getImage(id).then(dataUrl => {
             if (cancelled) return;
             if (dataUrl) {
                 try {
                     const blob = dataURLtoBlob(dataUrl);
                     objectUrl = URL.createObjectURL(blob);
-                    
+
                     memoryMediaCache.set(id, objectUrl);
                     setSrc(objectUrl);
                     setStatus('loaded');
@@ -431,9 +438,9 @@ const LocalVideo: React.FC<LocalMediaProps & { getImage: (id: string) => Promise
                 window.dispatchEvent(new CustomEvent('content-layout-ready'));
             }
         });
-        
-        return () => { 
-            cancelled = true; 
+
+        return () => {
+            cancelled = true;
             if (objectUrl) {
                 URL.revokeObjectURL(objectUrl);
                 memoryMediaCache.delete(id);
@@ -477,14 +484,14 @@ const LocalAudio: React.FC<LocalMediaProps & { getImage: (id: string) => Promise
         let cancelled = false;
         let objectUrl: string | null = null;
         setStatus('loading');
-        
+
         getImage(id).then(dataUrl => {
             if (cancelled) return;
             if (dataUrl) {
                 try {
                     const blob = dataURLtoBlob(dataUrl);
                     objectUrl = URL.createObjectURL(blob);
-                    
+
                     memoryMediaCache.set(id, objectUrl);
                     setSrc(objectUrl);
                     setStatus('loaded');
@@ -500,9 +507,9 @@ const LocalAudio: React.FC<LocalMediaProps & { getImage: (id: string) => Promise
                 setStatus('error');
             }
         });
-        
-        return () => { 
-            cancelled = true; 
+
+        return () => {
+            cancelled = true;
             if (objectUrl) {
                 URL.revokeObjectURL(objectUrl);
                 memoryMediaCache.delete(id);
@@ -634,125 +641,13 @@ const WikiLink: React.FC<WikiLinkProps> = React.memo(({ name, children, document
     );
 });
 
-// ─── 數學與化學元件 (Memoized) ────────────────────────────────────────────────
-interface MemoizedMathJaxProps {
-    content: string;
-    inline?: boolean;
-    isDarkMode: boolean;
-}
+// ─── MemoizedMathJax 已移至 MemoizedMathJaxRenderer.tsx ─────────────────────────────────
+// 透過 React.lazy() 懶載入，better-react-mathjax 只在文件包含數學公式時才下載。
+// 詳見上方 LazyMathRenderer 的宣告。
 
-const MemoizedMathJax: React.FC<MemoizedMathJaxProps> = React.memo(({ content, inline, isDarkMode }) => {
-    // 為數學公式加入內部 Debounce，避免公式隨著打字不斷抖動
-    const debouncedContent = useDebounce(content, 300);
-    const [isPending, setIsPending] = useState(false);
-
-    useEffect(() => {
-        if (content !== debouncedContent) {
-            setIsPending(true);
-        } else {
-            setIsPending(false);
-        }
-    }, [content, debouncedContent]);
-
-    const Wrapper = inline ? 'span' : 'div';
-
-    return (
-        <Wrapper className={`transition-opacity duration-300 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
-            <MathJax inline={inline} dynamic hideUntilTypeset="every">
-                {inline ? `\\(${debouncedContent}\\)` : `\\[${debouncedContent}\\]`}
-            </MathJax>
-        </Wrapper>
-    );
-});
-
-// ─── 增強型程式碼區塊 (智能斷行、懸掛縮排與列印控制) ────────────────────────────────────────────────
-interface EnhancedCodeBlockProps {
-    language: string;
-    codeString: string;
-    stableKey: string;
-    isActuallyPrinting: boolean;
-    shouldShowDark: boolean;
-}
-
-const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
-    language,
-    codeString,
-    stableKey,
-    isActuallyPrinting,
-    shouldShowDark
-}) => {
-    // 預設需要換行的語言
-    const defaultWrapLanguages = ['text', 'log', 'json', 'bash', 'sh', 'yaml', 'plaintext', 'markdown'];
-    const [isWrapped, setIsWrapped] = useState(defaultWrapLanguages.includes(language));
-    const [isScrolled, setIsScrolled] = useState(false);
-
-    // 列印模式為了防截斷，強制換行
-    const effectiveWrapped = isActuallyPrinting || isWrapped;
-
-    // 當斷行狀態改變或初次渲染時，通知預覽器重新計算佈局高度（列印同步用）
-    useEffect(() => {
-        window.dispatchEvent(new CustomEvent('content-layout-ready'));
-    }, [effectiveWrapped]);
-
-    const handleScroll = useCallback((e: React.UIEvent<HTMLPreElement>) => {
-        const scrollLeft = e.currentTarget.scrollLeft;
-        setIsScrolled(scrollLeft > 0);
-    }, []);
-
-    // 動態計算最大位數，仿照 VS Code 做法，至少預留 2 位數空間
-    const maxDigits = useMemo(() => {
-        const lineCount = codeString.split('\n').length;
-        return Math.max(2, lineCount.toString().length);
-    }, [codeString]);
-
-    return (
-        <div
-            className="relative group/codeblock w-full my-6"
-            style={{ '--code-max-digits': maxDigits } as React.CSSProperties}
-        >
-            <div
-                className={`enhanced-codeblock ${effectiveWrapped ? 'code-block-wrap' : 'code-block-scroll'} ${!effectiveWrapped && isScrolled ? 'has-scrolled' : ''}`}
-                data-theme-style={(isActuallyPrinting || !shouldShowDark) ? 'light' : 'dark'}
-            >
-                {language && (
-                    <CodeBlockHeader
-                        language={language}
-                        isWrapped={isWrapped}
-                        onToggleWrap={isActuallyPrinting ? undefined : () => setIsWrapped(!isWrapped)}
-                        showWrapButton={!isActuallyPrinting}
-                    />
-                )}
-
-                <SyntaxHighlighter
-                    key={stableKey}
-                    language={language || 'text'}
-                    useInlineStyles={false}
-                    customStyle={{
-                        margin: '0',
-                        padding: language ? '1rem' : '1.2rem 1rem 1rem 1rem',
-                        fontSize: '0.875rem',
-                        lineHeight: '1.5',
-                        backgroundColor: 'var(--code-bg)',
-                        borderRadius: '0', /* 圓角由外層卡片統一裁剪 */
-                        border: 'none', /* 拔除內層重複邊框，消除雙重邊框 Bug */
-                        overflowX: effectiveWrapped ? 'hidden' : 'auto',
-                        tabSize: '2',
-                    }}
-                    showLineNumbers={false} /* 關閉原生的缺陷行號 */
-                    wrapLines={true} /* 強制每一行編織成 span，作為 css counter 基準 */
-                    lineProps={{
-                        className: 'code-line'
-                    }}
-                    preTagProps={{
-                        onScroll: handleScroll
-                    }}
-                >
-                    {codeString}
-                </SyntaxHighlighter>
-            </div>
-        </div>
-    );
-};
+// ─── EnhancedCodeBlock 已移至 EnhancedCodeBlock.tsx ─────────────────────────────────────────────
+// 透過 React.lazy() 懶載入，react-syntax-highlighter 只在文件包含程式碼區塊時才下載。
+// 詳見上方 LazyEnhancedCodeBlock 的宣告。
 
 // ─── 區塊判斷上下文：用於解決 react-markdown v10 移除 inline prop 後的辨識問題 ───────
 const IsInPreContext = React.createContext(false);
@@ -819,7 +714,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
             const currentTrusted = trustedStr ? JSON.parse(trustedStr) : [];
             const nextTrusted = Array.isArray(currentTrusted) ? [...currentTrusted] : [];
-            
+
             if (!nextTrusted.includes(domain)) {
                 nextTrusted.push(domain);
                 localStorage.setItem('markdown-previewer:trusted-domains', JSON.stringify(nextTrusted));
@@ -999,7 +894,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
                 return wrapWithComment(node, (
                     <div key={stableKey} className="code-block-wrapper not-prose">
-                        <EnhancedCodeBlock
+                        <LazyEnhancedCodeBlock
                             language={language}
                             codeString={codeString}
                             stableKey={stableKey}
@@ -1056,7 +951,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 const stableKey = hashString(mathContent);
                 return (
                     <div key={stableKey} className="my-4 overflow-x-auto" style={{ whiteSpace: 'nowrap' }} data-line={node?.position?.start?.line}>
-                        <MemoizedMathJax content={mathContent} isDarkMode={ctx.shouldShowDark} />
+                        <Suspense fallback={<span className="opacity-50 font-mono text-sm">{mathContent}</span>}>
+                            <LazyMathRenderer content={mathContent} isDarkMode={ctx.shouldShowDark} />
+                        </Suspense>
                     </div>
                 );
             }
@@ -1069,7 +966,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 const stableKey = hashString(mathContent);
                 return (
                     <span key={stableKey} className="math-inline" style={{ whiteSpace: 'nowrap' }} data-line={node?.position?.start?.line}>
-                        <MemoizedMathJax content={mathContent} inline isDarkMode={ctx.shouldShowDark} />
+                        <Suspense fallback={<span className="opacity-50 font-mono text-sm">{mathContent}</span>}>
+                            <LazyMathRenderer content={mathContent} inline isDarkMode={ctx.shouldShowDark} />
+                        </Suspense>
                     </span>
                 );
             }

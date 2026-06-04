@@ -121,6 +121,8 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
+      // 目標 ES2020，移除不必要的 Legacy JS polyfill（節省約 7 KiB）
+      target: 'es2020',
       sourcemap: true,
       commonjsOptions: {
         transformMixedEsModules: true,
@@ -128,10 +130,12 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            'vendor-mermaid': ['mermaid'],
-            'vendor-vega': ['vega', 'vega-lite', 'vega-embed'],
-            'vendor-mathjax': ['better-react-mathjax', 'rehype-mathjax', 'mathjax-full'],
-            'vendor-utils': ['xlsx', 'pdf-lib'],
+            // mermaid/vega/smiles 等已在 MarkdownPreview 各 Block 元件中動態 import，Vite 自動拆分
+            // react-syntax-highlighter 已透過 EnhancedCodeBlock.tsx 懶載入自動拆分
+            // better-react-mathjax 已透過 LazyMathJaxProvider + MemoizedMathJaxRenderer 懶載入自動拆分
+            // pdf-lib 已透過 PdfMergeTool.tsx 懶載入自動拆分
+            // xlsx 已在 DataMediaCenterTool/App.tsx 中動態 import，自動拆分
+            // ── 以下為仍需搶先分包的 UI 核心套件 ──
             'vendor-ui': [
               'react',
               'react-dom',

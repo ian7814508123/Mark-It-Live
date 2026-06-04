@@ -46,10 +46,10 @@ function parseLighthouseReport(filePath) {
             const markdownLines = [];
             markdownLines.push('# 📊 Lighthouse 檢測報告分析 (Lighthouse Report Analysis)\n');
             markdownLines.push('## --- 整體分數 (Overall Scores) ---\n');
-            
+
             console.log('\n📊 Lighthouse 檢測報告分析 (Lighthouse Report Analysis)\n');
             console.log('--- 整體分數 (Overall Scores) ---');
-            
+
             const categories = data.categories;
             for (const key in categories) {
                 const score = Math.round(categories[key].score * 100);
@@ -67,7 +67,7 @@ function parseLighthouseReport(filePath) {
                 const category = categories[catId];
                 markdownLines.push(`### [${category.title}]`);
                 console.log(`\n[${category.title}]`);
-                
+
                 let hasIssues = false;
                 category.auditRefs.forEach(ref => {
                     const audit = audits[ref.id];
@@ -82,7 +82,7 @@ function parseLighthouseReport(filePath) {
                         }
                     }
                 });
-                
+
                 if (!hasIssues) {
                     markdownLines.push('- 🎉 *完美！這個分類沒有任何問題。*\n');
                     console.log('  🎉 完美！這個分類沒有任何問題。');

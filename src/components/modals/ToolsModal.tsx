@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { X, Wrench, FileText, Table, BarChart2, Database } from 'lucide-react';
-import PdfMergeTool from './PdfMergeTool';
+import React, { useState, useEffect, Suspense } from 'react';
+import { X, Wrench, FileText, Table, BarChart2, Database, Loader2 } from 'lucide-react';
+const PdfMergeTool = React.lazy(() => import('./PdfMergeTool'));
 import TableGeneratorTool from './TableGeneratorTool';
 import WordCountTool from './WordCountTool';
 import DataMediaCenterTool from './DataMediaCenterTool';
@@ -44,7 +44,17 @@ function renderToolPanel(
     onImportAsNewDoc?: (name: string, content: string, mode: 'markdown' | 'mermaid') => void
 ) {
     switch (id) {
-        case 'pdf-merge': return <PdfMergeTool />;
+        case 'pdf-merge': return (
+            // Suspense fallback：显示輕量載入狀態，避免使用者看到空白
+            <Suspense fallback={
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-400">
+                    <Loader2 size={24} className="animate-spin" />
+                    <span className="text-xs">載入工具中...</span>
+                </div>
+            }>
+                <PdfMergeTool />
+            </Suspense>
+        );
         case 'table-gen': return <TableGeneratorTool currentDocMode={currentDocMode} onInsertIntoDoc={onInsertIntoDoc} />;
         case 'word-count': return <WordCountTool currentDocContent={currentDocContent} />;
         case 'data-media-center': return (
