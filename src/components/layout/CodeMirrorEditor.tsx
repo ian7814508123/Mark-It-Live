@@ -234,18 +234,18 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
     }, [ref]);
 
     // ─── 智能收折演算法與 node 渲染資料計算 ───
-    type RenderNode = { isEllipsis: true } | { isEllipsis: false; node: StickyHeaderNode };
+    type RenderNode = { type: 'ellipsis' } | { type: 'header'; node: StickyHeaderNode };
 
     const displayNodes = useMemo<RenderNode[]>(() => {
         const nodes: RenderNode[] = [];
         if (stickyHeaders.length > 4) {
-            nodes.push({ isEllipsis: false, node: stickyHeaders[0] });
-            nodes.push({ isEllipsis: true });
-            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 3] });
-            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 2] });
-            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 1] });
+            nodes.push({ type: 'header', node: stickyHeaders[0] });
+            nodes.push({ type: 'ellipsis' });
+            nodes.push({ type: 'header', node: stickyHeaders[stickyHeaders.length - 3] });
+            nodes.push({ type: 'header', node: stickyHeaders[stickyHeaders.length - 2] });
+            nodes.push({ type: 'header', node: stickyHeaders[stickyHeaders.length - 1] });
         } else {
-            stickyHeaders.forEach(h => nodes.push({ isEllipsis: false, node: h }));
+            stickyHeaders.forEach(h => nodes.push({ type: 'header', node: h }));
         }
         return nodes;
     }, [stickyHeaders]);
@@ -327,7 +327,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                         {displayNodes.map((node, index) => {
                             const isLast = index === displayNodes.length - 1;
 
-                            if (node.isEllipsis) {
+                            if (node.type === 'ellipsis') {
                                 return (
                                     <React.Fragment key={index}>
                                         {/* 麵包屑分隔符 › */}
@@ -362,8 +362,8 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                 );
                             }
 
-                            // 這裡透過明確的 if (!node.isEllipsis) 判斷，確保型別 100% 收窄為 { isEllipsis: false; node: StickyHeaderNode }
-                            if (!node.isEllipsis) {
+                            // 這裡透過明確的 type 判斷，確保型別收窄為 { type: 'header'; node: StickyHeaderNode }
+                            if (node.type === 'header') {
                                 const headerNode = node.node;
 
                                 return (

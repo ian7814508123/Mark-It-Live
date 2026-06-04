@@ -261,7 +261,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                     </div>
                     <div className="text-center space-y-2 max-w-xs">
                         <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">尚未開啟任何文件</h3>
-                        <p className="text-sm leading-relaxed">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                             請在左側工具欄點選文件圖示，從「我的文檔」中選擇文件開始編輯。
                         </p>
                     </div>
@@ -274,7 +274,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                         <span>開啟側邊欄</span>
                     </MagneticButton>
                     <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm leading-relaxed">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                             不知道如何開始嗎？要不要看看
                         </p>
 
