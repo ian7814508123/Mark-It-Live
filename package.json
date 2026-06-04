@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "analyze:lighthouse": "node scripts/lighthouse-parser.cjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

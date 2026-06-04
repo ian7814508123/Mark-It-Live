@@ -6,8 +6,7 @@ import { MathJax } from 'better-react-mathjax';
 import rehypeRaw from 'rehype-raw';
 import ExternalMediaShield, { extractDomain } from './ExternalMediaShield';
 
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import SmilesDrawer from 'smiles-drawer';
+import { PrismAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { remarkGithubAlerts } from './remarkGithubAlerts';
 import { remarkWikiLink } from './remarkWikiLink';
 import { remarkPageBreak } from './remarkPageBreak';
@@ -216,6 +215,10 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
 
 const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        // Dynamically import SmilesDrawer
+        const SmilesModule = await import('smiles-drawer');
+        const SmilesDrawer = SmilesModule.default || SmilesModule;
+
         const drawer = new SmilesDrawer.SvgDrawer({
             width: 200,
             height: 100,
