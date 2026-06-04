@@ -67,9 +67,16 @@ function buildStickyExtension(
                     }));
                 }
 
-                // 當文件內容改變或滾動時，重新檢查與計算標題鏈
+                // 當文件內容、高度或視口改變時，必須透過 requestMeasure() 延遲到
+                // CodeMirror 安全的 layout 讀取階段才執行，避免在 update 週期中
+                // 直接呼叫 lineBlockAtHeight() 等 measured 方法觸發「layout thrashing」錯誤
                 if (update.docChanged || update.heightChanged || update.viewportChanged) {
-                    this.checkScroll(update.view);
+                    update.view.requestMeasure({
+                        read: (view) => {
+                            this.checkScroll(view);
+                            return null;
+                        },
+                    });
                 }
             }
 
