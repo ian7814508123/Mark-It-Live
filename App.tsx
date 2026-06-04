@@ -183,7 +183,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Failed to load default contents:', error);
         setDefaultContents({
-          markdown: { 'markdown-standard': '# Markdown Editor\n\n無法載入預設內容。' },
+          markdown: { 'markdown-standard': '# Markdown Editor' },
           mermaid: { 'mermaid-standard': 'graph TD\n  A[開始] --> B[結束]' }
         });
       } finally {
@@ -367,10 +367,10 @@ const App: React.FC = () => {
   // 需同時等待 isLoading（IndexedDB 尚在讀取）與 isLoadingDefaults（預設檔案尚在載入）兩者都完成
   useEffect(() => {
     if (documents.length === 0 && defaultContents && !isLoadingDefaults && !isLoading) {
-      createDocument('markdown', defaultContents.markdown['markdown-standard'], '預設 標記掉落 文檔', null, 'markdown-standard');
-      createDocument('markdown', defaultContents.markdown['markdown-beta'], '色彩實驗室 (Beta)', null, 'markdown-beta');
-      createDocument('mermaid', defaultContents.mermaid['mermaid-standard'], '預設 美人魚 文檔', null, 'mermaid-standard');
-      createDocument('mermaid', defaultContents.mermaid['mermaid-beta'], '色彩實驗室 (Beta) [Mermaid]', null, 'mermaid-beta');
+      // 第一個建立的文檔會預設成為啟用的文檔（因為 IndexedDB 寫入順序或 createDocument 實作）
+      // 使用 basic 與 flowchart 取代原本的標準版，大幅降低首屏的元件複雜度（不含 MathJax/進階 Mermaid 等），以提升 Lighthouse 首屏分數
+      createDocument('markdown', defaultContents.markdown['basic'], '標記掉落 入門指南', null, 'basic');
+      createDocument('mermaid', defaultContents.mermaid['flowchart'], '美人魚 入門指南', null, 'flowchart');
     }
   }, [documents.length, createDocument, defaultContents, isLoadingDefaults, isLoading]);
 

@@ -147,7 +147,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
     };
 
     const handleSubmit = (templateId: string = '') => {
-        const finalTid = templateId || (selectedMode === 'markdown' ? 'markdown-standard' : 'mermaid-standard');
+        const finalTid = templateId || (selectedMode === 'markdown' ? 'markdown-basic' : 'flowchart');
         onCreate(selectedMode, name.trim(), finalTid, selectedIcon || undefined);
         onClose();
     };

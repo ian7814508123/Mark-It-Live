@@ -80,6 +80,33 @@ function parseLighthouseReport(filePath) {
                             markdownLines.push(`  - 💡 *詳情: ${audit.displayValue}*`);
                             console.log(`     💡 詳情: ${audit.displayValue}`);
                         }
+
+                        // 輸出詳細項目，幫助定位問題
+                        if (audit.details && Array.isArray(audit.details.items)) {
+                            audit.details.items.forEach((item, index) => {
+                                if (index > 4) return; // 最多顯示 5 筆，避免洗版
+                                
+                                let itemDetails = [];
+                                if (item.url) {
+                                    // 簡化 URL 顯示
+                                    const shortUrl = item.url.split('?')[0].split('/').pop() || item.url;
+                                    itemDetails.push(`URL: ${shortUrl}`);
+                                }
+                                if (item.node && item.node.selector) itemDetails.push(`Node: ${item.node.selector}`);
+                                if (item.wastedBytes !== undefined) itemDetails.push(`浪費: ${(item.wastedBytes / 1024).toFixed(1)} KiB`);
+                                if (item.totalBytes !== undefined) itemDetails.push(`總計: ${(item.totalBytes / 1024).toFixed(1)} KiB`);
+                                if (item.wastedMs !== undefined) itemDetails.push(`延遲: ${item.wastedMs} ms`);
+                                
+                                if (itemDetails.length > 0) {
+                                    markdownLines.push(`    - 🔍 ${itemDetails.join(' | ')}`);
+                                    console.log(`        🔍 ${itemDetails.join(' | ')}`);
+                                }
+                            });
+                            if (audit.details.items.length > 5) {
+                                markdownLines.push(`    - 🔍 ... 還有 ${audit.details.items.length - 5} 筆`);
+                                console.log(`        🔍 ... 還有 ${audit.details.items.length - 5} 筆`);
+                            }
+                        }
                     }
                 });
 
