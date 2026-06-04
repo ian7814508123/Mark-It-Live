@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake } from 'lucide-react';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -115,6 +115,13 @@ const PdfSettingsPanel: React.FC<{
                                 icon: <Orbit size={16} />, color: '#a855f7',
                                 previewImg: '/image/themes/cosmic.png',
                                 description: '冷冽太空艙與螢光霓虹霓彩，搭配硬核科技等寬字體與星芒點綴，極具未來張力。',
+                                category: 'tech'
+                            },
+                            {
+                                label: '極光冰原', value: 'aurora', hint: 'Aurora',
+                                icon: <Snowflake size={16} />, color: '#0891b2',
+                                previewImg: '/image/themes/aurora.png',
+                                description: '冷冽的高科技冷淡風，視覺上極致冷靜與純粹，大幅提升代碼與結構化文字的對比可讀性。',
                                 category: 'tech'
                             },
                             {
@@ -501,7 +508,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                 value={jsonInput}
                                                 onChange={(e) => setJsonInput(e.target.value)}
                                                 className={`w-full min-h-[320px] p-5 font-mono text-xs bg-slate-50 dark:bg-slate-950 border-2 rounded-2xl resize-none focus:outline-none focus:ring-4 transition-all
-                                                    ? 'border-red-200 focus:ring-red-100 dark:border-red-900/40'
+                                                    ? 'border-blue-200 focus:ring-blue-100 dark:border-blue-900/40'
                                                         : 'border-slate-100 dark:border-slate-800 focus:ring-brand-secondary dark:focus:ring-brand-primary/20'
                                                     }
                                                     text-slate-700 dark:text-slate-300 custom-scrollbar shadow-inner`}

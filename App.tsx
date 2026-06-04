@@ -19,16 +19,9 @@ import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollT
 import { detectMarkdownFeatures } from './src/utils/markdownScanner';
 import { useAppSettings } from './src/hooks/useAppSettings';
 import './src/styles/markdown-base.css';
-import './src/styles/themes/academic.css';
-import './src/styles/themes/minimal.css';
-import './src/styles/themes/developer.css';
-import './src/styles/themes/implementation-plan.css';
-import './src/styles/themes/classical.css';
-import './src/styles/themes/newspaper.css';
-import './src/styles/themes/nordicforest.css';
-import './src/styles/themes/cosmic.css';
-import './src/styles/themes/sunsetglow.css';
-import './src/styles/themes/neonrain.css';
+
+// 使用 Vite 的 import.meta.glob 動態載入，Vite 會自動將這些 CSS 進行 Code Splitting 拆分成獨立檔案
+const themeModules = import.meta.glob('./src/styles/themes/*.css');
 
 
 
@@ -245,6 +238,21 @@ const App: React.FC = () => {
   const printTimeoutRef = useRef<any>(null);
 
   const { settings, updateMacros, updatePrintSettings, toggleFavoriteTheme, restoreDefaults } = useAppSettings();
+
+  // 監聽當前預覽主題並動態/懶載入樣式表
+  useEffect(() => {
+    const theme = settings.printSettings.previewTheme;
+    if (!theme || theme === 'default') return;
+
+    const themePath = `./src/styles/themes/${theme}.css`;
+    const loadTheme = themeModules[themePath];
+
+    if (loadTheme) {
+      loadTheme().catch((err) => {
+        console.error(`Failed to dynamic load theme style: ${theme}`, err);
+      });
+    }
+  }, [settings.printSettings.previewTheme]);
 
 
   // 從當前文檔取得 mode 和 code

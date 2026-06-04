@@ -220,8 +220,8 @@ function GlassRailSelector<T extends string | number>({
                         {/* 平時：高不透明度霧面 (bg-white/90)。拿起來：低不透明度 + 高強度模糊 (bg-white/30 + blur) */}
                         <div className={`absolute inset-0 rounded-xl transition-all duration-300 
                             ${isPressed
-                                ? 'bg-white/20 border-slate-100/20 dark:bg-white/10 '
-                                : 'bg-slate-100/80 dark:bg-slate-700/60'
+                                ? 'bg-white/0 dark:bg-white/0 border border-slate-400 dark:border-slate-400'
+                                : 'bg-slate-100/80 dark:bg-slate-700/80'
                             }
                         `} />
                     </motion.div>
