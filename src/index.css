@@ -1189,4 +1189,128 @@
         text-decoration: underline;
         color: var(--sg-active) !important;
     }
+
+    /* ── 主要下載按鈕跑馬燈流光外框 ── */
+    .animate-cta-glow {
+        position: relative;
+        overflow: hidden !important;
+        background-color: transparent !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+        animation: cta-glow-pulse 2s ease-in-out infinite !important;
+    }
+
+    .dark .animate-cta-glow {
+        animation: cta-glow-pulse-dark 2s ease-in-out infinite !important;
+    }
+
+    .animate-cta-glow > * {
+        position: relative;
+        z-index: 10;
+    }
+
+    /* 偽元素 1：旋轉的 conic 漸層跑馬燈背景 */
+    .animate-cta-glow::before {
+        content: '';
+        position: absolute;
+        top: -150%;
+        left: -150%;
+        width: 400%;
+        height: 400%;
+        background: conic-gradient(
+            from 0deg,
+            var(--brand-primary) 0deg,
+            var(--brand-secondary) 120deg,
+            var(--brand-accent) 240deg,
+            var(--brand-primary) 360deg
+        );
+        /* 常駐：極慢速線性旋轉 (12s) */
+        animation: cta-glow-rotate 12s linear infinite !important;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Hover 懸停：切換為高速變速跑馬燈 */
+    .animate-cta-glow:hover::before {
+        animation: cta-glow-rotate 2s cubic-bezier(.1,.36,.54,.12) infinite !important;
+    }
+
+    /* 偽元素 2：內圈遮罩，稍微縮小 1.5px 以露出外框，底色與 filled 按鈕背景一致 */
+    .animate-cta-glow::after {
+        content: '';
+        position: absolute;
+        inset: 1.5px;
+        border-radius: inherit;
+        background-color: var(--brand-primary) !important;
+        z-index: 2;
+        pointer-events: none;
+        transition: background-color 0.2s ease !important;
+    }
+
+    /* Hover 時微調內圈底色 */
+    .animate-cta-glow:hover::after {
+        background-color: var(--brand-accent) !important;
+    }
+
+    /* ── 狀態開關呼吸發光效果 (用於同步滾動與註解模式) ──
+       此處不使用背景常駐動畫以優化瀏覽器 Render Tree 重算開銷。
+       藉由 React 狀態在開啟時動態設定 animation-delay 負值，來實現多個呼吸燈按鈕的分秒同步。 */
+    .animate-status-glow {
+        position: relative;
+        background-color: var(--brand-secondary) !important; /* 淺色：極細微天藍 */
+        border: 1px solid rgba(0, 91, 148, 0.2) !important; /* 淺色：淡靛青邊框 */
+        transition: all 0.3s ease !important;
+        animation: status-shadow-pulse 3s ease-in-out infinite !important;
+    }
+
+    .dark .animate-status-glow {
+        background-color: rgba(56, 189, 248, 0.08) !important; /* 深色：透明天藍底 */
+        border-color: rgba(56, 189, 248, 0.25) !important; /* 深色：天藍邊框 */
+        animation: status-shadow-pulse-dark 3s ease-in-out infinite !important;
+    }
+
+    @keyframes cta-glow-rotate {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes cta-glow-pulse {
+        0%, 100% {
+            box-shadow: 0 0 6px rgba(14, 165, 233, 0.15);
+        }
+        50% {
+            box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);
+        }
+    }
+
+    @keyframes cta-glow-pulse-dark {
+        0%, 100% {
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+        }
+    }
+
+    @keyframes status-shadow-pulse {
+        0%, 100% {
+            box-shadow: 0 0 4px rgba(0, 91, 148, 0.15), inset 0 0 2px rgba(0, 91, 148, 0.05);
+        }
+        50% {
+            box-shadow: 0 0 10px rgba(0, 91, 148, 0.35), inset 0 0 4px rgba(0, 91, 148, 0.15);
+        }
+    }
+
+    @keyframes status-shadow-pulse-dark {
+        0%, 100% {
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.2), inset 0 0 3px rgba(56, 189, 248, 0.08);
+        }
+        50% {
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.45), inset 0 0 5px rgba(56, 189, 248, 0.25);
+        }
+    }
 }

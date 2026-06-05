@@ -53,6 +53,24 @@ const Header: React.FC<HeaderProps> = ({
     const [hasPushedAd, setHasPushedAd] = useState(false);
     const adContainerRef = useRef<HTMLDivElement>(null);
 
+    const [syncScrollDelay, setSyncScrollDelay] = useState<string>('0ms');
+    const [commentModeDelay, setCommentModeDelay] = useState<string>('0ms');
+
+    // ── 同步多個呼吸燈按鈕時間軸的負延遲補償 ──
+    useEffect(() => {
+        if (isSyncScroll && hasOpenDocuments) {
+            const offset = Math.round(performance.now() % 3000);
+            setSyncScrollDelay(`-${offset}ms`);
+        }
+    }, [isSyncScroll, hasOpenDocuments]);
+
+    useEffect(() => {
+        if (isCommentMode && hasOpenDocuments) {
+            const offset = Math.round(performance.now() % 3000);
+            setCommentModeDelay(`-${offset}ms`);
+        }
+    }, [isCommentMode, hasOpenDocuments]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
@@ -172,7 +190,7 @@ const Header: React.FC<HeaderProps> = ({
                         <MagneticButton variant="filled" onClick={() => hasOpenDocuments && setIsDownloadMenuOpen(!isDownloadMenuOpen)}
                             aria-label="開啟導出選單"
                             disabled={!hasOpenDocuments}
-                            className="text-sm pr-3"
+                            className={`text-sm pr-3 ${hasOpenDocuments ? 'animate-cta-glow' : ''}`}
                             magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
                             <Download size={16} />
                             <span>下載</span>
@@ -282,14 +300,14 @@ const Header: React.FC<HeaderProps> = ({
                     {/* 同步滾動 */}
                     <MagneticButton onClick={() => hasOpenDocuments && setIsSyncScroll(!isSyncScroll)} title="同步滾動"
                         disabled={!hasOpenDocuments}
-                        style={{ position: 'relative', overflow: 'hidden' }}
+                        style={{ position: 'relative', overflow: 'hidden', animationDelay: isSyncScroll && hasOpenDocuments ? syncScrollDelay : undefined }}
                         className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold transition-all select-none
                             ${isSyncScroll && hasOpenDocuments
-                                ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary shadow-sm ring-1 ring-brand-primary/10'
+                                ? 'animate-status-glow text-brand-primary shadow-sm'
                                 : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}>
                         <span className={`w-2 h-2 rounded-full shrink-0 transition-colors ${isSyncScroll && hasOpenDocuments ? 'bg-brand-primary animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
-                        同步滾動
+                        <span>同步滾動</span>
                     </MagneticButton>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
@@ -299,16 +317,16 @@ const Header: React.FC<HeaderProps> = ({
                         onClick={() => hasOpenDocuments && setIsCommentMode?.(!isCommentMode)}
                         title={!hasOpenDocuments ? '請先開啟文件以使用註解模式' : '開啟/關閉行號註解模式'}
                         disabled={!hasOpenDocuments}
-                        style={{ position: 'relative', overflow: 'hidden', cursor: hasOpenDocuments ? undefined : 'not-allowed' }}
+                        style={{ position: 'relative', overflow: 'hidden', animationDelay: isCommentMode && hasOpenDocuments ? commentModeDelay : undefined }}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none
                             ${!hasOpenDocuments
                                 ? 'opacity-35 text-slate-400 dark:text-slate-600'
                                 : isCommentMode
-                                    ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary shadow-sm ring-1 ring-brand-primary/10'
+                                    ? 'animate-status-glow text-brand-primary shadow-sm'
                                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}>
-                        <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? 'animate-bounce' : ''} />
-                        註解模式
+                        <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? '' : ''} />
+                        <span>註解模式</span>
                     </MagneticButton>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
@@ -318,7 +336,7 @@ const Header: React.FC<HeaderProps> = ({
                         <MagneticButton variant="filled" onClick={() => hasOpenDocuments && setIsDownloadMenuOpen(!isDownloadMenuOpen)}
                             aria-label="開啟導出選單"
                             disabled={!hasOpenDocuments}
-                            className="text-sm pr-3"
+                            className={`text-sm pr-3 ${hasOpenDocuments ? 'animate-cta-glow' : ''}`}
                             magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
                             <Download size={16} />
                             <span>下載</span>
