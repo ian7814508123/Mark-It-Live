@@ -249,6 +249,24 @@
         page-break-inside: avoid !important;
         background-color: transparent !important;
     }
+
+    /* 修正列印時 Alert 標題排版跑掉（圖示居中、文字靠右）的 Bug */
+    .prose blockquote.markdown-alert .markdown-alert-title {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+    }
+
+    .prose blockquote.markdown-alert .markdown-alert-title svg {
+        margin: 0 0.375rem 0 0 !important;
+        display: inline-block !important;
+    }
+
+    .prose blockquote.markdown-alert .markdown-alert-title strong {
+        margin: 0 !important;
+        display: inline-block !important;
+    }
 }
 
 /* ── 8. Mermaid SVG 外部樣式穿透與連動 [NEW] ────────────────────────────────── */

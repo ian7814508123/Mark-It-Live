@@ -451,7 +451,8 @@
         }
 
         .prose:not([class*="theme-"]) blockquote.markdown-alert .markdown-alert-title svg {
-            fill: currentColor !important;
+            fill: none !important;
+            stroke: currentColor !important;
         }
 
         /* DEFAULT 主題的行內程式碼黑白洗淨 */
@@ -473,7 +474,8 @@
             color: inherit !important;
         }
         .prose[class*="theme-"] blockquote.markdown-alert .markdown-alert-title svg {
-            fill: currentColor !important;
+            fill: none !important;
+            stroke: currentColor !important;
         }
 
         .prose[class*="theme-"] blockquote.markdown-alert-note {
