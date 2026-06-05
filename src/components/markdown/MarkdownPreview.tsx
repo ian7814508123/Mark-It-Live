@@ -12,8 +12,6 @@ import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
 import { hashString } from '../../utils';
 import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSettings';
-import { useDebounce } from '../../hooks/useDebounce';
-import { WrapText, Info, AlertCircle, AlertTriangle, Lightbulb, Ban } from 'lucide-react';
 import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
@@ -278,33 +276,36 @@ const LazyEnhancedCodeBlock = React.lazy(() => import('./EnhancedCodeBlock'));
 // 與 LazyMathJaxProvider（在 App.tsx）共享同一個 vendor-mathjax async chunk
 const LazyMathRenderer = React.lazy(() => import('./MemoizedMathJaxRenderer'));
 
+const LazyAlertIcon = React.lazy(() => import('./AlertIcon'));
+
 // ─── GitHub-style Alert 標註解析輔助 ──────────────────────────────────────────
-const alertConfig: Record<string, { icon: React.ReactNode; label: string; className: string }> = {
-    note: {
-        icon: <Info size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Note',
-        className: 'markdown-alert-note'
-    },
-    important: {
-        icon: <AlertCircle size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Important',
-        className: 'markdown-alert-important'
-    },
-    warning: {
-        icon: <AlertTriangle size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Warning',
-        className: 'markdown-alert-warning'
-    },
-    caution: {
-        icon: <Ban size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Caution',
-        className: 'markdown-alert-caution'
-    },
-    tip: {
-        icon: <Lightbulb size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Tip',
-        className: 'markdown-alert-tip'
-    }
+const alertConfig: Record<string, { label: string; className: string }> = {
+    // Note / Info (藍色)
+    note: { label: 'Note', className: 'markdown-alert-note' },
+    info: { label: 'Info', className: 'markdown-alert-note' },
+
+    // Tip / Success (綠色)
+    tip: { label: 'Tip', className: 'markdown-alert-tip' },
+    success: { label: 'Success', className: 'markdown-alert-tip' },
+    check: { label: 'Check', className: 'markdown-alert-tip' },
+    quickstart: { label: 'Quick Start', className: 'markdown-alert-tip' },
+    start: { label: 'Start', className: 'markdown-alert-tip' },
+
+    // Warning / Caution (黃色 / 紅色)
+    warning: { label: 'Warning', className: 'markdown-alert-warning' },
+    attention: { label: 'Attention', className: 'markdown-alert-warning' },
+    caution: { label: 'Caution', className: 'markdown-alert-caution' },
+    ban: { label: 'Ban', className: 'markdown-alert-caution' },
+    danger: { label: 'Danger', className: 'markdown-alert-caution' },
+    error: { label: 'Error', className: 'markdown-alert-caution' },
+    bug: { label: 'Bug', className: 'markdown-alert-caution' },
+    failure: { label: 'Failure', className: 'markdown-alert-caution' },
+
+    // Important / Question (紫色)
+    important: { label: 'Important', className: 'markdown-alert-important' },
+    question: { label: 'Question', className: 'markdown-alert-important' },
+    help: { label: 'Help', className: 'markdown-alert-important' },
+    faq: { label: 'FAQ', className: 'markdown-alert-important' }
 };
 
 
@@ -919,19 +920,31 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
         blockquote: ({ node, children, ...props }: any) => {
             const line = node?.position?.start?.line;
-            const alertType = node?.data?.alertType;
+            // 優先由 HTML 屬性 data-alert-type 或 dataAlertType 讀取以確保在 Rehype AST 中不丟失，最後 fallback 到 node.data.alertType
+            const alertType = props.dataAlertType || props['data-alert-type'] || node?.data?.alertType;
+            // 優先由 HTML 屬性 data-alert-title 或 dataAlertTitle 讀取以確保在 Rehype AST 中不丟失，最後 fallback 到 node.data.alertTitle
+            const alertTitle = props.dataAlertTitle || props['data-alert-title'] || node?.data?.alertTitle;
 
             if (alertType) {
                 const config = alertConfig[alertType] || alertConfig.note;
+                const titleToDisplay = alertTitle || config.label;
+                
+                // 過濾掉不該直接傳遞到 blockquote DOM 上的自訂屬性，防止 React 在 Console 報 Custom Property Warning
+                const { dataAlertType, dataAlertTitle, ...domProps } = props;
+
+
                 return wrapWithComment(node, (
                     <blockquote
-                        {...props}
+                        {...domProps}
                         className={`markdown-alert ${config.className}`}
                         data-line={line}
                     >
                         <div className="markdown-alert-title">
-                            {config.icon}
-                            <span>{config.label}</span>
+                            <React.Suspense fallback={<div className="w-3.5 h-3.5 mr-1.5 inline-block animate-pulse bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />}>
+                                <LazyAlertIcon type={alertType} />
+                            </React.Suspense>
+
+                            <strong>{titleToDisplay}</strong>
                         </div>
                         <div className="markdown-alert-content">
                             {children}

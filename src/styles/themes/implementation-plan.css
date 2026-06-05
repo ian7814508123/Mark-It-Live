@@ -55,21 +55,21 @@
     --code-line-number-shadow: rgba(0, 91, 148, 0.05);
 
     /* 7. 標註系統 (Alerts) */
-    --theme-alert-note-border: #3b82f6;
-    --theme-alert-note-bg: rgba(59, 130, 246, 0.05);
-    --theme-alert-note-text: #2563eb;
-    --theme-alert-tip-border: #10b981;
-    --theme-alert-tip-bg: rgba(16, 185, 129, 0.05);
-    --theme-alert-tip-text: #059669;
-    --theme-alert-important-border: #8b5cf6;
-    --theme-alert-important-bg: rgba(139, 92, 246, 0.05);
-    --theme-alert-important-text: #7c3aed;
-    --theme-alert-warning-border: #f59e0b;
-    --theme-alert-warning-bg: rgba(245, 158, 11, 0.05);
-    --theme-alert-warning-text: #d97706;
-    --theme-alert-caution-border: #ef4444;
-    --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
-    --theme-alert-caution-text: #dc2626;
+    --theme-alert-note-border: #1d4ed8;
+    --theme-alert-note-bg: rgba(29, 78, 216, 0.04);
+    --theme-alert-note-text: #1e3a8a;
+    --theme-alert-tip-border: #047857;
+    --theme-alert-tip-bg: rgba(4, 120, 87, 0.04);
+    --theme-alert-tip-text: #064e3b;
+    --theme-alert-important-border: #6d28d9;
+    --theme-alert-important-bg: rgba(109, 40, 217, 0.04);
+    --theme-alert-important-text: #3b0764;
+    --theme-alert-warning-border: #d1a11c;
+    --theme-alert-warning-bg: rgba(194, 65, 12, 0.04);
+    --theme-alert-warning-text: #7c2d12;
+    --theme-alert-caution-border: #b91c1c;
+    --theme-alert-caution-bg: rgba(185, 28, 28, 0.04);
+    --theme-alert-caution-text: #7f1d1d;
 
     /* 8. Mermaid 樣式變數 (自適應主題連動) */
     --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
@@ -121,9 +121,9 @@
     --code-line-number-shadow: rgba(0, 0, 0, 0.35);
 
     /* 7. 標註系統 (Alerts - 深色對焦) */
-    --theme-alert-note-border: #60a5fa;
-    --theme-alert-note-bg: rgba(96, 165, 250, 0.1);
-    --theme-alert-note-text: #60a5fa;
+    --theme-alert-note-border: #38bdf8;
+    --theme-alert-note-bg: rgba(56, 189, 248, 0.1);
+    --theme-alert-note-text: #38bdf8;
     --theme-alert-tip-border: #34d399;
     --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
     --theme-alert-tip-text: #34d399;
@@ -347,21 +347,21 @@
         --code-border: #cbd5e1 !important;
 
         /* Alerts 標註實作計畫淺色變數 */
-        --theme-alert-note-border: #3b82f6 !important;
-        --theme-alert-note-bg: rgba(59, 130, 246, 0.05) !important;
-        --theme-alert-note-text: #2563eb !important;
-        --theme-alert-tip-border: #10b981 !important;
-        --theme-alert-tip-bg: rgba(16, 185, 129, 0.05) !important;
-        --theme-alert-tip-text: #059669 !important;
-        --theme-alert-important-border: #8b5cf6 !important;
-        --theme-alert-important-bg: rgba(139, 92, 246, 0.05) !important;
-        --theme-alert-important-text: #7c3aed !important;
-        --theme-alert-warning-border: #f59e0b !important;
-        --theme-alert-warning-bg: rgba(245, 158, 11, 0.05) !important;
-        --theme-alert-warning-text: #d97706 !important;
-        --theme-alert-caution-border: #ef4444 !important;
-        --theme-alert-caution-bg: rgba(239, 68, 68, 0.05) !important;
-        --theme-alert-caution-text: #dc2626 !important;
+        --theme-alert-note-border: #1d4ed8 !important;
+        --theme-alert-note-bg: rgba(29, 78, 216, 0.04) !important;
+        --theme-alert-note-text: #1e3a8a !important;
+        --theme-alert-tip-border: #047857 !important;
+        --theme-alert-tip-bg: rgba(4, 120, 87, 0.04) !important;
+        --theme-alert-tip-text: #064e3b !important;
+        --theme-alert-important-border: #6d28d9 !important;
+        --theme-alert-important-bg: rgba(109, 40, 217, 0.04) !important;
+        --theme-alert-important-text: #3b0764 !important;
+        --theme-alert-warning-border: #d1a11c !important;
+        --theme-alert-warning-bg: rgba(194, 65, 12, 0.04) !important;
+        --theme-alert-warning-text: #7c2d12 !important;
+        --theme-alert-caution-border: #b91c1c !important;
+        --theme-alert-caution-bg: rgba(185, 28, 28, 0.04) !important;
+        --theme-alert-caution-text: #7f1d1d !important;
     }
 
     /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印 */

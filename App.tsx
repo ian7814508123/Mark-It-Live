@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, Suspense } from 'react';
 import { flushSync } from 'react-dom';
-const LazyMathJaxProvider = React.lazy(() => import('./src/components/LazyMathJaxProvider'));
+const LazyMathJaxProvider = React.lazy(() => import('./src/components/markdown/LazyMathJaxProvider'));
 
 import Header from './src/components/layout/Header';
 import Editor from './src/components/layout/Editor';

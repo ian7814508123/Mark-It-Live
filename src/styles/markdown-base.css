@@ -151,6 +151,13 @@
     align-items: center;
     margin-bottom: 0.35rem;
     font-weight: 700;
+    font-family: inherit;
+}
+
+.prose blockquote.markdown-alert .markdown-alert-title span,
+.prose blockquote.markdown-alert .markdown-alert-title strong {
+    font-weight: 700;
+    font-family: inherit;
 }
 
 .prose blockquote.markdown-alert .markdown-alert-title svg {

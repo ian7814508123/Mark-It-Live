@@ -75,20 +75,20 @@
 
     /* 8. 標註系統 (Alerts) */
     --theme-alert-note-border: #0891b2;
-    --theme-alert-note-bg: rgba(8, 145, 178, 0.05);
-    --theme-alert-note-text: #0891b2;
+    --theme-alert-note-bg: rgba(8, 145, 178, 0.04);
+    --theme-alert-note-text: #0369a1;
     --theme-alert-tip-border: #10b981;
-    --theme-alert-tip-bg: rgba(16, 185, 129, 0.05);
-    --theme-alert-tip-text: #10b981;
-    --theme-alert-important-border: #6366f1;
-    --theme-alert-important-bg: rgba(99, 102, 241, 0.05);
-    --theme-alert-important-text: #6366f1;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.04);
+    --theme-alert-tip-text: #065f46;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.04);
+    --theme-alert-important-text: #5b21b6;
     --theme-alert-warning-border: #f59e0b;
-    --theme-alert-warning-bg: rgba(245, 158, 11, 0.05);
-    --theme-alert-warning-text: #f59e0b;
+    --theme-alert-warning-bg: rgba(245, 158, 11, 0.04);
+    --theme-alert-warning-text: #92400e;
     --theme-alert-caution-border: #ef4444;
-    --theme-alert-caution-bg: rgba(239, 68, 68, 0.05);
-    --theme-alert-caution-text: #ef4444;
+    --theme-alert-caution-bg: rgba(239, 68, 68, 0.04);
+    --theme-alert-caution-text: #991b1b;
 }
 
 /* --------------------------------------------------------------------------
@@ -143,13 +143,13 @@
     /* 深色模式下的 Alerts */
     --theme-alert-note-border: #06b6d4;
     --theme-alert-note-bg: rgba(6, 182, 212, 0.1);
-    --theme-alert-note-text: #06b6d4;
-    --theme-alert-tip-border: #34d399;
-    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
+    --theme-alert-note-text: #22d3ee;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.1);
     --theme-alert-tip-text: #34d399;
-    --theme-alert-important-border: #818cf8;
-    --theme-alert-important-bg: rgba(129, 140, 248, 0.1);
-    --theme-alert-important-text: #818cf8;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.1);
+    --theme-alert-important-text: #a78bfa;
     --theme-alert-warning-border: #fbbf24;
     --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
     --theme-alert-warning-text: #fbbf24;

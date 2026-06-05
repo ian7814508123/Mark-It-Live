@@ -84,21 +84,21 @@
     --code-token-attr-name: #7c4c1a;
 
     /* 8. 標註系統 (Alerts) */
-    --theme-alert-note-border: #2c2a29;
-    --theme-alert-note-bg: #f2ede0;
-    --theme-alert-note-text: #2c2a29;
-    --theme-alert-tip-border: #3d5e46;
-    --theme-alert-tip-bg: #f2f6ed;
-    --theme-alert-tip-text: #2d4a36;
-    --theme-alert-important-border: #b22222;
-    --theme-alert-important-bg: #fcf0ec;
-    --theme-alert-important-text: #8b1e0f;
-    --theme-alert-warning-border: #7c4c1a;
-    --theme-alert-warning-bg: #faf2e6;
-    --theme-alert-warning-text: #5d3f1a;
-    --theme-alert-caution-border: #8b1e0f;
-    --theme-alert-caution-bg: #faf0ef;
-    --theme-alert-caution-text: #8b1e0f;
+    --theme-alert-note-border: #2a4b60;
+    --theme-alert-note-bg: rgba(42, 75, 96, 0.03);
+    --theme-alert-note-text: #193140;
+    --theme-alert-tip-border: #3b6e4c;
+    --theme-alert-tip-bg: rgba(59, 110, 76, 0.03);
+    --theme-alert-tip-text: #254b32;
+    --theme-alert-important-border: #5e3c6d;
+    --theme-alert-important-bg: rgba(94, 60, 109, 0.03);
+    --theme-alert-important-text: #3b2347;
+    --theme-alert-warning-border: #b57c1e;
+    --theme-alert-warning-bg: rgba(181, 124, 30, 0.03);
+    --theme-alert-warning-text: #7b510d;
+    --theme-alert-caution-border: #9e2a2b;
+    --theme-alert-caution-bg: rgba(158, 42, 43, 0.03);
+    --theme-alert-caution-text: #6f1b1c;
 }
 
 /* 深色模式下的變數覆蓋 (玄黑與玉白) */
@@ -165,21 +165,21 @@
     --code-token-attr-name: #d49855;
 
     /* 8. 標註系統 (Alerts - 深色對焦) */
-    --theme-alert-note-border: #e5dfd3;
-    --theme-alert-note-bg: rgba(229, 223, 211, 0.08);
+    --theme-alert-note-border: #a8a297;
+    --theme-alert-note-bg: rgba(168, 162, 151, 0.08);
     --theme-alert-note-text: #e5dfd3;
     --theme-alert-tip-border: #76a084;
     --theme-alert-tip-bg: rgba(118, 160, 132, 0.08);
-    --theme-alert-tip-text: #76a084;
-    --theme-alert-important-border: #c9423a;
-    --theme-alert-important-bg: rgba(201, 66, 58, 0.08);
-    --theme-alert-important-text: #e5dfd3;
+    --theme-alert-tip-text: #a3c9b0;
+    --theme-alert-important-border: #8c7396;
+    --theme-alert-important-bg: rgba(140, 115, 150, 0.08);
+    --theme-alert-important-text: #ccaacc;
     --theme-alert-warning-border: #d49855;
     --theme-alert-warning-bg: rgba(212, 152, 85, 0.08);
-    --theme-alert-warning-text: #d49855;
+    --theme-alert-warning-text: #f0b875;
     --theme-alert-caution-border: #d9635b;
     --theme-alert-caution-bg: rgba(217, 99, 91, 0.08);
-    --theme-alert-caution-text: #d9635b;
+    --theme-alert-caution-text: #fca8a1;
 }
 
 /* 樣式套用 (Prose Binding) */
@@ -362,21 +362,21 @@
         --code-token-attr-name: #7c4c1a !important;
 
         /* Alerts 標註古典淺色變數 */
-        --theme-alert-note-border: #2c2a29 !important;
-        --theme-alert-note-bg: #f2ede0 !important;
-        --theme-alert-note-text: #2c2a29 !important;
-        --theme-alert-tip-border: #3d5e46 !important;
-        --theme-alert-tip-bg: #f2f6ed !important;
-        --theme-alert-tip-text: #2d4a36 !important;
-        --theme-alert-important-border: #b22222 !important;
-        --theme-alert-important-bg: #fcf0ec !important;
-        --theme-alert-important-text: #8b1e0f !important;
-        --theme-alert-warning-border: #7c4c1a !important;
-        --theme-alert-warning-bg: #faf2e6 !important;
-        --theme-alert-warning-text: #5d3f1a !important;
-        --theme-alert-caution-border: #8b1e0f !important;
-        --theme-alert-caution-bg: #faf0ef !important;
-        --theme-alert-caution-text: #8b1e0f !important;
+        --theme-alert-note-border: #2a4b60 !important;
+        --theme-alert-note-bg: rgba(42, 75, 96, 0.03) !important;
+        --theme-alert-note-text: #193140 !important;
+        --theme-alert-tip-border: #3b6e4c !important;
+        --theme-alert-tip-bg: rgba(59, 110, 76, 0.03) !important;
+        --theme-alert-tip-text: #254b32 !important;
+        --theme-alert-important-border: #5e3c6d !important;
+        --theme-alert-important-bg: rgba(94, 60, 109, 0.03) !important;
+        --theme-alert-important-text: #3b2347 !important;
+        --theme-alert-warning-border: #b57c1e !important;
+        --theme-alert-warning-bg: rgba(181, 124, 30, 0.03) !important;
+        --theme-alert-warning-text: #7b510d !important;
+        --theme-alert-caution-border: #9e2a2b !important;
+        --theme-alert-caution-bg: rgba(158, 42, 43, 0.03) !important;
+        --theme-alert-caution-text: #6f1b1c !important;
     }
 
     /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印（確保 Alert 背景、代碼背景、線條顏色不被抹除） */
