@@ -548,9 +548,10 @@ interface ResizableImageProps {
     currentDocId?: string | null;
     getImage: (id: string) => Promise<string | null>;
     isDarkMode: boolean;
+    isActuallyPrinting?: boolean;
 }
 
-const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode }) => {
+const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode, isActuallyPrinting }) => {
     // ─── 狀態持久化：加上 currentDocId 和 line 避免同圖打架 ──────────────────────────────
     const storageKey = useMemo(() => {
         const docPrefix = currentDocId ? `doc:${currentDocId}` : 'global';
@@ -564,6 +565,14 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
     const isLocal = src?.startsWith('img-local://');
     const imgId = isLocal ? src.replace('img-local://', '') : '';
 
+    if (isActuallyPrinting) {
+        return isLocal ? (
+            <LocalImage id={imgId} alt={alt} getImage={getImage} className="max-w-full h-auto block" />
+        ) : (
+            <img src={src} alt={alt} className="max-w-full h-auto block" />
+        );
+    }
+
     return (
         <ResizableWrapper
             width={width}
@@ -575,7 +584,7 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
         >
             <div
                 ref={containerRef}
-                className={`relative rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900/20 flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
+                className={`relative rounded-xl overflow-hidden flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
             >
                 {isLocal ? (
                     <LocalImage id={imgId} alt={alt} getImage={getImage} />
@@ -1021,6 +1030,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     currentDocId={ctx.currentDocId}
                     getImage={ctx.getImage}
                     isDarkMode={ctx.shouldShowDark}
+                    isActuallyPrinting={ctx.isActuallyPrinting}
                 />
             );
         },
@@ -1078,8 +1088,11 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const isLocal = src.startsWith('img-local://');
             if (isLocal) {
                 const id = src.replace('img-local://', '');
+                if (ctx.isActuallyPrinting) {
+                    return <LocalVideo id={id} getImage={ctx.getImage} className="max-w-full h-auto block" />;
+                }
                 return (
-                    <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-black/5 dark:bg-black/20 shadow-md" data-line={node?.position?.start?.line}>
+                    <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md" data-line={node?.position?.start?.line}>
                         <LocalVideo id={id} getImage={ctx.getImage} />
                     </div>
                 );
@@ -1108,8 +1121,20 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 );
             }
 
+            if (ctx.isActuallyPrinting) {
+                return (
+                    <video
+                        src={src}
+                        controls
+                        preload="metadata"
+                        className="max-w-full h-auto block"
+                        {...props}
+                    />
+                );
+            }
+
             return (
-                <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-black/5 dark:bg-black/20 shadow-md" data-line={node?.position?.start?.line}>
+                <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md" data-line={node?.position?.start?.line}>
                     <video
                         src={src}
                         controls
