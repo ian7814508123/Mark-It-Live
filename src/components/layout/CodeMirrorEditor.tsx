@@ -3,7 +3,7 @@ import CodeMirror, { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { mermaid } from 'codemirror-lang-mermaid';
-import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
+import { vscodeDarkInit, vscodeLightInit } from '@uiw/codemirror-theme-vscode';
 import { EditorView, ViewPlugin, ViewUpdate, keymap } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { searchKeymap, search } from '@codemirror/search';
@@ -217,7 +217,23 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         ...stickyExtension,
     ], [mode, onScroll, ariaLabel, stickyExtension, measure]);
 
-    const theme = isDarkMode ? vscodeDark : vscodeLight;
+    const theme = useMemo(() => {
+        if (isDarkMode) {
+            return vscodeDarkInit({
+                settings: {
+                    background: '#0F172A',
+                    gutterBackground: '#0F172A',
+                }
+            });
+        } else {
+            return vscodeLightInit({
+                settings: {
+                    background: '#ffffff',
+                    gutterBackground: '#f5f5f5',
+                }
+            });
+        }
+    }, [isDarkMode]);
     const handleChange = useCallback((value: string) => setCode(value), [setCode]);
     const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
         if (onScroll) onScroll(event);
@@ -264,8 +280,8 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 height: '100%',
                 width: '100%',
                 // VS Code 明/暗主題色票
-                ['--sg-bg' as string]: isDarkMode ? '#1e1e1e' : '#ffffff',
-                //['--sg-gutter' as string]: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+                ['--sg-bg' as string]: isDarkMode ? '#0F172A' : '#ffffff',
+                ['--sg-gutter' as string]: isDarkMode ? '#0F172A' : '#f5f5f5',
                 ['--sg-border' as string]: isDarkMode ? '#404040' : '#e0e0e0',
                 ['--sg-link' as string]: isDarkMode ? '#9cdcfe' : '#0070c1',
                 ['--sg-muted' as string]: isDarkMode ? '#808080' : '#888888',
