@@ -566,10 +566,24 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
     const imgId = isLocal ? src.replace('img-local://', '') : '';
 
     if (isActuallyPrinting) {
-        return isLocal ? (
-            <LocalImage id={imgId} alt={alt} getImage={getImage} className="max-w-full h-auto block" />
-        ) : (
-            <img src={src} alt={alt} className="max-w-full h-auto block" />
+        return (
+            <div
+                className={`chart-wrapper align-${align} print:!my-0 flex w-full`}
+                style={{
+                    justifyContent: align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+                }}
+            >
+                <div
+                    className="chart-content"
+                    style={{ width }}
+                >
+                    {isLocal ? (
+                        <LocalImage id={imgId} alt={alt} getImage={getImage} className="max-w-full h-auto block" />
+                    ) : (
+                        <img src={src} alt={alt} className="max-w-full h-auto block" />
+                    )}
+                </div>
+            </div>
         );
     }
 
