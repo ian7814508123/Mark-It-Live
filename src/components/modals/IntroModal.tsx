@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Sparkles, Zap, Microscope, BookOpen, ChevronRight } from '../ui/Icons';
+import { View, Zap, Microscope, BookOpen, ChevronRight } from '../ui/Icons';
 import { FEATURE_CARDS, SCIENCE_SUPPORTS, MANUAL_SECTIONS, INTRO_SUMMARY } from '../../data/introData';
-import RippleButton from '../ui/RippleButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
 import GlassRailSelector from '../ui/GlassRailSelector';
 import MagneticButton from '../ui/MagneticButton';
@@ -89,7 +88,7 @@ const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
             <GlassRailSelector
               className="pointer-events-auto w-72 shadow-sm"
               options={[
-                { label: '特色總覽', value: 'overview', icon: <Sparkles size={14} /> }, { label: '使用手冊', value: 'manual', icon: <BookOpen size={14} /> },
+                { label: '特色總覽', value: 'overview', icon: <View size={14} /> }, { label: '使用手冊', value: 'manual', icon: <BookOpen size={14} /> },
               ]}
               value={activeTab}
               onChange={(v) => setActiveTab(v as 'manual' | 'overview')}
