@@ -1,5 +1,5 @@
 import React from 'react';
-import { EyeOff, ShieldAlert, Globe, Lock } from 'lucide-react';
+import { EyeOff, ShieldAlert, Globe, Lock } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 
 interface ExternalMediaShieldProps {

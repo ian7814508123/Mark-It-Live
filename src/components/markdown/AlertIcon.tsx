@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, AlertCircle, AlertTriangle, Lightbulb, Ban, CheckCircle, AlertOctagon, Bug, HelpCircle } from 'lucide-react';
+import { Info, AlertCircle, AlertTriangle, Lightbulb, Ban, CheckCircle, AlertOctagon, Bug, HelpCircle } from '../ui/Icons';
 
 interface AlertIconProps {
     type: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Sparkles, Zap, Microscope, BookOpen, ChevronRight } from 'lucide-react';
+import { Sparkles, Zap, Microscope, BookOpen, ChevronRight } from '../ui/Icons';
 import { FEATURE_CARDS, SCIENCE_SUPPORTS, MANUAL_SECTIONS, INTRO_SUMMARY } from '../../data/introData';
 import RippleButton from '../ui/RippleButton';
 import InteractiveLogo from '../ui/InteractiveLogo';

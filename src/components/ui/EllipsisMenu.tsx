@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { MoreHorizontal, Pencil, FolderInput, Trash2, FolderOpen, Home, ChevronDown } from 'lucide-react';
+import { MoreHorizontal, Pencil, FolderInput, Trash2, FolderOpen, Home, ChevronDown } from './Icons';
 import { FolderRecord } from '../../types';
 
 interface EllipsisMenuProps {

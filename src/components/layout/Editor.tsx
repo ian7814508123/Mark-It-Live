@@ -1,6 +1,6 @@
 
 import React, { forwardRef, useState, useMemo, useEffect } from 'react';
-import { FileCode, Check, Copy, RefreshCw, Trash2, Menu, X, FileText, FileSearch } from 'lucide-react';
+import { FileCode, Check, Copy, RefreshCw, Trash2, Menu, X, FileText, FileSearch } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import CodeMirrorEditor from './CodeMirrorEditor';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';

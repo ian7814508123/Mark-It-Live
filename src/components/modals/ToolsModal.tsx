@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { X, Wrench, FileText, Table, BarChart2, Database, Loader2 } from 'lucide-react';
+import { X, Wrench, FileText, Table, BarChart2, Database, Loader2 } from '../ui/Icons';
 const PdfMergeTool = React.lazy(() => import('./PdfMergeTool'));
 import TableGeneratorTool from './TableGeneratorTool';
 import WordCountTool from './WordCountTool';

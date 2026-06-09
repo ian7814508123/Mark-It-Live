@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { BarChart2, Copy, Check, ChevronDown, ChevronUp, FileText, ClipboardPaste, Info } from 'lucide-react';
+import { BarChart2, Copy, Check, ChevronDown, ChevronUp, FileText, ClipboardPaste, Info } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import GlassRailSelector from '../ui/GlassRailSelector';
 import ToolGuide from '../ui/ToolGuide';

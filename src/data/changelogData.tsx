@@ -1,5 +1,5 @@
 import React from 'react';
-import { PackagePlus, Palette, MessageSquare, Check, X, Star } from 'lucide-react';
+import { PackagePlus, Palette, MessageSquare, Check, X, Star } from '../components/ui/Icons';
 
 export interface ChangelogSubSection {
   icon: React.ComponentType<any>;

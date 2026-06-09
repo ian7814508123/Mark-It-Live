@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Layout, Star } from 'lucide-react';
+import { Layout, Star } from './Icons';
 
 export interface ThemeOption {
     label: string;

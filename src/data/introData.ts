@@ -10,7 +10,7 @@ import {
   Wrench,
   Share2,
   AlertCircle
-} from 'lucide-react';
+} from '../components/ui/Icons';
 
 export interface FeatureCardData {
   icon: React.ComponentType<any>;

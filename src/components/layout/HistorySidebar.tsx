@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, FolderOpen, FileText, Wrench, ChevronDown, ChevronRight, Files, FolderPlus } from 'lucide-react';
+import { X, Plus, FolderOpen, FileText, Wrench, ChevronDown, ChevronRight, Files, FolderPlus } from '../ui/Icons';
 import { DocumentRecord } from '../../types';
 import DocumentItem from '../ui/DocumentItem';
 import ToolsModal from '../modals/ToolsModal';

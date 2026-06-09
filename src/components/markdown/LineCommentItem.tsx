@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, X, Edit3, Trash2, Check, Plus } from 'lucide-react';
+import { MessageSquare, X, Edit3, Trash2, Check, Plus } from '../ui/Icons';
 import { useCommentContext } from './CommentContext';
 
 // ─── Props ────────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronUp, ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronUp, ChevronDown, ExternalLink } from '../ui/Icons';
 
 interface FooterProps {
   showIntroTrigger?: boolean;

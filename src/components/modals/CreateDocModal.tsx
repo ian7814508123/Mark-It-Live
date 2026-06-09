@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, FileText, Image as ImageIcon, ChevronLeft, Zap, FlaskConical, File, Ruler, BarChart2, GitBranch, Music, Search } from 'lucide-react';
+import { X, Plus, FileText, Image as ImageIcon, ChevronLeft, Zap, FlaskConical, File, Ruler, BarChart2, GitBranch, Music, Search } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from './Icons';
 
 interface ToolGuideProps {
     /** 指南標題 */

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';

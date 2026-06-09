@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useEffect, useRef, useMemo } from 'react';
-import { AlertCircle, Trash2, RefreshCw, Sparkles, ZoomIn, ZoomOut, Maximize, Hand, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { AlertCircle, Trash2, RefreshCw, Sparkles, ZoomIn, ZoomOut, Maximize, Hand, ChevronLeft, ChevronRight, Activity } from '../ui/Icons';
 import MarkdownPreview from '../markdown/MarkdownPreview';
 import InteractiveLogo from '../ui/InteractiveLogo';
 

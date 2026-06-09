@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare } from 'lucide-react';
+import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import InteractiveLogo from '../ui/InteractiveLogo';

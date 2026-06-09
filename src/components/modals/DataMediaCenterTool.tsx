@@ -14,7 +14,7 @@ import {
     ArrowLeft,
     Film,
     Music
-} from 'lucide-react';
+} from '../ui/Icons';
 import { useImageStorage, formatExpiryDate, formatFileSize } from '../../hooks/useImageStorage';
 import GlassRailSelector, { GlassRailOption } from '../ui/GlassRailSelector';
 import ToolGuide from '../ui/ToolGuide';

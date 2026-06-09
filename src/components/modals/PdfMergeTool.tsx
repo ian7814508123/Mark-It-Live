@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2, Upload, Info } from 'lucide-react';
+import { FilePlus2, Trash2, Download, GripVertical, FileText, Image as ImageIcon, X, Loader2, Upload, Info } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import ToolGuide from '../ui/ToolGuide';
 
