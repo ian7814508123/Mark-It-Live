@@ -41,9 +41,9 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
         window.dispatchEvent(new CustomEvent('content-layout-ready'));
     }, [effectiveWrapped]);
 
-    const handleScroll = useCallback((e: React.UIEvent<HTMLPreElement>) => {
-        const scrollLeft = e.currentTarget.scrollLeft;
-        setIsScrolled(scrollLeft > 0);
+    const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
+        const target = e.target as HTMLElement;
+        setIsScrolled(target.scrollLeft > 0);
     }, []);
 
     // 動態計算最大位數，仿照 VS Code 做法，至少預留 2 位數空間
@@ -60,6 +60,7 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
             <div
                 className={`enhanced-codeblock ${effectiveWrapped ? 'code-block-wrap' : 'code-block-scroll'} ${!effectiveWrapped && isScrolled ? 'has-scrolled' : ''}`}
                 data-theme-style={(isActuallyPrinting || !shouldShowDark) ? 'light' : 'dark'}
+                onScrollCapture={handleScroll}
             >
                 {language && (
                     <CodeBlockHeader
@@ -90,9 +91,7 @@ const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
                     lineProps={{
                         className: 'code-line'
                     }}
-                    preTagProps={{
-                        onScroll: handleScroll
-                    }}
+                    preTagProps={{}}
                 >
                     {codeString}
                 </SyntaxHighlighter>

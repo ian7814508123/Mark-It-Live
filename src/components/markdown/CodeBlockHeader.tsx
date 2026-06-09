@@ -1,44 +1,30 @@
 import React from 'react';
-import { Braces, Terminal, FileText, Code2, FileCode, WrapText } from 'lucide-react';
+import { WrapText } from 'lucide-react';
+import {
+  FaJs,
+  FaPython,
+  FaRust,
+  FaGolang,
+  FaHtml5,
+  FaCss3,
+  FaMarkdown,
+  FaJava,
+  FaDocker
+} from 'react-icons/fa6';
+import {
+  TbDatabase,
+  TbTerminal,
+  TbFileCode,
+  TbBraces,
+  TbFileText,
+  TbBrandPowershell,
+  TbBrandCSharp,
+  TbBrandCpp
+} from 'react-icons/tb';
+import { BsTypescript, BsFiletypeJsx, BsFiletypeTsx } from "react-icons/bs";
+import { SiYaml, SiGnubash, SiZsh, SiArduino } from "react-icons/si";
 
-// 1. 定義語言與 Icon/顏色的對應表
-const LANGUAGE_CONFIG: Record<string, { label: string; icon: React.ComponentType<any>; color: string }> = {
-  // 標準語言
-  json: { label: 'JSON Spec', icon: Braces, color: 'text-yellow-500 border-yellow-500/20 bg-yellow-500/10' },
-  vega: { label: 'Vega Graph', icon: Braces, color: 'text-orange-500 border-orange-500/20 bg-orange-500/10' },
-  javascript: { label: 'JavaScript', icon: FileCode, color: 'text-amber-500 border-amber-500/20 bg-amber-500/10' },
-  js: { label: 'JavaScript', icon: FileCode, color: 'text-amber-500 border-amber-500/20 bg-amber-500/10' },
-  typescript: { label: 'TypeScript', icon: FileCode, color: 'text-blue-500 border-blue-500/20 bg-blue-500/10' },
-  ts: { label: 'TypeScript', icon: FileCode, color: 'text-blue-500 border-blue-500/20 bg-blue-500/10' },
-  jsx: { label: 'React JS', icon: FileCode, color: 'text-amber-500 border-amber-500/20 bg-amber-500/10' },
-  tsx: { label: 'React TS', icon: FileCode, color: 'text-blue-500 border-blue-500/20 bg-blue-500/10' },
-  html: { label: 'HTML', icon: FileCode, color: 'text-orange-500 border-orange-500/20 bg-orange-500/10' },
-  css: { label: 'CSS', icon: FileCode, color: 'text-teal-500 border-teal-500/20 bg-teal-500/10' },
-  python: { label: 'Python', icon: FileCode, color: 'text-sky-500 border-sky-500/20 bg-sky-500/10' },
-  py: { label: 'Python', icon: FileCode, color: 'text-sky-500 border-sky-500/20 bg-sky-500/10' },
-  go: { label: 'Go Language', icon: FileCode, color: 'text-cyan-500 border-cyan-500/20 bg-cyan-500/10' },
-  golang: { label: 'Go Language', icon: FileCode, color: 'text-cyan-500 border-cyan-500/20 bg-cyan-500/10' },
-  rust: { label: 'Rust', icon: FileCode, color: 'text-amber-600 border-amber-600/20 bg-amber-600/10' },
-  rs: { label: 'Rust', icon: FileCode, color: 'text-amber-600 border-amber-600/20 bg-amber-600/10' },
-  markdown: { label: 'Markdown', icon: FileText, color: 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' },
-  md: { label: 'Markdown', icon: FileText, color: 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' },
-  sql: { label: 'Database SQL', icon: Terminal, color: 'text-indigo-500 border-indigo-500/20 bg-indigo-500/10' },
-  yaml: { label: 'YAML Config', icon: Braces, color: 'text-purple-500 border-purple-500/20 bg-purple-500/10' },
-  yml: { label: 'YAML Config', icon: Braces, color: 'text-purple-500 border-purple-500/20 bg-purple-500/10' },
-  toml: { label: 'TOML Config', icon: Braces, color: 'text-purple-500 border-purple-500/20 bg-purple-500/10' },
-  xml: { label: 'XML Spec', icon: FileCode, color: 'text-orange-500 border-orange-500/20 bg-orange-500/10' },
-
-  // 特殊例外處理 (Console, Log 紀錄)
-  console: { label: 'Console Output', icon: Terminal, color: 'text-green-500 border-green-500/20 bg-green-500/5' },
-  bash: { label: 'Terminal', icon: Terminal, color: 'text-green-500 border-green-500/20 bg-green-500/5' },
-  sh: { label: 'Terminal', icon: Terminal, color: 'text-green-500 border-green-500/20 bg-green-500/5' },
-  shell: { label: 'Terminal', icon: Terminal, color: 'text-green-500 border-green-500/20 bg-green-500/5' },
-  log: { label: 'System Log', icon: FileText, color: 'text-blue-500 border-blue-500/20 bg-blue-500/5' },
-};
-
-// 2. 預設的備用 Icon (當使用者輸入了未知的語言時)
-const DEFAULT_CONFIG = { label: 'Source Code', icon: Code2, color: 'text-slate-500 border-slate-500/20 bg-slate-500/5' };
-
+// 定義 CodeHeaderProps 介面
 interface CodeHeaderProps {
   language: string; // 傳入從 Markdown 解析出來的語言標籤
   isWrapped?: boolean;
@@ -46,38 +32,128 @@ interface CodeHeaderProps {
   showWrapButton?: boolean;
 }
 
-export const CodeBlockHeader: React.FC<CodeHeaderProps> = ({ 
+// 根據語言標籤取得對應的 React-Icon 元件與配色樣式
+const getLanguageIconData = (lang: string): { Icon: React.ComponentType<any>; colorClass: string } => {
+  const langKey = lang.toLowerCase().trim();
+
+  const mapping: Record<string, { Icon: React.ComponentType<any>; colorClass: string }> = {
+    js: { Icon: FaJs, colorClass: 'text-amber-500' },
+    javascript: { Icon: FaJs, colorClass: 'text-amber-500' },
+
+    java: { Icon: FaJava, colorClass: 'text-amber-500' },
+
+    ts: { Icon: BsTypescript, colorClass: 'text-blue-500' },
+    typescript: { Icon: BsTypescript, colorClass: 'text-blue-500' },
+    jsx: { Icon: BsFiletypeJsx, colorClass: 'text-cyan-500' },
+    tsx: { Icon: BsFiletypeTsx, colorClass: 'text-cyan-500' },
+
+    python: { Icon: FaPython, colorClass: 'text-sky-600 dark:text-sky-400' },
+    py: { Icon: FaPython, colorClass: 'text-sky-600 dark:text-sky-400' },
+
+    csharp: { Icon: TbBrandCSharp, colorClass: 'text-amber-500' },
+    c: { Icon: TbBrandCpp, colorClass: 'text-blue-600 dark:text-blue-400' },
+    cpp: { Icon: TbBrandCpp, colorClass: 'text-blue-600 dark:text-blue-400' },
+    arduino: { Icon: SiArduino, colorClass: 'text-[#3186a0] dark:text-[#4fccf3]' },
+
+    rust: { Icon: FaRust, colorClass: 'text-orange-600 dark:text-orange-500' },
+    rs: { Icon: FaRust, colorClass: 'text-orange-600 dark:text-orange-500' },
+
+    go: { Icon: FaGolang, colorClass: 'text-cyan-500' },
+    golang: { Icon: FaGolang, colorClass: 'text-cyan-500' },
+
+    html: { Icon: FaHtml5, colorClass: 'text-orange-500' },
+    css: { Icon: FaCss3, colorClass: 'text-blue-600 dark:text-blue-400' },
+
+    json: { Icon: TbBraces, colorClass: 'text-yellow-600 dark:text-yellow-500' },
+    yaml: { Icon: SiYaml, colorClass: 'text-emerald-500' },
+    yml: { Icon: SiYaml, colorClass: 'text-emerald-500' },
+    toml: { Icon: TbBraces, colorClass: 'text-gray-500' },
+
+    markdown: { Icon: FaMarkdown, colorClass: 'text-indigo-500' },
+    md: { Icon: FaMarkdown, colorClass: 'text-indigo-500' },
+
+    sql: { Icon: TbDatabase, colorClass: 'text-pink-500' },
+    docker: { Icon: FaDocker, colorClass: 'text-blue-500' },
+    dockerfile: { Icon: FaDocker, colorClass: 'text-blue-500' },
+
+    makefile: { Icon: TbFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' },
+
+    bash: { Icon: SiGnubash, colorClass: 'text-emerald-500' },
+    sh: { Icon: TbTerminal, colorClass: 'text-emerald-500' },
+    shell: { Icon: TbBrandPowershell, colorClass: 'text-emerald-500' },
+    console: { Icon: TbTerminal, colorClass: 'text-neutral-500' },
+    zsh: { Icon: SiZsh, colorClass: 'text-emerald-500' },
+    log: { Icon: TbFileText, colorClass: 'text-ember-500' },
+  };
+
+  return mapping[langKey] || { Icon: TbFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' };
+};
+
+// 根據語言標籤取得顯示的標籤文字
+const getLanguageLabel = (lang: string): string => {
+  const langKey = lang.toLowerCase().trim();
+  const labels: Record<string, string> = {
+    json: 'JSON Spec',
+    vega: 'Vega Graph',
+    javascript: 'JavaScript',
+    js: 'JavaScript',
+    java: 'Java',
+    typescript: 'TypeScript',
+    ts: 'TypeScript',
+    jsx: 'React JS',
+    tsx: 'React TS',
+    html: 'HTML',
+    css: 'CSS',
+    python: 'Python',
+    py: 'Python',
+    go: 'Go Language',
+    golang: 'Go Language',
+    rust: 'Rust',
+    rs: 'Rust',
+    markdown: 'Markdown',
+    md: 'Markdown',
+    sql: 'Database SQL',
+    yaml: 'YAML Config',
+    yml: 'YAML Config',
+    toml: 'TOML Config',
+    xml: 'XML Spec',
+    console: 'Console',
+    bash: 'Terminal',
+    sh: 'Terminal',
+    shell: 'Terminal',
+    log: 'System Log',
+  };
+
+  if (labels[langKey]) return labels[langKey];
+
+  // 例外大寫化處理
+  if (['log', 'console'].includes(langKey)) return lang.toUpperCase();
+  return lang ? (lang.charAt(0).toUpperCase() + lang.slice(1)) : 'Source Code';
+};
+
+export const CodeBlockHeader: React.FC<CodeHeaderProps> = ({
   language,
   isWrapped,
   onToggleWrap,
   showWrapButton = true
 }) => {
-  const langKey = language.toLowerCase().trim();
-  
-  // 例外語言大寫化處理
-  const isUpperLang = ['log', 'console'].includes(langKey);
-  const config = LANGUAGE_CONFIG[langKey] || {
-    ...DEFAULT_CONFIG,
-    label: language ? (isUpperLang ? language.toUpperCase() : language.charAt(0).toUpperCase() + language.slice(1)) : DEFAULT_CONFIG.label
-  };
-
-  const IconComponent = config.icon;
+  const { Icon, colorClass } = getLanguageIconData(language);
 
   return (
-    <div 
+    <div
       className="flex items-center justify-between px-4 border-b h-10 select-none"
-      style={{ 
+      style={{
         backgroundColor: 'var(--code-header-bg, var(--code-bg))',
         borderColor: 'var(--code-border)'
       }}
     >
       {/* 左側：Icon + 語言名稱 */}
       <div className="flex items-center gap-2">
-        <span className={`flex items-center justify-center w-5 h-5 rounded border ${config.color} p-0.5 transition-colors`}>
-          <IconComponent className="w-3.5 h-3.5" />
-        </span>
+        <div className="flex items-center justify-center w-5 h-5 transition-transform hover:scale-110">
+          <Icon className={colorClass} size={16} />
+        </div>
         <span className="font-mono text-xs font-semibold text-slate-600 dark:text-neutral-300">
-          {config.label}
+          {getLanguageLabel(language)}
         </span>
       </div>
 

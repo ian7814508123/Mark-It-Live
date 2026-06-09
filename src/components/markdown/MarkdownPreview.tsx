@@ -15,7 +15,6 @@ import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSett
 import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
-import { CodeBlockHeader } from './CodeBlockHeader';
 import { detectMarkdownFeatures } from '../../utils/markdownScanner';
 
 interface MarkdownPreviewProps {
