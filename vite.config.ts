@@ -124,7 +124,6 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      // 目標 ES2020，移除不必要的 Legacy JS polyfill（節省約 7 KiB）
       target: 'es2020',
       sourcemap: true,
       commonjsOptions: {
@@ -132,21 +131,21 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         output: {
-          manualChunks: {
-            // mermaid/vega/smiles 等已在 MarkdownPreview 各 Block 元件中動態 import，Vite 自動拆分
-            // react-syntax-highlighter 已透過 EnhancedCodeBlock.tsx 懶載入自動拆分
-            // better-react-mathjax 已透過 LazyMathJaxProvider + MemoizedMathJaxRenderer 懶載入自動拆分
-            // pdf-lib 已透過 PdfMergeTool.tsx 懶載入自動拆分
-            // xlsx 已在 DataMediaCenterTool/App.tsx 中動態 import，自動拆分
-            // ── 以下為仍需搶先分包的 UI 核心套件 ──
-            'vendor-ui': [
-              'react',
-              'react-dom',
-              'lucide-react',
-              '@uiw/react-codemirror',
-              '@codemirror/view',
-              '@codemirror/state'
-            ],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react-icons')) {
+                return 'vendor-icons';
+              }
+              if (id.includes('codemirror') || id.includes('@codemirror') || id.includes('@uiw')) {
+                return 'vendor-codemirror';
+              }
+              if (id.includes('mathjax-full') || id.includes('better-react-mathjax')) {
+                return 'vendor-mathjax';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-lucide';
+              }
+            }
           }
         }
       }
