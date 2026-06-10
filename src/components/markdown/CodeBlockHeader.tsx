@@ -22,7 +22,7 @@ import {
   TbBrandCpp
 } from 'react-icons/tb';
 import { BsTypescript, BsFiletypeJsx, BsFiletypeTsx } from "react-icons/bs";
-import { SiYaml, SiGnubash, SiZsh, SiArduino, SiVite, SiVitest } from "react-icons/si";
+import { SiYaml, SiGnubash, SiZsh, SiArduino, SiVite, SiVitest, SiDotenv } from "react-icons/si";
 
 // 定義 CodeHeaderProps 介面
 interface CodeHeaderProps {
@@ -77,6 +77,9 @@ const getLanguageIconData = (lang: string): { Icon: React.ComponentType<any>; co
     dockerfile: { Icon: FaDocker, colorClass: 'text-blue-500' },
 
     makefile: { Icon: TbFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' },
+    dotenv: { Icon: SiDotenv, colorClass: 'text-emerald-500' },
+    env: { Icon: SiDotenv, colorClass: 'text-emerald-500' },
+
     vite: { Icon: SiVite, colorClass: 'text-purple-500' },
     vitest: { Icon: SiVitest, colorClass: 'text-orange-500' },
 

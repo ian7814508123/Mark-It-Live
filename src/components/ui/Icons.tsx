@@ -45,7 +45,6 @@ export {
   LuZap as Zap,
   LuMicroscope as Microscope,
   LuBookOpen as BookOpen,
-  LuChevronRight as ChevronRight,
 
   // 警示框相關
   LuLightbulb as Lightbulb,
@@ -139,7 +138,7 @@ export {
   FiBox as Box,
   FiRefreshCw as RefreshCw,
   FiChevronLeft as ChevronLeft,
-
+  FiChevronRight as ChevronRight
 } from 'react-icons/fi';
 
 export {
