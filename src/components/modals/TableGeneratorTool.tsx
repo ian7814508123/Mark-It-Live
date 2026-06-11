@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     Table, Copy, Check, AlignLeft, AlignCenter, AlignRight,
     Plus, Minus, FileInput, AlertTriangle, ClipboardPaste, ArrowRight, Info
-} from 'lucide-react';
+} from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import GlassRailSelector from '../ui/GlassRailSelector';
 import ToolGuide from '../ui/ToolGuide';

@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useEffect, useRef, useMemo } from 'react';
-import { AlertCircle, Trash2, RefreshCw, Sparkles, ZoomIn, ZoomOut, Maximize, Hand, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { AlertCircle, Trash2, RefreshCw, ZoomIn, ZoomOut, Maximize } from '../ui/Icons';
 import MarkdownPreview from '../markdown/MarkdownPreview';
 import InteractiveLogo from '../ui/InteractiveLogo';
 
@@ -18,7 +18,7 @@ interface PrintPaperProps {
     isPrinting: boolean;
     printSessionId: number;
     isMergedPrint: boolean;
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
     isDarkMode: boolean;
     documents: any[];
     onSelectDocument?: (docId: string) => void;
@@ -294,7 +294,7 @@ interface PreviewPanelProps {
     openDocIds?: string[];
     printSettings: any;
     /** Markdown 預覽主題，用於 Mermaid 模式下將主題 class 注入至 SVG 容器 */
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
     isPrinting?: boolean;
     printSessionId?: number;
     isCommentMode?: boolean;

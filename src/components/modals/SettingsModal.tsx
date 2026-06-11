@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain } from 'lucide-react';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -42,7 +42,7 @@ const PdfSettingsPanel: React.FC<{
     const scaleKey = typeof settings.scale === 'number' ? 'custom' : settings.scale;
 
     return (
-        <div className="px-6 py-4 space-y-6 bg-slate-50/30 dark:bg-slate-900/30">
+        <div className="px-8 pb-8 space-y-6 min-h-full">
             {/* 分組 A：視覺化預覽 */}
             <div className="relative z-0 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 mb-1">
@@ -115,6 +115,13 @@ const PdfSettingsPanel: React.FC<{
                                 icon: <Orbit size={16} />, color: '#a855f7',
                                 previewImg: '/image/themes/cosmic.png',
                                 description: '冷冽太空艙與螢光霓虹霓彩，搭配硬核科技等寬字體與星芒點綴，極具未來張力。',
+                                category: 'tech'
+                            },
+                            {
+                                label: '極光冰原', value: 'aurora', hint: 'Aurora',
+                                icon: <Snowflake size={16} />, color: '#0891b2',
+                                previewImg: '/image/themes/aurora.png',
+                                description: '冷冽的高科技冷淡風，視覺上極致冷靜與純粹，大幅提升代碼與結構化文字的對比可讀性。',
                                 category: 'tech'
                             },
                             {
@@ -247,6 +254,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const [logoVariant, setLogoVariant] = useState<'v1' | 'v2'>('v1');
     const version = pkg.version;
 
+    // ─── 外部媒體隱私設定狀態 ──────────────────────────────────────────────
+    const [allowAllExternal, setAllowAllExternal] = useState(false);
+    const [trustedDomains, setTrustedDomains] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            try {
+                const allowAll = localStorage.getItem('markdown-previewer:allow-all-external-media') === 'true';
+                const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
+                setAllowAllExternal(allowAll);
+                setTrustedDomains(trustedStr ? JSON.parse(trustedStr) : []);
+            } catch (e) {
+                console.error('Failed to load external media settings in modal:', e);
+            }
+        }
+    }, [isOpen]);
+
+    const handleToggleAllowAll = (val: boolean) => {
+        setAllowAllExternal(val);
+        localStorage.setItem('markdown-previewer:allow-all-external-media', String(val));
+        window.dispatchEvent(new CustomEvent('external-media-settings-changed'));
+    };
+
+    const handleRemoveTrustedDomain = (domainToRemove: string) => {
+        const nextTrusted = trustedDomains.filter(d => d !== domainToRemove);
+        setTrustedDomains(nextTrusted);
+        localStorage.setItem('markdown-previewer:trusted-domains', JSON.stringify(nextTrusted));
+        window.dispatchEvent(new CustomEvent('external-media-settings-changed'));
+    };
+
     useEffect(() => {
         if (isOpen) {
             setJsonInput(JSON.stringify(currentMacros, null, 4));
@@ -281,9 +318,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-[2px]" onClick={onClose} />
             <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-slate-800/80 z-[101] flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300 isolate">
 
-                {/* Header & Tabs */}
+                {/* Header Section */}
                 <div className="px-8 pt-6 pb-2 shrink-0">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">偏好設定</h2>
                             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Application Configuration</p>
@@ -294,24 +331,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             <X size={20} />
                         </MagneticButton>
                     </div>
-
-                    {/* Tab 導航：玻璃滑軌，支援拖曳切換分頁 */}
-                    <GlassRailSelector
-                        options={[
-                            { label: '編輯器設定', value: 'editor', icon: <Box size={13} /> },
-                            { label: '列印與匯出', value: 'print', icon: <Printer size={13} /> },
-                            { label: '關於', value: 'about', icon: <AlertCircle size={13} /> },
-                        ]}
-                        value={activeTab}
-                        onChange={(v) => setActiveTab(v as 'editor' | 'print' | 'about')}
-                    />
                 </div>
 
                 {/* 內容區 */}
                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-0 rounded-b-[2rem]">
+                    {/* Tab 導航：設定為 sticky 置頂，讓內容能從其後方滾動穿過 */}
+                    <div className="sticky top-0 z-[50] w-full flex justify-center bg-transparent pointer-events-none pt-4 pb-6 px-8">
+                        <GlassRailSelector
+                            className="pointer-events-auto shadow-sm w-full"
+                            options={[
+                                { label: '編輯器設定', value: 'editor', icon: <Box size={13} /> },
+                                { label: '列印與匯出', value: 'print', icon: <Printer size={13} /> },
+                                { label: '關於', value: 'about', icon: <AlertCircle size={13} /> },
+                            ]}
+                            value={activeTab}
+                            onChange={(v) => setActiveTab(v as 'editor' | 'print' | 'about')}
+                        />
+                    </div>
+
                     {activeTab === 'about' ? (
                         showChangelog ? (
-                            <div key="about-changelog" className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div key="about-changelog" className="px-8 pb-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                                     <MagneticButton variant="icon" onClick={() => setShowChangelog(false)} className="w-8 h-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-full">
                                         <ChevronLeft size={20} />
@@ -373,7 +413,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
                             </div>
                         ) : (
-                            <div key="about-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div key="about-main" className="px-8 pb-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex flex-col items-center text-center space-y-6">
                                     <div
                                         onClick={() => setLogoVariant(prev => prev === 'v1' ? 'v2' : 'v1')}
@@ -414,29 +454,41 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-                                        <Box size={16} className="text-brand-primary opacity-80" />
-                                        <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">第三方套件與致謝 (Credits)</h4>
+                                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                        <div className="flex items-center gap-2">
+                                            <Box size={16} className="text-brand-primary opacity-80" />
+                                            <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">第三方套件與致謝 (Credits)</h4>
+                                        </div>
+                                        <a href={`${import.meta.env.BASE_URL}licenses.html`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors">
+                                            <FileText size={12} />
+                                            完整授權聲明
+                                        </a>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {[
-                                            { name: 'React', license: 'MIT', url: 'https://react.dev' },
-                                            { name: 'CodeMirror', license: 'MIT', url: 'https://codemirror.net' },
-                                            { name: 'Mermaid', license: 'MIT', url: 'https://mermaid.js.org' },
-                                            { name: 'MathJax', license: 'Apache-2.0', url: 'https://www.mathjax.org' },
-                                            { name: 'Lucide Icons', license: 'ISC', url: 'https://lucide.dev' },
-                                            { name: 'Vega / Vega-Lite', license: 'BSD-3-Clause', url: 'https://vega.github.io' },
-                                            { name: 'SheetJS', license: 'Apache-2.0', url: 'https://sheetjs.com' },
-                                            { name: 'PDF-lib', license: 'MIT', url: 'https://pdf-lib.js.org' },
-                                            { name: 'abcjs', license: 'MIT', url: 'https://paulrosen.github.io/abcjs/' },
-                                            { name: 'SmilesDrawer', license: 'MIT', url: 'https://github.com/reymendes/smilesDrawer' },
-                                            { name: 'Vite', license: 'MIT', url: 'https://vitejs.dev' },
-                                            { name: 'Tailwind CSS', license: 'MIT', url: 'https://tailwindcss.com' },
+
+                                            { name: 'React', license: 'MIT LICENSE', url: 'https://react.dev' },
+                                            { name: 'CodeMirror', license: 'MIT LICENSE', url: 'https://codemirror.net' },
+                                            { name: 'Mermaid', license: 'MIT LICENSE', url: 'https://mermaid.js.org' },
+                                            { name: 'MathJax', license: 'APACHE-2.0 LICENSE', url: 'https://www.mathjax.org' },
+                                            { name: 'React Icons', license: 'MIT LICENSE', url: 'https://github.com/react-icons/react-icons/blob/master/LICENSE' },
+                                            { name: 'Lucide Icons', license: 'ISC LICENSE', url: 'https://lucide.dev' },
+                                            { name: 'Material Design Icons', license: 'APACHE-2.0 LICENSE', url: 'https://github.com/google/material-design-icons/blob/master/LICENSE' },
+                                            { name: 'Simple Icons', license: 'CC0 1.0 UNIVERSAL LICENSE', url: 'https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md' },
+                                            { name: 'Feather Icons', license: 'MIT LICENSE', url: 'https://github.com/feathericons/feather/blob/master/LICENSE' },
+                                            { name: 'Vega / Vega-Lite', license: 'BSD-3-CLAUSE LICENSE', url: 'https://vega.github.io' },
+                                            { name: 'SheetJS', license: 'APACHE-2.0 LICENSE', url: 'https://sheetjs.com' },
+                                            { name: 'PDF-lib', license: 'MIT LICENSE', url: 'https://pdf-lib.js.org' },
+                                            { name: 'abcjs', license: 'MIT LICENSE', url: 'https://paulrosen.github.io/abcjs/' },
+                                            { name: 'SmilesDrawer', license: 'MIT LICENSE', url: 'https://github.com/reymendes/smilesDrawer' },
+                                            { name: 'Vite', license: 'MIT LICENSE', url: 'https://vite.dev' },
+                                            { name: 'Tailwind CSS', license: 'MIT LICENSE', url: 'https://tailwindcss.com' }
+
                                         ].map((pkg) => (
                                             <div key={pkg.name} className="relative z-10 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-brand-primary/20 dark:hover:border-brand-primary/40 transition-colors text-left">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{pkg.name}</span>
-                                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-tighter">{pkg.license} License</span>
+                                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-tighter">{pkg.license}</span>
                                                 </div>
                                                 <a href={pkg.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-brand-primary hover:text-brand-accent transition-colors uppercase tracking-widest">網站</a>
                                             </div>
@@ -446,7 +498,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                                 <div className="rounded-2xl bg-brand-secondary/30 dark:bg-brand-primary/10 px-5 py-4 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed border border-brand-primary/15 dark:border-brand-primary/30 text-center">
                                     © {new Date().getFullYear()} Markdown Live Previewer. All rights reserved. <br />
-                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href="/privacy.html" className="mx-1 underline">隱私政策</a>與<a href="/terms.html" className="mx-1 underline">服務條款</a>。
+                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href={`${import.meta.env.BASE_URL}privacy.html`} className="mx-1 underline">隱私政策</a>與<a href={`${import.meta.env.BASE_URL}terms.html`} className="mx-1 underline">服務條款</a>。
                                 </div>
 
                             </div>
@@ -461,9 +513,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             onToggleFavoriteTheme={onToggleFavoriteTheme}
                         />
                     ) : (
-                        <div key="editor" className="flex flex-col">
+                        <div key="editor" className="flex flex-col min-h-full">
                             {mode === 'markdown' ? (
-                                <div className="flex flex-col p-8 pt-0">
+                                <div className="flex flex-col px-8 pb-8 flex-1">
                                     <div className="mb-4">
                                         <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">MathJax 自定義巨集 (JSON)</p>
                                         <div className="relative">
@@ -471,7 +523,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                 value={jsonInput}
                                                 onChange={(e) => setJsonInput(e.target.value)}
                                                 className={`w-full min-h-[320px] p-5 font-mono text-xs bg-slate-50 dark:bg-slate-950 border-2 rounded-2xl resize-none focus:outline-none focus:ring-4 transition-all
-                                                    ? 'border-red-200 focus:ring-red-100 dark:border-red-900/40'
+                                                    ? 'border-blue-200 focus:ring-blue-100 dark:border-blue-900/40'
                                                         : 'border-slate-100 dark:border-slate-800 focus:ring-brand-secondary dark:focus:ring-brand-primary/20'
                                                     }
                                                     text-slate-700 dark:text-slate-300 custom-scrollbar shadow-inner`}
@@ -481,6 +533,58 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                 <div className="absolute top-4 right-4 bg-red-50 dark:bg-red-950/80 text-red-600 dark:text-red-400 text-[10px] px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-900/50 flex items-center gap-2 animate-in fade-in duration-300 backdrop-blur-sm">
                                                     <AlertCircle size={12} />
                                                     {error}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* ─── 隱私與外部媒體設定區塊 (Privacy & External Media) ─── */}
+                                    <div className="mt-6 mb-6 p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-4">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary">
+                                                <Zap size={14} />
+                                            </div>
+                                            <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">隱私與外部媒體</p>
+                                        </div>
+
+                                        {/* 全域開關 */}
+                                        <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800/40">
+                                            <div className="space-y-0.5 max-w-[75%]">
+                                                <h5 className="text-[11px] font-bold text-slate-800 dark:text-slate-200">永遠自動載入外部媒體</h5>
+                                                <p className="text-[9px] text-slate-400 dark:text-slate-500 leading-normal">
+                                                    啟用後將直接載入所有的 iframe、影片與音訊。關閉時，系統會在首次載入該網域內容時封鎖並顯示隱私保護提示。
+                                                </p>
+                                            </div>
+                                            <DraggableSwitch
+                                                checked={allowAllExternal}
+                                                onChange={handleToggleAllowAll}
+                                            />
+                                        </div>
+
+                                        {/* 信任網域列表 */}
+                                        <div className="space-y-2 pt-1">
+                                            <h5 className="text-[11px] font-bold text-slate-800 dark:text-slate-200">已信任的外部網域白名單</h5>
+                                            {trustedDomains.length === 0 ? (
+                                                <p className="text-[9px] text-slate-400 dark:text-slate-500 italic pl-1">
+                                                    目前沒有已信任的網域。您可以在預覽中的隱私遮罩上點選「信任此網域」來新增。
+                                                </p>
+                                            ) : (
+                                                <div className="flex flex-wrap gap-2 pt-1 max-h-[100px] overflow-y-auto custom-scrollbar">
+                                                    {trustedDomains.map(domain => (
+                                                        <span
+                                                            key={domain}
+                                                            className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-brand-secondary/50 dark:bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[10px] font-mono font-bold"
+                                                        >
+                                                            {domain}
+                                                            <button
+                                                                onClick={() => handleRemoveTrustedDomain(domain)}
+                                                                className="w-3.5 h-3.5 rounded-full hover:bg-brand-primary/20 flex items-center justify-center transition-colors text-brand-primary/70 hover:text-brand-primary"
+                                                                title={`取消信任 ${domain}`}
+                                                            >
+                                                                <CircleX size={10} />
+                                                            </button>
+                                                        </span>
+                                                    ))}
                                                 </div>
                                             )}
                                         </div>

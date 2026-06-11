@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, FileCode2, Clock, Link as LinkIcon, GripVertical } from 'lucide-react';
+import { FileText, FileCode2, Clock, Link as LinkIcon, GripVertical } from './Icons';
 import { DocumentRecord } from '../../types';
 import EllipsisMenu from './EllipsisMenu';
 

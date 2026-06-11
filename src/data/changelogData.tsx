@@ -1,5 +1,5 @@
 import React from 'react';
-import { PackagePlus, Palette, MessageSquare, Check, X, Star } from 'lucide-react';
+import { PackagePlus, Palette, MessageSquare, Check, X, Star } from '../components/ui/Icons';
 
 export interface ChangelogSubSection {
   icon: React.ComponentType<any>;
@@ -17,6 +17,40 @@ export interface ChangelogCard {
 }
 
 export const CHANGELOG_CARDS: ChangelogCard[] = [
+  {
+    type: 'version_header',
+    title: 'v4.1.8 (2026/06/05) - 介面優化與擴充警示框樣式',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: Palette,
+        title: '更新樣式 (Updates)',
+        details: [
+          <>
+            <strong>擴充警示框樣式:</strong> 詳情可以直接載入<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">Beta 功能</code> 試試看吧。
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
+    title: 'v4.1.7 (2026/06/04) - 新增主題樣式與強化UI',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: Palette,
+        title: '介面與體驗優化 (Improvements)',
+        details: [
+          <>
+            <strong>新增主題樣式:</strong>新的主題<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">極光冰原</code>現已可在<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">預覽風格</code>中使用。
+          </>,
+        ]
+      }
+    ]
+  },
   {
     type: 'version_header',
     title: 'v4.1.6 (2026/05/29) - 統一主題樣式與支援度',

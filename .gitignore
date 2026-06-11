@@ -133,4 +133,10 @@ electron/main.js
 
 # vscode
 .vscode/
-.vs/
+.vs
+# Google Verification
+public/google*.html
+
+# function/unit test
+tests/*
+public/THIRD-PARTY-NOTICES.txt

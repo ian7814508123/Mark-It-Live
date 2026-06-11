@@ -144,18 +144,33 @@
 ```
 > `--code-token-comment`, `--code-token-keyword`, `--code-token-string`, `--code-token-number`, `--code-token-function`, `--code-token-operator`, `--code-token-variable`, `--code-token-constant`, `--code-token-builtin`, `--code-token-class`, `--code-token-attr-name`, `--code-token-tag`, `--code-token-punctuation`
 
-### 3.4 GitHub-style Alert 標註系統自訂 (Blockquote & Alerts) [NEW]
+### 3.4 GitHub-style Alert 標註系統自訂 (Blockquote & Alerts) [UPDATED]
 本系統在 React 解析層級已完整對齊 GitHub 標準，會自動將 `<blockquote>` 內開頭含有 `[!NOTE]`, `[!WARNING]`, `[!IMPORTANT]`, `[!CAUTION]`, `[!TIP]`（包括不帶驚嘆號的 `[NOTE]` 等）的區塊解析為 Alert 標註。
+
+此外，本系統進行了以下**深度語法擴充與容錯支援**：
+1.  **空格語法容錯**：允許方括號內帶有額外空白字元，如 `[! NOTE ]` 仍可被正確匹配並渲染。
+2.  **自訂標題支援**：支援 `[!TYPE] 自訂標題` 或 `[!TYPE](自訂標題)` 語法。當偵測到自訂標題時，預覽面板將自動以該標題替換預設的大寫類型名稱，且 fallback 粗體字亦同步變更。
+3.  **擴充語義別名與色彩映射**：
+    系統支援 5 種核心類別與 14 種自訂擴充別名（共 19 種別名），主題開發者只需定義以下 5 種核心 alerts 變數即可自動覆蓋所有類別。以下是快速對照表：
+
+| 核心類別 (Core Type) | 映射 CSS 變數 | 預設 Icon | 支援的語法別名 (Aliases) | 預設標題 (Default Label) | 色系風格 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Note** | `--theme-alert-note-*` | `Info` | `[!note]`, `[!info]` | NOTE, INFO | 藍色 (科技/資訊) |
+| **Tip** | `--theme-alert-tip-*` | `Lightbulb` / `CheckCircle` | `[!tip]`, `[!success]`, `[!check]`, `[!quickstart]`, `[!start]` | TIP, SUCCESS, CHECK, QUICK START, START | 綠色 (正面/成功/指引) |
+| **Warning** | `--theme-alert-warning-*` | `AlertTriangle` | `[!warning]`, `[!attention]` | WARNING, ATTENTION | 黃色 (注意/潛在風險) |
+| **Caution** | `--theme-alert-caution-*` | `AlertOctagon` / `Bug` / `Ban` | `[!caution]`, `[!ban]`, `[!danger]`, `[!error]`, `[!bug]`, `[!failure]` | CAUTION, BAN, DANGER, ERROR, BUG, FAILURE | 紅色 (危險/核心報錯/失效) |
+| **Important** | `--theme-alert-important-*` | `AlertCircle` / `HelpCircle` | `[!important]`, `[!question]`, `[!help]`, `[!faq]` | IMPORTANT, QUESTION, HELP, FAQ | 紫色 (關鍵/疑問/解答) |
 
 #### 🛠️ 解析後的 DOM 結構：
 ```html
 <blockquote class="markdown-alert markdown-alert-[type]">
   <div class="markdown-alert-title">
-    <!-- Lucide 向量圖示 (自動根據類別對齊) -->
-    <span>Note</span>
+    <!-- 向量圖示 (由 AlertIcon 模組根據 alertType 懶載入對應之 Lucide 圖示) -->
+    <!-- 自訂標題 (優先使用 node.data.alertTitle，無則使用預設 label) -->
+    <span>自訂標題 / Default Label</span>
   </div>
   <div class="markdown-alert-content">
-    <!-- 去除標註字串後的 Markdown 內容 -->
+    <!-- 去除標註字串與重複前綴後的 Markdown 內容 -->
   </div>
  </blockquote>
 ```

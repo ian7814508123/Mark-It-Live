@@ -3,7 +3,7 @@ import CodeMirror, { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { mermaid } from 'codemirror-lang-mermaid';
-import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
+import { vscodeDarkInit, vscodeLightInit } from '@uiw/codemirror-theme-vscode';
 import { EditorView, ViewPlugin, ViewUpdate, keymap } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { searchKeymap, search } from '@codemirror/search';
@@ -67,9 +67,16 @@ function buildStickyExtension(
                     }));
                 }
 
-                // 當文件內容改變或滾動時，重新檢查與計算標題鏈
+                // 當文件內容、高度或視口改變時，必須透過 requestMeasure() 延遲到
+                // CodeMirror 安全的 layout 讀取階段才執行，避免在 update 週期中
+                // 直接呼叫 lineBlockAtHeight() 等 measured 方法觸發「layout thrashing」錯誤
                 if (update.docChanged || update.heightChanged || update.viewportChanged) {
-                    this.checkScroll(update.view);
+                    update.view.requestMeasure({
+                        read: (view) => {
+                            this.checkScroll(view);
+                            return null;
+                        },
+                    });
                 }
             }
 
@@ -136,26 +143,28 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         stickyHeadersRef.current = stickyHeaders;
     }, [stickyHeaders]);
 
-    // ─── 偵測 CM gutter 實際寬度與 scroller 捲軸寬度，透過 CSS variable 傳給 panel DOM ────────────
-    // 確保 sticky bar 左側 gutter 欄與行號欄完美對齊，且右側避開垂直捲軸避免其被遮擋
+    // ─── 測量 CodeMirror 的實際邊界與捲軸寬度，並動態設定為 CSS 變數 ───
+    const measure = useCallback(() => {
+        if (!wrapperRef.current) return;
+        const el = wrapperRef.current.querySelector('.cm-gutters') as HTMLElement | null;
+        if (el) {
+            wrapperRef.current.style.setProperty('--gutter-w', el.offsetWidth + 'px');
+        }
+        const scroller = wrapperRef.current.querySelector('.cm-scroller') as HTMLElement | null;
+        if (scroller) {
+            const scrollbarW = scroller.offsetWidth - scroller.clientWidth;
+            wrapperRef.current.style.setProperty('--scrollbar-w', scrollbarW + 'px');
+        }
+    }, []);
+
+    // 監聽容器大小變化，確保在視窗或外層容器 Resize 時仍能正確測量
     useEffect(() => {
         if (!wrapperRef.current) return;
-        const measure = () => {
-            const el = wrapperRef.current?.querySelector('.cm-gutters') as HTMLElement | null;
-            if (el) {
-                wrapperRef.current!.style.setProperty('--gutter-w', el.offsetWidth + 'px');
-            }
-            const scroller = wrapperRef.current?.querySelector('.cm-scroller') as HTMLElement | null;
-            if (scroller) {
-                const scrollbarW = scroller.offsetWidth - scroller.clientWidth;
-                wrapperRef.current!.style.setProperty('--scrollbar-w', scrollbarW + 'px');
-            }
-        };
         measure();
         const obs = new ResizeObserver(measure);
         obs.observe(wrapperRef.current);
         return () => obs.disconnect();
-    }, [mode]);
+    }, [mode, measure]);
 
     // 當 stickyHeaders 改變時，自動向右滾動 scrollWrapper 以聚焦最新標題
     useEffect(() => {
@@ -199,10 +208,32 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         EditorView.domEventHandlers({
             scroll: (event) => { if (onScroll) onScroll(event); }
         }),
+        // 核心：透過 CodeMirror 的更新監聽器 (updateListener) 捕捉 DOM 重建與 geometry 改變，即時同步 gutter 寬度
+        EditorView.updateListener.of((update) => {
+            if (update.geometryChanged || update.docChanged || update.viewportChanged) {
+                measure();
+            }
+        }),
         ...stickyExtension,
-    ], [mode, onScroll, ariaLabel, stickyExtension]);
+    ], [mode, onScroll, ariaLabel, stickyExtension, measure]);
 
-    const theme = isDarkMode ? vscodeDark : vscodeLight;
+    const theme = useMemo(() => {
+        if (isDarkMode) {
+            return vscodeDarkInit({
+                settings: {
+                    background: '#0F172A',
+                    gutterBackground: '#0F172A',
+                }
+            });
+        } else {
+            return vscodeLightInit({
+                settings: {
+                    background: '#ffffff',
+                    gutterBackground: '#f5f5f5',
+                }
+            });
+        }
+    }, [isDarkMode]);
     const handleChange = useCallback((value: string) => setCode(value), [setCode]);
     const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
         if (onScroll) onScroll(event);
@@ -219,18 +250,18 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
     }, [ref]);
 
     // ─── 智能收折演算法與 node 渲染資料計算 ───
-    type RenderNode = { isEllipsis: true } | { isEllipsis: false; node: StickyHeaderNode };
+    type RenderNode = { type: 'ellipsis' } | { type: 'header'; node: StickyHeaderNode };
 
     const displayNodes = useMemo<RenderNode[]>(() => {
         const nodes: RenderNode[] = [];
         if (stickyHeaders.length > 4) {
-            nodes.push({ isEllipsis: false, node: stickyHeaders[0] });
-            nodes.push({ isEllipsis: true });
-            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 3] });
-            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 2] });
-            nodes.push({ isEllipsis: false, node: stickyHeaders[stickyHeaders.length - 1] });
+            nodes.push({ type: 'header', node: stickyHeaders[0] });
+            nodes.push({ type: 'ellipsis' });
+            nodes.push({ type: 'header', node: stickyHeaders[stickyHeaders.length - 3] });
+            nodes.push({ type: 'header', node: stickyHeaders[stickyHeaders.length - 2] });
+            nodes.push({ type: 'header', node: stickyHeaders[stickyHeaders.length - 1] });
         } else {
-            stickyHeaders.forEach(h => nodes.push({ isEllipsis: false, node: h }));
+            stickyHeaders.forEach(h => nodes.push({ type: 'header', node: h }));
         }
         return nodes;
     }, [stickyHeaders]);
@@ -249,8 +280,8 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 height: '100%',
                 width: '100%',
                 // VS Code 明/暗主題色票
-                ['--sg-bg' as string]: isDarkMode ? '#1e1e1e' : '#ffffff',
-                //['--sg-gutter' as string]: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+                ['--sg-bg' as string]: isDarkMode ? '#0F172A' : '#ffffff',
+                ['--sg-gutter' as string]: isDarkMode ? '#0F172A' : '#f5f5f5',
                 ['--sg-border' as string]: isDarkMode ? '#404040' : '#e0e0e0',
                 ['--sg-link' as string]: isDarkMode ? '#9cdcfe' : '#0070c1',
                 ['--sg-muted' as string]: isDarkMode ? '#808080' : '#888888',
@@ -272,6 +303,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                         alignItems: 'center',
                         overflow: 'hidden',
                         height: '22px',
+                        fontSize: '11px',
                         background: 'var(--sg-bg)',
                         borderBottom: '1px solid var(--sg-border)',
                         boxShadow: '0px 0px 0px rgba(0,0,0,0.12)',
@@ -286,11 +318,11 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                             height: '100%',
                             background: 'var(--sg-gutter)',
                             borderRight: '0px solid var(--sg-border)',
-                            marginRight: '5px',
+                            marginRight: '4px',
                         }}
                     />
 
-                    {/* 滾動包裹器，隱藏滾動條且套用右側漸層遮罩 */}
+                    {/* 滾動包裹器，隱藏捲軸且套用右側漸層遮罩 */}
                     <div
                         ref={scrollWrapperRef}
                         className="cm-sticky-scroll-wrapper"
@@ -303,7 +335,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                             overflowY: 'hidden',
                             whiteSpace: 'nowrap',
                             scrollBehavior: 'smooth',
-                            paddingRight: '16px',
+                            paddingRight: '12px',
                             maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
                             WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
                         }}
@@ -311,7 +343,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                         {displayNodes.map((node, index) => {
                             const isLast = index === displayNodes.length - 1;
 
-                            if (node.isEllipsis) {
+                            if (node.type === 'ellipsis') {
                                 return (
                                     <React.Fragment key={index}>
                                         {/* 麵包屑分隔符 › */}
@@ -333,7 +365,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                             style={{
                                                 color: 'var(--sg-muted)',
                                                 padding: '0 4px',
-                                                fontSize: '12px',
+                                                fontSize: '11px',
                                                 lineHeight: '22px',
                                                 cursor: 'default',
                                                 userSelect: 'none',
@@ -346,8 +378,8 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                 );
                             }
 
-                            // 這裡透過明確的 if (!node.isEllipsis) 判斷，確保型別 100% 收窄為 { isEllipsis: false; node: StickyHeaderNode }
-                            if (!node.isEllipsis) {
+                            // 這裡透過明確的 type 判斷，確保型別收窄為 { type: 'header'; node: StickyHeaderNode }
+                            if (node.type === 'header') {
                                 const headerNode = node.node;
 
                                 return (
@@ -357,7 +389,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                             <span
                                                 style={{
                                                     color: 'var(--sg-sep)',
-                                                    padding: '0 3px',
+                                                    padding: '0 1px',
                                                     flexShrink: 0,
                                                     lineHeight: '22px',
                                                 }}
@@ -382,7 +414,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     letterSpacing: '-0.02em',
-                                                    marginRight: '2px',
+                                                    marginRight: '1px',
                                                 }}
                                             >
                                                 {'#'.repeat(headerNode.level)}

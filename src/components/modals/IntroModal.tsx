@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Sparkles, Zap, Microscope, BookOpen, ChevronRight } from 'lucide-react';
+import { View, Zap, Microscope, BookOpen, ChevronRight } from '../ui/Icons';
 import { FEATURE_CARDS, SCIENCE_SUPPORTS, MANUAL_SECTIONS, INTRO_SUMMARY } from '../../data/introData';
-import RippleButton from '../ui/RippleButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
 import GlassRailSelector from '../ui/GlassRailSelector';
 import MagneticButton from '../ui/MagneticButton';
@@ -71,8 +70,8 @@ const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.5)] border border-white/20 dark:border-slate-800/80 z-[101] flex flex-col max-h-[85vh] overflow-hidden animate-in zoom-in-95 fade-in duration-500">
 
         {/* Header Section */}
-        <div className="relative shrink-0 p-5 pb-2 text-center overflow-hidden">
-          <div className="flex items-center justify-center gap-4 mb-3">
+        <div className="relative shrink-0 p-3 pb-2 text-center overflow-hidden">
+          <div className="flex items-center justify-center gap-3">
             <InteractiveLogo size={40} variant="v1" />
             <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               歡迎使用 Markdown Live Previewer
@@ -80,22 +79,28 @@ const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
             <InteractiveLogo size={40} variant="v2" />
           </div>
 
-          {/* Tab 導航：玻璃滑軌，支援拖曳切換分頁 */}
-          <GlassRailSelector
-            options={[
-              { label: '特色總覽', value: 'overview', icon: <Sparkles size={14} /> }, { label: '使用手冊', value: 'manual', icon: <BookOpen size={14} /> },
-            ]}
-            value={activeTab}
-            onChange={(v) => setActiveTab(v as 'manual' | 'overview')}
-          />
-        </div>
 
+        </div>
         {/* Content Section */}
         <div className="flex-1 overflow-y-auto custom-scrollbar px-8 pb-8">
+          {/* Tab 導航：設定為 sticky 置頂、居中，讓內容能從其後方滾動穿過 */}
+          <div className="sticky top-0 z-10 w-full flex justify-center bg-transparent pointer-events-none pb-3 pt-1">
+            <GlassRailSelector
+              className="pointer-events-auto w-72 shadow-sm"
+              options={[
+                { label: '特色總覽', value: 'overview', icon: <View size={14} /> }, { label: '使用手冊', value: 'manual', icon: <BookOpen size={14} /> },
+              ]}
+              value={activeTab}
+              onChange={(v) => setActiveTab(v as 'manual' | 'overview')}
+            />
+          </div>
+
           {activeTab === 'overview' ? (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+
               {/* Quick Start Intro */}
               <div className="mb-8 p-6 bg-gradient-to-br from-brand-primary/5 to-transparent dark:from-brand-primary/10 rounded-3xl border border-brand-primary/10 dark:border-brand-primary/20">
+
                 <h3 className="text-xs font-black text-brand-primary uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                   <Zap size={14} /> {INTRO_SUMMARY.title}
                 </h3>
@@ -157,15 +162,16 @@ const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
-
-        {/* Footer actions */}
-        <div className="shrink-0 p-2 pt-1 flex justify-center">
-          <MagneticButton variant="filled" onClick={onClose}
-            aria-label="馬上開始使用"
-            className={`inline-flex items-center px-10 py-3.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-xs font-black tracking-[0.2em]`}
-            magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
-            <span>馬上開始</span>
-          </MagneticButton>
+        {/* Footer Section：固定在最下方，不透明，內容直接滑入其後方隱藏 */}
+        <div className="shrink-0 w-full flex justify-center bg-slate-50 dark:bg-slate-900 border-t border-slate-200/60 dark:border-slate-800/60 pt-2 pb-2">
+          <div className="pointer-events-auto">
+            <MagneticButton variant="filled" onClick={onClose}
+              aria-label="馬上開始使用"
+              className={`inline-flex items-center px-8 py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[11px] font-black tracking-[0.2em]`}
+              magneticOptions={{ maxOffset: 12, radius: 60, stiffness: 250, damping: 18 }}>
+              <span>馬上開始</span>
+            </MagneticButton>
+          </div>
         </div>
       </div>
     </>,

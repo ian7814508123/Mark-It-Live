@@ -1,0 +1,40 @@
+# Markdown Live Previewer
+
+> A free, privacy-first online Markdown editor with live preview. All data is processed locally in your browser — zero cloud uploads.
+
+## Features
+
+- Real-time split-pane Markdown preview with synchronized scrolling
+- Mermaid diagram rendering (flowcharts, sequence, Gantt, class, state, ER diagrams)
+- LaTeX math typesetting via MathJax (inline and block)
+- Vega-Lite data visualization charts
+- ABC notation music score rendering
+- SMILES chemical structure drawing
+- WikiLinks bidirectional linking and knowledge base management
+- 12 curated preview themes (Academic, Developer, Classical, Aurora, Neon Rain, and more)
+- External media privacy shield (auto-blocks external iframes/videos with allowlist)
+- GitHub Alerts syntax support
+- Page Break markers for precise PDF pagination
+- Export to PDF, PNG, SVG, Markdown
+- Built-in PDF merge tool
+- Excel to Markdown table converter
+- Word count tool (excludes code blocks and math formulas)
+- Dark mode support
+- Responsive design for all devices
+
+## Usage
+
+Open the app directly in any modern browser. No installation, registration, or login required.
+All documents are stored in your browser's localStorage and IndexedDB.
+
+## Pages
+
+- [Privacy Policy](/privacy.html): How we handle your data (spoiler: we don't collect any)
+- [Terms of Service](/terms.html): Usage terms for the application
+- [About](/about.html): About the project and its author
+
+## Optional
+
+- [robots.txt](/robots.txt): Crawler instructions
+- [sitemap.xml](/sitemap.xml): Site structure for search engines
+- [opensearchdescription.xml](/opensearchdescription.xml): OpenSearch browser integration

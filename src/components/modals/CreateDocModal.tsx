@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, FileText, Image as ImageIcon, ChevronLeft, Zap, FlaskConical, File, Ruler, BarChart2, GitBranch, Music } from 'lucide-react';
+import { X, Plus, FileText, Image as ImageIcon, ChevronLeft, Zap, FlaskConical, File, Ruler, BarChart2, GitBranch, Music, Search } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
+
 
 interface CreateDocModalProps {
     isOpen: boolean;
@@ -9,8 +10,6 @@ interface CreateDocModalProps {
     onCreate: (mode: 'markdown' | 'mermaid', name: string, templateId?: string, icon?: string) => void;
     initialName?: string;
 }
-
-const COMMON_ICONS = ['📝', '📊', '💡', '📅', '🚀', '🛠️', '🎨', '🔒', '🌟', '🎶', '🖼️'];
 
 const MD_TEMPLATES = [
     { id: 'basic', name: '基礎文字', desc: '純淨的標題、列表與文字樣式', icon: File, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/40' },
@@ -32,6 +31,77 @@ const MMD_TEMPLATES = [
     { id: 'state', name: '狀態圖', desc: 'State: 生命週期、狀態移轉', icon: Ruler, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/40' },
 ];
 
+// 精選 Emoji 資料庫：每個 emoji 帶有中英文標籤，直接在前端 filter，無需任何翻譯橋接
+const CURATED_EMOJIS: { emoji: string; tags: string[] }[] = [
+    // 📁 文件 & 筆記
+    { emoji: '📄', tags: ['文件', '文檔', 'document', 'file', 'page'] },
+    { emoji: '📝', tags: ['筆記', '記錄', '編輯', 'note', 'write', 'edit', 'memo'] },
+    { emoji: '📋', tags: ['清單', '列表', '剪貼板', 'list', 'clipboard', 'checklist'] },
+    { emoji: '📌', tags: ['釘選', '重要', 'pin', 'important', 'pushpin'] },
+    { emoji: '🔖', tags: ['書籤', '標記', 'bookmark', 'tag', 'mark'] },
+    { emoji: '📎', tags: ['附件', '迴紋針', 'paperclip', 'attachment', 'clip'] },
+    { emoji: '📁', tags: ['資料夾', '目錄', 'folder', 'directory', 'files'] },
+    { emoji: '📂', tags: ['資料夾', '開啟', 'open folder', 'directory'] },
+    { emoji: '🗂️', tags: ['分類夾', '索引', 'organize', 'dividers', 'index'] },
+    { emoji: '📊', tags: ['圖表', '統計', '資料', 'chart', 'bar chart', 'statistics', 'data'] },
+    { emoji: '📈', tags: ['上升', '成長', 'chart up', 'growth', 'increase', 'trend'] },
+    { emoji: '📉', tags: ['下降', '衰退', 'chart down', 'decline', 'decrease'] },
+    { emoji: '📰', tags: ['新聞', '報紙', 'newspaper', 'news', 'article'] },
+    { emoji: '📜', tags: ['捲軸', '古文', 'scroll', 'document', 'script'] },
+    { emoji: '📚', tags: ['書籍', '圖書館', 'books', 'library', 'study', 'reading'] },
+    { emoji: '📖', tags: ['閱讀', '開書', 'book', 'read', 'open book'] },
+    // 💡 工具 & 技術
+    { emoji: '💡', tags: ['想法', '點子', '燈泡', 'idea', 'lightbulb', 'tip', 'hint'] },
+    { emoji: '🔧', tags: ['扳手', '設定', '修復', 'wrench', 'tool', 'settings', 'fix', 'repair'] },
+    { emoji: '⚙️', tags: ['齒輪', '設定', '配置', 'gear', 'settings', 'config', 'system'] },
+    { emoji: '🛠️', tags: ['工具箱', '維修', 'tools', 'maintenance', 'repair', 'build'] },
+    { emoji: '💻', tags: ['電腦', '筆電', '程式', 'laptop', 'computer', 'code', 'dev'] },
+    { emoji: '🖥️', tags: ['螢幕', '桌電', 'desktop', 'monitor', 'screen', 'display'] },
+    { emoji: '📱', tags: ['手機', '行動', 'phone', 'mobile', 'smartphone', 'app'] },
+    { emoji: '🔍', tags: ['搜尋', '放大鏡', 'search', 'magnify', 'find', 'look'] },
+    { emoji: '🔑', tags: ['鑰匙', '密碼', '存取', 'key', 'password', 'access', 'unlock'] },
+    { emoji: '🔐', tags: ['鎖定', '安全', '私密', 'locked', 'secure', 'private', 'lock'] },
+    { emoji: '🧪', tags: ['實驗', '測試', '燒杯', 'test', 'experiment', 'lab', 'flask', 'beta'] },
+    // ✅ 狀態 & 標記
+    { emoji: '✅', tags: ['完成', '勾選', '正確', 'check', 'done', 'complete', 'yes', 'correct'] },
+    { emoji: '❌', tags: ['錯誤', '取消', '關閉', 'cross', 'error', 'cancel', 'no', 'wrong'] },
+    { emoji: '⚠️', tags: ['警告', '注意', '危險', 'warning', 'caution', 'alert', 'danger'] },
+    { emoji: '🔥', tags: ['火', '熱門', '趨勢', 'fire', 'hot', 'popular', 'trending', 'flame'] },
+    { emoji: '⭐', tags: ['星星', '最愛', '評分', 'star', 'favorite', 'rating', 'starred'] },
+    { emoji: '🎯', tags: ['目標', '精準', 'target', 'goal', 'aim', 'bullseye', 'focus'] },
+    { emoji: '🏆', tags: ['獎盃', '冠軍', '第一', 'trophy', 'winner', 'champion', 'award'] },
+    { emoji: '💯', tags: ['滿分', '完美', 'perfect', 'score', 'hundred', '100'] },
+    { emoji: '🚀', tags: ['火箭', '啟動', '快速', 'rocket', 'launch', 'startup', 'fast', 'deploy'] },
+    { emoji: '✨', tags: ['閃光', '特別', '魔法', 'sparkles', 'special', 'magic', 'new', 'shine'] },
+    { emoji: '🎉', tags: ['慶祝', '派對', '完成', 'party', 'celebrate', 'tada', 'done'] },
+    { emoji: '⚡', tags: ['閃電', '快速', '能量', 'lightning', 'fast', 'energy', 'power', 'zap'] },
+    // ❤️ 心情 & 表情
+    { emoji: '❤️', tags: ['愛', '喜歡', '心', 'love', 'heart', 'like', 'favorite'] },
+    { emoji: '👍', tags: ['讚', '好', '同意', 'thumbs up', 'like', 'good', 'approve'] },
+    { emoji: '🤔', tags: ['思考', '疑問', '考慮', 'thinking', 'hmm', 'question', 'wonder'] },
+    { emoji: '😊', tags: ['開心', '微笑', '高興', 'happy', 'smile', 'joy'] },
+    { emoji: '🧠', tags: ['腦', '知識', '智慧', 'brain', 'smart', 'knowledge', 'intelligence'] },
+    { emoji: '👀', tags: ['眼睛', '查看', '注意', 'eyes', 'look', 'watch', 'see', 'attention'] },
+    // 📅 工作 & 專案
+    { emoji: '📅', tags: ['日期', '行程', '日曆', 'calendar', 'date', 'schedule', 'event'] },
+    { emoji: '⏰', tags: ['時間', '鬧鐘', '計時', 'time', 'alarm', 'clock', 'timer', 'deadline'] },
+    { emoji: '🗓️', tags: ['月曆', '計畫', '排程', 'calendar', 'plan', 'schedule', 'monthly'] },
+    { emoji: '💬', tags: ['對話', '留言', '討論', 'chat', 'comment', 'discussion', 'message'] },
+    { emoji: '📢', tags: ['公告', '廣播', '通知', 'announcement', 'broadcast', 'megaphone', 'notify'] },
+    { emoji: '🎨', tags: ['設計', '藝術', '創意', 'design', 'art', 'creative', 'palette', 'color'] },
+    { emoji: '🗺️', tags: ['地圖', '旅行', '探索', 'map', 'travel', 'explore', 'world'] },
+    { emoji: '🏠', tags: ['家', '首頁', '主頁', 'home', 'house', 'main', 'homepage'] },
+    { emoji: '🎵', tags: ['音樂', '歌曲', '音符', 'music', 'note', 'song', 'melody', 'audio'] },
+    { emoji: '🎮', tags: ['遊戲', '控制器', 'game', 'gaming', 'play', 'controller', 'fun'] },
+    // 🌟 自然 & 其他
+    { emoji: '🌟', tags: ['閃耀', '發光', '特別', 'glowing star', 'shine', 'bright', 'special'] },
+    { emoji: '☀️', tags: ['太陽', '晴天', '日光', 'sun', 'sunny', 'bright', 'day', 'daylight'] },
+    { emoji: '🌙', tags: ['月亮', '夜晚', '夜間', 'moon', 'night', 'crescent', 'dark'] },
+    { emoji: '🌈', tags: ['彩虹', '多彩', '色彩', 'rainbow', 'colorful', 'hope', 'diversity'] },
+    { emoji: '🌿', tags: ['植物', '葉子', '自然', 'leaf', 'nature', 'green', 'plant'] },
+    { emoji: '🌺', tags: ['花', '盛開', '美麗', 'flower', 'beautiful', 'bloom', 'blossom'] },
+];
+
 const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCreate, initialName = '' }) => {
     const [name, setName] = useState('');
     const [selectedIcon, setSelectedIcon] = useState<string>('');
@@ -39,6 +109,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
     const [step, setStep] = useState<'type' | 'template'>('type');
     const [selectedMode, setSelectedMode] = useState<'markdown' | 'mermaid' | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [customSearch, setCustomSearch] = useState('');
 
     // Reset when opening
     useEffect(() => {
@@ -48,6 +119,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
             setIsIconPickerOpen(false);
             setStep('type');
             setSelectedMode(null);
+            setCustomSearch('');
             // Focus after animation
             setTimeout(() => {
                 inputRef.current?.focus();
@@ -65,6 +137,8 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
         return () => document.removeEventListener('keydown', handler);
     }, [isOpen, onClose]);
 
+
+
     if (!isOpen) return null;
 
     const handleSelectType = (mode: 'markdown' | 'mermaid') => {
@@ -73,7 +147,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
     };
 
     const handleSubmit = (templateId: string = '') => {
-        const finalTid = templateId || (selectedMode === 'markdown' ? 'markdown-standard' : 'mermaid-standard');
+        const finalTid = templateId || (selectedMode === 'markdown' ? 'markdown-basic' : 'flowchart');
         onCreate(selectedMode, name.trim(), finalTid, selectedIcon || undefined);
         onClose();
     };
@@ -130,7 +204,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
                 {/* Body with Animation Container */}
                 <div className="relative min-h-[300px]">
                     {/* Step 1: Type Selection */}
-                    <div className={`p-5 flex flex-col gap-5 transition-all duration-300 ${step === 'type' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none absolute inset-0'}`}>
+                    <div className={`p-4 flex flex-col gap-2 transition-all duration-300 ${step === 'type' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none absolute inset-0'}`}>
 
                         {/* Unified Input Row */}
                         <div className="flex items-end gap-3">
@@ -139,7 +213,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
                                 <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">圖示</label>
                                 <button
                                     onClick={() => setIsIconPickerOpen(!isIconPickerOpen)}
-                                    className={`w-12 h-12 flex items-center justify-center rounded-2xl text-2xl transition-all border shadow-sm ${isIconPickerOpen
+                                    className={`w-12 h-12 flex items-center justify-center rounded-2xl text-2xl transition-all border ${isIconPickerOpen
                                         ? 'border-brand-primary bg-brand-secondary/30 dark:bg-brand-primary/20 ring-4 ring-brand-primary/10'
                                         : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800'
                                         }`}
@@ -175,24 +249,83 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
                         }} className="overflow-hidden">
                             <div className="min-h-0">
                                 <div className="pt-2">
-                                    <div className="p-3 g-slate-50/50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800">
-                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">選擇圖示 (選填)</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {COMMON_ICONS.map(icon => (
-                                                <button
-                                                    key={icon}
-                                                    onClick={() => {
-                                                        setSelectedIcon(selectedIcon === icon ? '' : icon);
-                                                        setIsIconPickerOpen(false);
-                                                    }}
-                                                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-lg transition-all ${selectedIcon === icon
-                                                        ? 'bg-brand-primary text-white shadow-md scale-110'
-                                                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm'
-                                                        }`}
-                                                >
-                                                    {icon}
-                                                </button>
-                                            ))}
+                                    <div className="p-1.5 bg-slate-50/50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 mt-1.5 ml-3">選擇圖示 (選填)</p>
+                                        <div className="flex flex-col gap-1">
+                                            {/* 搜尋 + 自訂：橫排平分，兩者都不需要長輸入框 */}
+                                            <div className="flex items-center gap-1.5 mx-1">
+                                                {/* 搜尋框 */}
+                                                <div className="relative flex items-center flex-1 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800/50 min-w-0">
+                                                    <Search size={10} className="absolute left-2.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                                                    <input
+                                                        type="text"
+                                                        value={customSearch}
+                                                        onChange={(e) => setCustomSearch(e.target.value)}
+                                                        placeholder="搜尋"
+                                                        className="w-full h-7 pl-7 pr-6 bg-transparent text-[10px] text-slate-700 dark:text-slate-200 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600 font-medium"
+                                                    />
+                                                    {customSearch && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCustomSearch('')}
+                                                            className="absolute right-2 p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 transition-colors"
+                                                        >
+                                                            <X size={8} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {/* 自訂貼上框 */}
+                                                <div className="relative flex items-center flex-1 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800/50 min-w-0">
+                                                    <span className="absolute left-2.5 text-[10px] text-slate-300 dark:text-slate-600 select-none pointer-events-none">✏️</span>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="貼上自訂"
+                                                        value={selectedIcon && !CURATED_EMOJIS.some(e => e.emoji === selectedIcon) ? selectedIcon : ''}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val) setSelectedIcon(val);
+                                                        }}
+                                                        className="w-full h-7 pl-7 pr-2 bg-transparent text-[11px] text-slate-700 dark:text-slate-200 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Emoji 格子：固定 2 排高度，超出滾軸瀏覽；搜尋後結果自然縮減 */}
+                                            <div className="max-h-[33px] overflow-y-auto px-1 mb-0.5 custom-scrollbar">
+                                                {(() => {
+                                                    const filtered = CURATED_EMOJIS.filter(item =>
+                                                        !customSearch || item.tags.some(tag =>
+                                                            tag.toLowerCase().includes(customSearch.toLowerCase())
+                                                        )
+                                                    );
+                                                    return filtered.length > 0 ? (
+                                                        <div className="grid grid-cols-8 gap-0.5 py-0.5">
+                                                            {filtered.map((item) => (
+                                                                <button
+                                                                    key={item.emoji}
+                                                                    type="button"
+                                                                    title={item.tags[0]}
+                                                                    onClick={() => {
+                                                                        setSelectedIcon(item.emoji);
+                                                                        setIsIconPickerOpen(false);
+                                                                    }}
+                                                                    className={`h-8 w-full flex items-center justify-center text-base rounded-lg transition-all duration-150 hover:scale-110 ${selectedIcon === item.emoji
+                                                                        ? 'bg-brand-primary/15 ring-1 ring-brand-primary/40 dark:bg-brand-primary/20'
+                                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-700/60'
+                                                                        }`}
+                                                                >
+                                                                    {item.emoji}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center justify-center gap-1.5 py-3 text-slate-400 dark:text-slate-600">
+                                                            <span className="text-sm">🔍</span>
+                                                            <p className="text-[10px]">找不到相符的圖示</p>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -200,7 +333,7 @@ const CreateDocModal: React.FC<CreateDocModalProps> = ({ isOpen, onClose, onCrea
                         </div>
 
                         {/* Mode Buttons */}
-                        <div className={`grid grid-cols-2 gap-3 transition-all duration-300 ${isIconPickerOpen ? 'pt-2' : 'mt-0'}`}>
+                        <div className={`grid grid-cols-2 gap-3 transition-all duration-300 ${isIconPickerOpen ? 'mt-0' : 'mt-1'}`}>
                             <button
                                 onClick={() => handleSelectType('markdown')}
                                 className={`flex flex-col items-center gap-3 p-4 border rounded-3xl transition-all group

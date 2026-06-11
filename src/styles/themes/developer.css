@@ -74,21 +74,21 @@
     /* 青色函式 */
 
     /* 8. 標註系統 (Alerts) */
-    --theme-alert-note-border: #3b82f6;
-    --theme-alert-note-bg: #eff6ff;
-    --theme-alert-note-text: #1d4ed8;
-    --theme-alert-tip-border: #10b981;
-    --theme-alert-tip-bg: #ecfdf5;
-    --theme-alert-tip-text: #047857;
-    --theme-alert-important-border: #8b5cf6;
-    --theme-alert-important-bg: #f5f3ff;
-    --theme-alert-important-text: #6d28d9;
-    --theme-alert-warning-border: #f59e0b;
-    --theme-alert-warning-bg: #fffbeb;
-    --theme-alert-warning-text: #b45309;
-    --theme-alert-caution-border: #ef4444;
-    --theme-alert-caution-bg: #fef2f2;
-    --theme-alert-caution-text: #b91c1c;
+    --theme-alert-note-border: #61afef;
+    --theme-alert-note-bg: rgba(97, 175, 239, 0.04);
+    --theme-alert-note-text: #1b5282;
+    --theme-alert-tip-border: #98c379;
+    --theme-alert-tip-bg: rgba(152, 195, 121, 0.04);
+    --theme-alert-tip-text: #3e6e22;
+    --theme-alert-important-border: #c678dd;
+    --theme-alert-important-bg: rgba(198, 120, 221, 0.04);
+    --theme-alert-important-text: #7a3e8f;
+    --theme-alert-warning-border: #e5c07b;
+    --theme-alert-warning-bg: rgba(229, 192, 123, 0.04);
+    --theme-alert-warning-text: #8a651e;
+    --theme-alert-caution-border: #e06c75;
+    --theme-alert-caution-bg: rgba(224, 108, 117, 0.04);
+    --theme-alert-caution-text: #9c2c34;
 }
 
 /* 深色模式下的變數覆蓋 */
@@ -151,21 +151,21 @@
     --code-token-variable: #cbd5e1;
 
     /* 8. 標註系統 (Alerts - 深色霓虹對焦) */
-    --theme-alert-note-border: #60a5fa;
-    --theme-alert-note-bg: rgba(96, 165, 250, 0.1);
-    --theme-alert-note-text: #60a5fa;
-    --theme-alert-tip-border: #34d399;
-    --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
-    --theme-alert-tip-text: #34d399;
-    --theme-alert-important-border: #a78bfa;
-    --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
-    --theme-alert-important-text: #a78bfa;
-    --theme-alert-warning-border: #fbbf24;
-    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
-    --theme-alert-warning-text: #fbbf24;
-    --theme-alert-caution-border: #f87171;
-    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
-    --theme-alert-caution-text: #f87171;
+    --theme-alert-note-border: #61afef;
+    --theme-alert-note-bg: rgba(97, 175, 239, 0.06);
+    --theme-alert-note-text: #61afef;
+    --theme-alert-tip-border: #98c379;
+    --theme-alert-tip-bg: rgba(152, 195, 121, 0.06);
+    --theme-alert-tip-text: #98c379;
+    --theme-alert-important-border: #c678dd;
+    --theme-alert-important-bg: rgba(198, 120, 221, 0.06);
+    --theme-alert-important-text: #c678dd;
+    --theme-alert-warning-border: #e5c07b;
+    --theme-alert-warning-bg: rgba(229, 192, 123, 0.06);
+    --theme-alert-warning-text: #e5c07b;
+    --theme-alert-caution-border: #e06c75;
+    --theme-alert-caution-bg: rgba(224, 108, 117, 0.06);
+    --theme-alert-caution-text: #e06c75;
 }
 
 .theme-developer.prose {
@@ -339,21 +339,21 @@
         --code-token-function: #0d9488 !important;
 
         /* Alerts 標註開發者淺色變數 */
-        --theme-alert-note-border: #3b82f6 !important;
-        --theme-alert-note-bg: #eff6ff !important;
-        --theme-alert-note-text: #1d4ed8 !important;
-        --theme-alert-tip-border: #10b981 !important;
-        --theme-alert-tip-bg: #ecfdf5 !important;
-        --theme-alert-tip-text: #047857 !important;
-        --theme-alert-important-border: #8b5cf6 !important;
-        --theme-alert-important-bg: #f5f3ff !important;
-        --theme-alert-important-text: #6d28d9 !important;
-        --theme-alert-warning-border: #f59e0b !important;
-        --theme-alert-warning-bg: #fffbeb !important;
-        --theme-alert-warning-text: #b45309 !important;
-        --theme-alert-caution-border: #ef4444 !important;
-        --theme-alert-caution-bg: #fef2f2 !important;
-        --theme-alert-caution-text: #b91c1c !important;
+        --theme-alert-note-border: #61afef !important;
+        --theme-alert-note-bg: rgba(97, 175, 239, 0.04) !important;
+        --theme-alert-note-text: #1b5282 !important;
+        --theme-alert-tip-border: #98c379 !important;
+        --theme-alert-tip-bg: rgba(152, 195, 121, 0.04) !important;
+        --theme-alert-tip-text: #3e6e22 !important;
+        --theme-alert-important-border: #c678dd !important;
+        --theme-alert-important-bg: rgba(198, 120, 221, 0.04) !important;
+        --theme-alert-important-text: #7a3e8f !important;
+        --theme-alert-warning-border: #e5c07b !important;
+        --theme-alert-warning-bg: rgba(229, 192, 123, 0.04) !important;
+        --theme-alert-warning-text: #8a651e !important;
+        --theme-alert-caution-border: #e06c75 !important;
+        --theme-alert-caution-bg: rgba(224, 108, 117, 0.04) !important;
+        --theme-alert-caution-text: #9c2c34 !important;
     }
 
     /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印 */

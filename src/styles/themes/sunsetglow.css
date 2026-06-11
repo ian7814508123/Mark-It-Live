@@ -142,19 +142,19 @@
     /* 深色模式下的 Alerts */
     --theme-alert-note-border: #f97316;
     --theme-alert-note-bg: rgba(249, 115, 22, 0.1);
-    --theme-alert-note-text: #f97316;
+    --theme-alert-note-text: #fb923c;
     --theme-alert-tip-border: #34d399;
     --theme-alert-tip-bg: rgba(52, 211, 153, 0.1);
     --theme-alert-tip-text: #34d399;
     --theme-alert-important-border: #a78bfa;
     --theme-alert-important-bg: rgba(167, 139, 250, 0.1);
-    --theme-alert-important-text: #a78bfa;
+    --theme-alert-important-text: #c084fc;
     --theme-alert-warning-border: #fbbf24;
     --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
-    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-warning-text: #fde047;
     --theme-alert-caution-border: #f87171;
     --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
-    --theme-alert-caution-text: #f87171;
+    --theme-alert-caution-text: #fca5a5;
 }
 
 /* --------------------------------------------------------------------------

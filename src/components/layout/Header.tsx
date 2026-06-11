@@ -1,9 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare } from 'lucide-react';
+import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
-
+import DraggableSwitch from '../ui/DraggableSwitch';
 interface HeaderProps {
     mode: 'mermaid' | 'markdown';
     isDarkMode: boolean;
@@ -52,6 +52,24 @@ const Header: React.FC<HeaderProps> = ({
 
     const [hasPushedAd, setHasPushedAd] = useState(false);
     const adContainerRef = useRef<HTMLDivElement>(null);
+
+    const [syncScrollDelay, setSyncScrollDelay] = useState<string>('0ms');
+    const [commentModeDelay, setCommentModeDelay] = useState<string>('0ms');
+
+    // ── 同步多個呼吸燈按鈕時間軸的負延遲補償 ──
+    useEffect(() => {
+        if (isSyncScroll && hasOpenDocuments) {
+            const offset = Math.round(performance.now() % 3000);
+            setSyncScrollDelay(`-${offset}ms`);
+        }
+    }, [isSyncScroll, hasOpenDocuments]);
+
+    useEffect(() => {
+        if (isCommentMode && hasOpenDocuments) {
+            const offset = Math.round(performance.now() % 3000);
+            setCommentModeDelay(`-${offset}ms`);
+        }
+    }, [isCommentMode, hasOpenDocuments]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -172,7 +190,7 @@ const Header: React.FC<HeaderProps> = ({
                         <MagneticButton variant="filled" onClick={() => hasOpenDocuments && setIsDownloadMenuOpen(!isDownloadMenuOpen)}
                             aria-label="開啟導出選單"
                             disabled={!hasOpenDocuments}
-                            className="text-sm pr-3"
+                            className={`text-sm pr-3 ${hasOpenDocuments ? 'animate-cta-glow' : ''}`}
                             magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
                             <Download size={16} />
                             <span>下載</span>
@@ -213,21 +231,18 @@ const Header: React.FC<HeaderProps> = ({
                                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">資料夾合併選項</p>
                                     </div>
 
+
+
                                     <div className="px-1 space-y-1">
                                         <label className="flex items-center justify-between px-3 py-2 cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200">合併下載 (Markdown)</span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500">自動合併同資料夾下所有 .md 原始碼</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnMdExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnMdExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnMdExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnMdExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnMdExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
 
                                         <label className="flex items-center justify-between px-3 py-2 cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">
@@ -235,17 +250,13 @@ const Header: React.FC<HeaderProps> = ({
                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200">合併列印 (PDF)</span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500">將資料夾內容合併為單一 PDF 匯出</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnPdfExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnPdfExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnPdfExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnPdfExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnPdfExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
                                     </div>
+
                                 </div>
                             )}
                         </div>
@@ -282,14 +293,14 @@ const Header: React.FC<HeaderProps> = ({
                     {/* 同步滾動 */}
                     <MagneticButton onClick={() => hasOpenDocuments && setIsSyncScroll(!isSyncScroll)} title="同步滾動"
                         disabled={!hasOpenDocuments}
-                        style={{ position: 'relative', overflow: 'hidden' }}
+                        style={{ position: 'relative', overflow: 'hidden', animationDelay: isSyncScroll && hasOpenDocuments ? syncScrollDelay : undefined }}
                         className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold transition-all select-none
                             ${isSyncScroll && hasOpenDocuments
-                                ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary shadow-sm ring-1 ring-brand-primary/10'
+                                ? 'animate-status-glow text-brand-primary shadow-sm'
                                 : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}>
                         <span className={`w-2 h-2 rounded-full shrink-0 transition-colors ${isSyncScroll && hasOpenDocuments ? 'bg-brand-primary animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
-                        同步滾動
+                        <span>同步滾動</span>
                     </MagneticButton>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
@@ -299,16 +310,16 @@ const Header: React.FC<HeaderProps> = ({
                         onClick={() => hasOpenDocuments && setIsCommentMode?.(!isCommentMode)}
                         title={!hasOpenDocuments ? '請先開啟文件以使用註解模式' : '開啟/關閉行號註解模式'}
                         disabled={!hasOpenDocuments}
-                        style={{ position: 'relative', overflow: 'hidden', cursor: hasOpenDocuments ? undefined : 'not-allowed' }}
+                        style={{ position: 'relative', overflow: 'hidden', animationDelay: isCommentMode && hasOpenDocuments ? commentModeDelay : undefined }}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none
                             ${!hasOpenDocuments
                                 ? 'opacity-35 text-slate-400 dark:text-slate-600'
                                 : isCommentMode
-                                    ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary shadow-sm ring-1 ring-brand-primary/10'
+                                    ? 'animate-status-glow text-brand-primary shadow-sm'
                                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}>
-                        <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? 'animate-bounce' : ''} />
-                        註解模式
+                        <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? '' : ''} />
+                        <span>註解模式</span>
                     </MagneticButton>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
@@ -318,7 +329,7 @@ const Header: React.FC<HeaderProps> = ({
                         <MagneticButton variant="filled" onClick={() => hasOpenDocuments && setIsDownloadMenuOpen(!isDownloadMenuOpen)}
                             aria-label="開啟導出選單"
                             disabled={!hasOpenDocuments}
-                            className="text-sm pr-3"
+                            className={`text-sm pr-3 ${hasOpenDocuments ? 'animate-cta-glow' : ''}`}
                             magneticOptions={{ maxOffset: 14, radius: 70, stiffness: 250, damping: 18 }}>
                             <Download size={16} />
                             <span>下載</span>
@@ -354,15 +365,10 @@ const Header: React.FC<HeaderProps> = ({
                                                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100">合併下載 (Markdown)</span>
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-400">自動合併同資料夾下所有 .md 原始碼</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnMdExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnMdExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnMdExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnMdExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnMdExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
 
                                         <label className="flex items-center justify-between px-3 py-2 cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">
@@ -370,15 +376,10 @@ const Header: React.FC<HeaderProps> = ({
                                                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100">合併列印 (PDF)</span>
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-400">將資料夾內容合併為單一 PDF 匯出</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnPdfExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnPdfExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnPdfExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnPdfExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnPdfExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
                                     </div>
                                 </div>

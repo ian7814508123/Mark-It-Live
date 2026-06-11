@@ -1,0 +1,472 @@
+/* ==========================================================================
+   主題名稱: 極光冰原 (Aurora / aurora)
+   設計理念: 冰川發光藍、極光發光綠、極地灰白、冷冽星空
+   適用情境: API 文件、技術規格書、架構說明書、硬核筆記
+   ========================================================================== */
+
+.theme-aurora {
+    /* Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
+
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: "Inter", "PingFang TC", "Hiragino Sans GB", sans-serif;
+    --theme-line-height: 1.7;
+    --theme-text-align: left;
+    --theme-text-color: #1e293b; /* 深石墨灰 */
+    --theme-accent-color: #0891b2; /* 極光冰藍 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: "Outfit", "Inter", "Heiti TC", sans-serif;
+    --theme-heading-color: #0f172a; /* 極深藍黑 */
+    --theme-heading-weight: 700;
+    --theme-h1-size: 2.25rem;
+    --theme-h2-size: 1.75rem;
+    --theme-h3-size: 1.375rem;
+    --theme-h4-size: 1.2rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: 2px solid #0891b2;
+    --theme-h2-border: 1px solid #d0e1e8;
+    --theme-h1-transform: none;
+
+    /* 3. 引言區塊 (Blockquote) */
+    --theme-quote-bg: #f0f7f9; /* 冰原倒影底色 */
+    --theme-quote-border-left: 4px solid #0891b2;
+    --theme-quote-text: #334155;
+    --theme-quote-font-style: normal;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #0891b2;
+    --theme-link-decoration: none;
+    --theme-link-hover-bg: #e6f0f4;
+    --theme-link-hover-border: #0891b2;
+
+    /* 5. 表格設計 (Tables) */
+    --theme-table-border: 1px solid #d0e1e8;
+    --theme-table-header-bg: #f0f7f9;
+    --theme-table-header-color: #0f172a;
+    --theme-table-header-border: 2px solid #0891b2;
+
+    /* 6. 系統 UI 對接 (System UI Bridge) */
+    --brand-primary: #0891b2;
+    --brand-secondary: #f0f7f9;
+    --brand-surface: #ffffff; /* 冰川極亮藍白紙質背景 */
+    --brand-accent: #06b6d4;
+    --code-bg: #e6f0f4;       /* 冰封湖面背景 */
+    --code-border: #d0e1e8;   /* 冰縫淡藍邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(8, 145, 178, 0.05);
+
+    /* 7. 語法高亮客製化 - 冷冽極光冰原系 (Syntax Highlighting) */
+    --code-token-comment: #64748b;     /* 冰川冷灰 */
+    --code-token-keyword: #7c3aed;     /* 極光紫羅蘭 */
+    --code-token-string: #0f766e;      /* 極光瑩綠 */
+    --code-token-number: #ea580c;      /* 晨曦暖橘 */
+    --code-token-function: #2563eb;    /* 深海科技藍 */
+    --code-token-operator: #1e293b;
+    --code-token-variable: #1e293b;
+    --code-token-class: #0369a1;       /* 冰川深藍 */
+    --code-token-tag: #7c3aed;         /* 極光紫羅蘭 */
+    --code-token-attr-name: #ca8a04;   /* 星曜金 */
+
+    /* 8. 標註系統 (Alerts) */
+    --theme-alert-note-border: #0891b2;
+    --theme-alert-note-bg: rgba(8, 145, 178, 0.04);
+    --theme-alert-note-text: #0369a1;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.04);
+    --theme-alert-tip-text: #065f46;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.04);
+    --theme-alert-important-text: #5b21b6;
+    --theme-alert-warning-border: #f59e0b;
+    --theme-alert-warning-bg: rgba(245, 158, 11, 0.04);
+    --theme-alert-warning-text: #92400e;
+    --theme-alert-caution-border: #ef4444;
+    --theme-alert-caution-bg: rgba(239, 68, 68, 0.04);
+    --theme-alert-caution-text: #991b1b;
+}
+
+/* --------------------------------------------------------------------------
+   深色模式變數覆蓋 (Dark Mode - WCAG 對比度對焦)
+   -------------------------------------------------------------------------- */
+.dark .theme-aurora {
+    /* Mermaid 樣式變數 (深色自適應主題連動) */
+    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
+    --mermaid-node-text: var(--theme-text-color, inherit);
+    --mermaid-node-border: var(--code-border);
+    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
+    --mermaid-edge-bg: var(--brand-surface, #0f172a);
+
+    --theme-text-color: #e2e8f0; /* 冰雪灰白 */
+    --theme-heading-color: #f8fafc; /* 極亮白 */
+    --theme-accent-color: #06b6d4; /* 瑩亮極光青 */
+
+    --theme-quote-bg: rgba(6, 182, 212, 0.05);
+    --theme-quote-border-left: 4px solid #06b6d4;
+    --theme-quote-text: #f8fafc;
+
+    --theme-link-color: #06b6d4;
+    --theme-link-hover-bg: rgba(6, 182, 212, 0.15);
+    --theme-link-hover-border: #06b6d4;
+
+    --theme-table-border: 1px solid #1f2937;
+    --theme-table-header-bg: rgba(6, 182, 212, 0.08);
+    --theme-table-header-color: #f8fafc;
+    --theme-table-header-border: 1px solid #1f2937;
+
+    --brand-primary: #06b6d4;
+    --brand-secondary: #111827;
+    --brand-surface: #0f172a; /* 極夜深空藍黑背景 */
+    --brand-accent: #22d3ee;
+    --code-bg: #111827;       /* 黑夜防禦底板 */
+    --code-border: #1f2937;   /* 冷鋼灰邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.35);
+
+    /* 深色模式語法高亮 */
+    --code-token-comment: #94a3b8;     /* 冰川冷灰 */
+    --code-token-keyword: #c084fc;     /* 極光發光紫 */
+    --code-token-string: #2dd4bf;      /* 極光發光綠 */
+    --code-token-number: #fb923c;      /* 晨曦發光橘 */
+    --code-token-function: #60a5fa;    /* 發光天藍 */
+    --code-token-operator: #e2e8f0;
+    --code-token-variable: #e2e8f0;
+    --code-token-class: #38bdf8;       /* 冰藍 */
+    --code-token-tag: #c084fc;         /* 極光發光紫 */
+    --code-token-attr-name: #facc15;   /* 北極星發光黃 */
+
+    /* 深色模式下的 Alerts */
+    --theme-alert-note-border: #06b6d4;
+    --theme-alert-note-bg: rgba(6, 182, 212, 0.1);
+    --theme-alert-note-text: #22d3ee;
+    --theme-alert-tip-border: #10b981;
+    --theme-alert-tip-bg: rgba(16, 185, 129, 0.1);
+    --theme-alert-tip-text: #34d399;
+    --theme-alert-important-border: #8b5cf6;
+    --theme-alert-important-bg: rgba(139, 92, 246, 0.1);
+    --theme-alert-important-text: #a78bfa;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.1);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.1);
+    --theme-alert-caution-text: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   Markdown 基礎元素與特色客製 (Prose Binding & Customizations)
+   -------------------------------------------------------------------------- */
+.theme-aurora.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    max-width: 100%;
+    background-color: var(--brand-surface);
+}
+
+.theme-aurora.prose h1,
+.theme-aurora.prose h2,
+.theme-aurora.prose h3,
+.theme-aurora.prose h4,
+.theme-aurora.prose h5,
+.theme-aurora.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+    letter-spacing: -0.02em;
+}
+
+.theme-aurora.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: var(--theme-h1-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.theme-aurora.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.3rem;
+    margin-top: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.theme-aurora.prose h3 { 
+    font-size: var(--theme-h3-size);
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+}
+.theme-aurora.prose h4 { 
+    font-size: var(--theme-h4-size);
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+.theme-aurora.prose h5 { 
+    font-size: var(--theme-h5-size);
+}
+.theme-aurora.prose h6 { 
+    font-size: var(--theme-h6-size);
+    font-weight: 600;
+}
+
+.theme-aurora.prose blockquote {
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text);
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+}
+
+.theme-aurora.prose blockquote p {
+    margin: 0.5rem 0;
+}
+
+/* 超連結特色樣式 */
+.theme-aurora.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.theme-aurora.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-bottom-color: var(--theme-link-hover-border);
+}
+
+/* 冰川高亮 <mark> */
+.theme-aurora.prose mark {
+    background-color: rgba(6, 182, 212, 0.15); 
+    color: #0f172a;
+    border-bottom: 2px solid #0891b2;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.dark .theme-aurora.prose mark {
+    background-color: rgba(34, 211, 238, 0.2);
+    color: #f8fafc;
+    border-bottom: 2px solid #22d3ee;
+}
+
+/* Checkbox 美化 */
+.theme-aurora.prose input[type="checkbox"] {
+    accent-color: var(--brand-primary) !important;
+    border-radius: 4px !important;
+    cursor: pointer;
+}
+
+/* 冰藍分隔線 */
+.theme-aurora.prose hr {
+    border: none;
+    border-top: 1px solid var(--theme-table-border);
+    margin: 3rem auto;
+    width: 90%;
+}
+
+/* 表格特色樣式 */
+.theme-aurora.prose table {
+    border: var(--theme-table-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+.theme-aurora.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-bottom: var(--theme-table-header-border);
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+}
+
+.theme-aurora.prose td {
+    border-top: var(--theme-table-border);
+    color: var(--theme-text-color);
+    padding: 0.8rem 1rem;
+}
+
+.theme-aurora.prose tr:hover {
+    background-color: rgba(8, 145, 178, 0.03);
+}
+
+.dark .theme-aurora.prose tr:hover {
+    background-color: rgba(6, 182, 212, 0.05);
+}
+
+/* Inline Code 樣式排除 pre 避免誤傷 [CRITICAL] */
+.theme-aurora.prose :not(pre) > code {
+    background-color: var(--code-bg);
+    color: var(--theme-text-color);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85em;
+}
+
+/* Alert 標註系統客製 */
+.theme-aurora.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+.theme-aurora.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-aurora.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+.theme-aurora.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-aurora.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+.theme-aurora.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-aurora.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+.theme-aurora.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-aurora.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+.theme-aurora.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
+/* ==========================================================================
+   特色主題隔離防禦：防止主題字型與大小干擾內置 SVG 圖表 (如 Mermaid)
+   ========================================================================== */
+.theme-aurora.prose .not-prose,
+.theme-aurora.prose .not-prose svg,
+.theme-aurora.prose .not-prose svg text,
+.theme-aurora.prose .not-prose span,
+.theme-aurora.prose .not-prose div {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: inherit;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+}
+
+.theme-aurora.prose .not-prose .mermaid text,
+.theme-aurora.prose .not-prose .mermaid .node text,
+.theme-aurora.prose .not-prose .mermaid .edgeLabel text,
+.theme-aurora.prose .not-prose .mermaid .label text {
+    font-family: Inter, system-ui, -apple-system, sans-serif !important;
+    font-size: 13px !important;
+}
+
+/* ==========================================================================
+   列印與輸出相容性 (Print Compatibility)
+   本主題遵循高保真特色列印。在此僅進行必要的結構性排版微調，無任何 !important 負擔！
+   ========================================================================== */
+@media print {
+    /* 1. 強制將所有變數重設為淺色護眼配色，防禦深色列印黑洞 */
+    .theme-aurora,
+    .dark .theme-aurora,
+    [class*="theme-aurora"] {
+        --theme-text-color: #1e293b !important;
+        --theme-accent-color: #0891b2 !important;
+        --theme-heading-color: #0f172a !important;
+        --theme-quote-bg: #f0f7f9 !important;
+        --theme-quote-border-left: 4px solid #0891b2 !important;
+        --theme-quote-text: #334155 !important;
+        --theme-link-color: #0891b2 !important;
+        --theme-table-border: 1px solid #d0e1e8 !important;
+        --theme-table-header-bg: #f0f7f9 !important;
+        --theme-table-header-color: #0f172a !important;
+        --theme-table-header-border: 2px solid #0891b2 !important;
+        
+        --brand-primary: #0891b2 !important;
+        --brand-secondary: #f0f7f9 !important;
+        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
+        --brand-accent: #06b6d4 !important;
+        --code-bg: #e6f0f4 !important;
+        --code-border: #d0e1e8 !important;
+
+        /* 語法高亮列印變數 */
+        --code-token-comment: #64748b !important;
+        --code-token-keyword: #0284c7 !important;
+        --code-token-string: #0f766e !important;
+        --code-token-number: #0891b2 !important;
+        --code-token-function: #2563eb !important;
+    }
+
+    /* 2. 強制瀏覽器啟用背景與色彩列印 */
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. 排版與文字尺寸微調 */
+    .theme-aurora.prose {
+        font-size: 10.5pt !important;
+        line-height: 1.6 !important;
+        background-color: #ffffff !important;
+    }
+
+    .theme-aurora.prose h1 {
+        border-bottom: 2pt solid var(--brand-primary) !important;
+    }
+    
+    .theme-aurora.prose h2 {
+        border-bottom: 1pt solid var(--theme-table-border) !important;
+    }
+
+    .theme-aurora.prose pre,
+    .theme-aurora.prose .enhanced-codeblock {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-aurora.prose :not(pre)>code {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--code-border) !important;
+        color: var(--theme-text-color) !important;
+        padding: 0.2em 0.4em !important;
+        border-radius: 4px !important;
+    }
+
+    .theme-aurora.prose blockquote {
+        background-color: var(--theme-quote-bg) !important;
+        border-left: var(--theme-quote-border-left) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-aurora.prose table {
+        border: var(--theme-table-border) !important;
+        page-break-inside: avoid !important;
+    }
+
+    .theme-aurora.prose h1,
+    .theme-aurora.prose h2,
+    .theme-aurora.prose h3 {
+        page-break-after: avoid !important;
+    }
+}

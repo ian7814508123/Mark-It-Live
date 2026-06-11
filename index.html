@@ -16,18 +16,22 @@
 ">
   <!-- SEO: 基本描述與關鍵字 (未來新增功能請更新此處) -->
   <meta name="description"
-    content="Markdown-live-previewer - 免費在線 Markdown 編輯器，支持即時預覽、Mermaid 圖表、LaTeX 公式、PDF/PNG/SVG 導出、PDF 合併、Excel 轉表格等功能。完全本地運行，保護您的隱私。">
+    content="Markdown Live Previewer - 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表、LaTeX 公式、12 種精選排版主題、PDF/PNG/SVG 導出、外部媒體隱私保護、WikiLinks 知識庫管理。完全本地運行，零雲端傳輸，保護您的隱私。">
   <meta name="keywords"
-    content="Markdown, Editor, Live Preview, Mermaid, LaTeX, MathJax, PDF Export, Web Tool, Online Editor, 編輯器, 即時預覽">
+    content="Markdown, Editor, Live Preview, Mermaid, LaTeX, MathJax, PDF Export, Web Tool, Online Editor, 編輯器, 即時預覽, 主題, Theme, WikiLinks, 知識庫, 隱私保護, ABC Notation, Vega-Lite, 圖表, 線上預覽">
   <meta name="author" content="Huang Jyun Ying">
   <meta name="theme-color" content="#00416A">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="format-detection" content="email=no, telephone=no, address=no">
   <link rel="canonical" href="https://markdown-live-previewer-a6dx.onrender.com/">
+  <!-- hreflang: 聲明此頁同時服務中文與英文讀者，提升雙語搜尋曝光度 -->
+  <link rel="alternate" hreflang="zh-Hant" href="https://markdown-live-previewer-a6dx.onrender.com/" />
+  <link rel="alternate" hreflang="en" href="https://markdown-live-previewer-a6dx.onrender.com/" />
+  <link rel="alternate" hreflang="x-default" href="https://markdown-live-previewer-a6dx.onrender.com/" />
   <link rel="search" type="application/opensearchdescription+xml" href="/opensearchdescription.xml"
     title="Markdown Live Previewer">
   <meta name='admaven-placement' content=BqjsHrHg9>
-  <title>Markdown Live Previewer | 免費在線 Markdown 編輯器 | 即時預覽、圖表、公式</title>
+  <title>Markdown Live Previewer | 免費線上 Markdown 編輯器 | 即時預覽、圖表、公式</title>
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -53,19 +57,23 @@
     "url": "https://markdown-live-previewer-a6dx.onrender.com/",
     "operatingSystem": "Web",
     "applicationCategory": "MultimediaApplication",
-    "description": "一款強大且美觀的 Markdown 即時預覽編輯器，支持 Mermaid 圖表、LaTeX 數學公式、Vega 數據可視化及多種導出格式。完全免費，無需註冊，所有數據存儲在本地。",
+    "description": "一款強大且美觀的 Markdown 即時預覽編輯器，支持 Mermaid 圖表、LaTeX 數學公式、Vega 數據可視化、12 種精選排版主題及多種導出格式。完全免費，無需註冊，所有數據存儲在本地，零雲端傳輸。",
     "featureList": [
       "即時同步滾動預覽 - 邊編輯邊預覽",
       "Mermaid 流程圖、時序圖、甘特圖、類圖、狀態圖渲染",
       "LaTeX 數學公式與化學模型支持",
       "Vega-Lite 專業數據視覺化圖表",
-      "ABC notation 樂譜",
+      "ABC notation 樂譜渲染",
       "WikiLinks 雙向連結與知識管理",
+      "12 種精選排版主題（學術、工程師、古典宣紙、極光冰原、霓虹雨夜等）",
+      "外部媒體隱私保護盾 - 自動遮蔽外部 iframe 與影片，白名單管理",
+      "GitHub Alerts 提示框語法支援",
+      "分頁斷行標記（Page Break）精確控制 PDF 分頁",
       "專業 PDF、PNG、SVG、Markdown 導出",
       "內建 PDF 合併工具",
       "Excel 轉 Markdown 表格功能",
-      "圖片上傳與優化工具",
-      "字數統計工具",
+      "數據與媒體中心 - 文檔導入與圖片管理",
+      "字數統計工具（自動略過公式與圖表區塊）",
       "瀏覽器端單機存儲，私密且快速",
       "支持深色模式",
       "響應式設計，支持所有設備"
@@ -85,7 +93,7 @@
       "name": "Huang Jyun Ying"
     },
     "datePublished": "2024-01-01",
-    "dateModified": "2026-04-13",
+    "dateModified": "2026-06-04",
     "inLanguage": ["zh-Hant", "en"],
     "isAccessibleForFree": true,
     "image": {
@@ -166,6 +174,22 @@
           "@type": "Answer",
           "text": "第一次加載後，應用會被緩存。您可以在離線狀態下繼續編輯和預覽已有的文檔。"
         }
+      },
+      {
+        "@type": "Question",
+        "name": "支持哪些排版主題？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "提供 12 種精選主題，涵蓋預設、學術、極簡、工程師、實作計畫、古典宣紙、復古報紙、北歐森林、潛境太空、極光冰原、落日餘暉、霓虹雨夜等多種風格，並可收藏常用主題快速切換。"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "有隱私保護功能嗎？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "是的。外部媒體隱私保護盾會自動遮蔽文件中的外部 iframe、YouTube 影片與音訊，您可透過白名單管理信任特定網域。所有數據均 100% 在本地端處理，零雲端傳輸。"
+        }
       }
     ]
   }
@@ -187,9 +211,18 @@
   }
   </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+  <!-- 字體預連接（減少 DNS 查詢延遲） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- media=print 技巧：非阻塞載入字體，載完後切換為 all（節省 ~720ms 渲染阻塞）-->
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
-    rel="stylesheet">
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+      rel="stylesheet">
+  </noscript>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -388,42 +421,20 @@
       }
     }
   </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "mermaid": "https://esm.sh/mermaid@^11.12.2"
-  }
-}
-</script>
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%VITE_GOOGLE_ADSENSE_ID%"
-    crossorigin="anonymous"></script>
+
 </head>
 
 <body class="bg-slate-50 text-slate-900 overflow-hidden">
   <div id="root">
-    <!-- SEO: 靜態內容 (未來新增功能點請更新此清單，以便爬蟲在 JS 載入前讀取) -->
+    <!-- SEO: 靜態內容 (JS 載入前提供爬蟲雙語核心摘要) -->
     <div class="sr-only"
       style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
-      <h1>Markdown Live Previewer - 專業線上編輯與預覽工具</h1>
-      <p>Markdown Live Previewer 是一款基於 React 開發的高效能線上 Markdown 編輯器。支持即時同步預覽、Mermaid 圖表渲染、MathJax 數學公式與化學方程式、Vega-Lite
-        數據圖表、以及 WikiLinks 雙向連結功能。</p>
-      <p>無論您是工程師、學生還是作家，都能透過本工具輕鬆撰寫並導出高品質的 PDF、PNG、SVG 或 Markdown 檔案。</p>
-      <ul>
-        <li>即時同步滾動預覽</li>
-        <li>Mermaid 流程圖、時序圖、甘特圖</li>
-        <li>LaTeX 數學公式與化學模型支持</li>
-        <li>專業 PDF/圖片 導出</li>
-        <li>單機存儲，私密且快速</li>
-        <li>支援 WikiLinks 雙向連結與知識管理</li>
-        <li>內建 PDF 合併工具與 Excel 轉 Markdown 表格功能</li>
-        <li>支援 Vega-Lite 專業數據視覺化圖表</li>
-      </ul>
+      <h1>Markdown Live Previewer — 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表與 LaTeX 公式</h1>
+      <p>Markdown Live Previewer 是一款免費高效能的線上 Markdown 編輯器與線上預覽工具。支援即時同步滾動預覽、Mermaid 流程圖繪製、LaTeX 數學公式、Vega-Lite 數據圖表、12
+        種精選排版主題、外部媒體隱私保護盾、Excel 轉 Markdown 表格、以及 WikiLinks 雙向連結知識庫管理。所有數據皆在瀏覽器本地處理，無須上傳伺服器，安全且隱私。</p>
+      <p>Markdown Live Previewer is a free online Markdown editor with live preview, 12 premium themes, privacy-first
+        external media shield, Mermaid diagrams, LaTeX math, Vega-Lite visualizations, WikiLinks knowledge base, ABC
+        notation, and high-quality PDF/image exports. 100% local processing, zero cloud uploads.</p>
     </div>
   </div>
   <noscript>

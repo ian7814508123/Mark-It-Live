@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, Suspense } from 'react';
 import { flushSync } from 'react-dom';
-import { MathJaxContext } from 'better-react-mathjax';
+const LazyMathJaxProvider = React.lazy(() => import('./src/components/markdown/LazyMathJaxProvider'));
 
 import Header from './src/components/layout/Header';
 import Editor from './src/components/layout/Editor';
@@ -11,23 +11,15 @@ import CreateDocModal from './src/components/modals/CreateDocModal';
 import SettingsModal from './src/components/modals/SettingsModal';
 import SEOContent from './src/components/markdown/SEOContent';
 import IntroModal from './src/components/modals/IntroModal';
-import InteractiveLogo from './src/components/ui/InteractiveLogo';
 import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
 import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollTop } from './src/utils';
 import { detectMarkdownFeatures } from './src/utils/markdownScanner';
 import { useAppSettings } from './src/hooks/useAppSettings';
 import './src/styles/markdown-base.css';
-import './src/styles/themes/academic.css';
-import './src/styles/themes/minimal.css';
-import './src/styles/themes/developer.css';
-import './src/styles/themes/implementation-plan.css';
-import './src/styles/themes/classical.css';
-import './src/styles/themes/newspaper.css';
-import './src/styles/themes/nordicforest.css';
-import './src/styles/themes/cosmic.css';
-import './src/styles/themes/sunsetglow.css';
-import './src/styles/themes/neonrain.css';
+
+// 使用 Vite 的 import.meta.glob 動態載入，Vite 會自動將這些 CSS 進行 Code Splitting 拆分成獨立檔案
+const themeModules = import.meta.glob('./src/styles/themes/*.css');
 
 
 
@@ -191,7 +183,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Failed to load default contents:', error);
         setDefaultContents({
-          markdown: { 'markdown-standard': '# Markdown Editor\n\n無法載入預設內容。' },
+          markdown: { 'markdown-standard': '# Markdown Editor' },
           mermaid: { 'mermaid-standard': 'graph TD\n  A[開始] --> B[結束]' }
         });
       } finally {
@@ -245,6 +237,21 @@ const App: React.FC = () => {
   const printTimeoutRef = useRef<any>(null);
 
   const { settings, updateMacros, updatePrintSettings, toggleFavoriteTheme, restoreDefaults } = useAppSettings();
+
+  // 監聽當前預覽主題並動態/懶載入樣式表
+  useEffect(() => {
+    const theme = settings.printSettings.previewTheme;
+    if (!theme || theme === 'default') return;
+
+    const themePath = `./src/styles/themes/${theme}.css`;
+    const loadTheme = themeModules[themePath];
+
+    if (loadTheme) {
+      loadTheme().catch((err) => {
+        console.error(`Failed to dynamic load theme style: ${theme}`, err);
+      });
+    }
+  }, [settings.printSettings.previewTheme]);
 
 
   // 從當前文檔取得 mode 和 code
@@ -360,10 +367,10 @@ const App: React.FC = () => {
   // 需同時等待 isLoading（IndexedDB 尚在讀取）與 isLoadingDefaults（預設檔案尚在載入）兩者都完成
   useEffect(() => {
     if (documents.length === 0 && defaultContents && !isLoadingDefaults && !isLoading) {
-      createDocument('markdown', defaultContents.markdown['markdown-standard'], '預設 標記掉落 文檔', null, 'markdown-standard');
-      createDocument('markdown', defaultContents.markdown['markdown-beta'], '色彩實驗室 (Beta)', null, 'markdown-beta');
-      createDocument('mermaid', defaultContents.mermaid['mermaid-standard'], '預設 美人魚 文檔', null, 'mermaid-standard');
-      createDocument('mermaid', defaultContents.mermaid['mermaid-beta'], '色彩實驗室 (Beta) [Mermaid]', null, 'mermaid-beta');
+      // 第一個建立的文檔會預設成為啟用的文檔（因為 IndexedDB 寫入順序或 createDocument 實作）
+      // 使用 basic 與 flowchart 取代原本的標準版，大幅降低首屏的元件複雜度（不含 MathJax/進階 Mermaid 等），以提升 Lighthouse 首屏分數
+      createDocument('markdown', defaultContents.markdown['basic'], '標記掉落 入門指南', null, 'basic', undefined, false);
+      createDocument('mermaid', defaultContents.mermaid['flowchart'], '美人魚 入門指南', null, 'flowchart', undefined, false);
     }
   }, [documents.length, createDocument, defaultContents, isLoadingDefaults, isLoading]);
 
@@ -1024,7 +1031,9 @@ const App: React.FC = () => {
     style.textContent = `
       @media print {
         @page { size: ${paperSize} ${orientation}; margin: ${marginMap[margin] ?? '1.5cm'}; }
-        header,  aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
+        header, footer, aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
+        /* 靜默遮罩不應被列印 */
+        #app-print-mask { display: none !important; }
         .preview-panel { 
           overflow: visible !important; 
           width: 100% !important; 
@@ -1052,6 +1061,24 @@ const App: React.FC = () => {
       clearTimeout(printTimeoutRef.current);
     }
 
+    // ── 靜默遮罩：在移除 .dark 之前，先以不透明遮罩蓋住整個畫面，
+    //    讓底下的「深色→淺色」重繪過程對使用者完全不可見。
+    const mask = document.createElement('div');
+    mask.id = 'app-print-mask';
+    // 使用 background-color 而非 backdrop-filter，確保完全遮蔽且不影響列印
+    Object.assign(mask.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '2147483647',           // 最大 z-index，壓過所有 UI
+      backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', // 匹配當前背景色，視覺無縫
+      opacity: '1',
+      pointerEvents: 'none',          // 不阻擋後續 window.print() 的焦點事件
+      transition: 'none',             // 遮罩出現必須是瞬間的，不能有動畫
+    });
+    // 告知列印器忽略此遮罩元素
+    mask.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(mask);
+
     // 列印時防禦性地臨時移除 .dark，防止深色模式的主題變數在列印時被匹配並渲染
     if (isDarkMode) {
       document.documentElement.classList.remove('dark');
@@ -1077,17 +1104,25 @@ const App: React.FC = () => {
       document.title = prevTitle;
       setIsPrinting(false);
 
-      // 列印結束後恢復深色模式
+      // 列印結束後恢復深色模式（此時遮罩仍在，使用者看不到切換過程）
       if (isDarkMode) {
         document.documentElement.classList.add('dark');
       }
 
       document.getElementById('app-print-override')?.remove();
       printTimeoutRef.current = null;
+
+      // 深色模式已恢復後，以短淡出移除遮罩（視覺更柔和）
+      const removeMask = document.getElementById('app-print-mask');
+      if (removeMask) {
+        removeMask.style.transition = 'opacity 2000ms ease';
+        removeMask.style.opacity = '0';
+        setTimeout(() => removeMask.remove(), 2000);
+      }
     };
 
-    // 使用安全延遲 (1200ms) 以讓 DOM 重組並完成淺色主題與圖表非同步渲染，百分百防死鎖
-    printTimeoutRef.current = setTimeout(finalizePrint, 1200);
+    // 使用安全延遲 (1000~1200ms) 以讓 DOM 重組並完成淺色主題與圖表非同步渲染，百分百防死鎖
+    printTimeoutRef.current = setTimeout(finalizePrint, 1000);
   }, [mode, settings.printSettings, isDarkMode, documents, folders, currentDocument]);
 
   // 取消列印的受控回呼
@@ -1104,6 +1139,14 @@ const App: React.FC = () => {
     }
 
     document.getElementById('app-print-override')?.remove();
+
+    // 取消時同步移除靜默遮罩
+    const mask = document.getElementById('app-print-mask');
+    if (mask) {
+      mask.style.transition = 'opacity 150ms ease';
+      mask.style.opacity = '0';
+      setTimeout(() => mask.remove(), 160);
+    }
   }, [isDarkMode]);
 
   // 攔截 Ctrl + P (原生列印捷徑)
@@ -1448,16 +1491,19 @@ const App: React.FC = () => {
   };
 
   return (
-    <MathJaxContext config={mathJaxConfig}>
-      <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+    // Suspense fallback 直接渲染空白元素（MathJax 在背景静默載入，UI 不會閃爍）
+    // 首次 render 後 LazyMathJaxProvider 即被証實，前後大約 ~100ms 的差異對使用者完全無感
+    <Suspense fallback={<div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900" />}>
+      <LazyMathJaxProvider config={mathJaxConfig}>
+        <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
-        {/* ── premium 列印 Loading Overlay ──────────────────────────────── */}
-        {isPrinting && (
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300 print:hidden"
-            aria-live="polite"
-          >
-            {/* <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
+          {/* ── premium 列印 Loading Overlay ──────────────────────────────── */}
+          {isPrinting && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300 print:hidden"
+              aria-live="polite"
+            >
+              {/* <div className="flex flex-col items-center gap-4 px-10 py-8 bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200/50 dark:border-white/10 max-w-sm text-center">
               <InteractiveLogo size={48} loading={true} showBg={false} variant="v1" className="mb-2" />
               <div className="flex flex-col gap-1.5 mt-2">
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">正在最佳化 PDF 文件與圖表配置...</p>
@@ -1470,163 +1516,165 @@ const App: React.FC = () => {
                 取消列印
               </button>
             </div> */}
-          </div>
-        )}
-        <Header
-          mode={mode}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={handleToggleDarkMode}
-          onDownloadMarkdown={downloadMarkdown}
-          onExportImage={exportAsImage}
-          isSyncScroll={isSyncScroll}
-          setIsSyncScroll={setIsSyncScroll}
-          onInsertCode={(newCode) => handleCodeChange(code + '\n\n' + newCode)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onPrint={() => handlePrint(mode)}
-          isInFolder={!!currentDocument?.folderId}
-          printSettings={settings.printSettings}
-          onUpdatePrintSettings={updatePrintSettings}
-          isCommentMode={isCommentMode}
-          setIsCommentMode={setIsCommentMode}
-          hasOpenDocuments={openDocIds.length > 0}
-        />
-
-        <main className="flex-1 flex justify-center overflow-hidden print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20">
-          {/* 歷史側邊欄 */}
-          <HistorySidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            documents={documents}
-            currentDocId={currentDocId}
-            currentDocContent={code}
-            currentDocMode={mode}
-            onInsertIntoDoc={handleInsertIntoDoc}
-            onSelectDocument={handleDocumentSwitch}
-            onCreateDocument={(fId) => handleOpenCreateModal('', fId)}
-            onDeleteDocument={deleteDocument}
-            onRenameDocument={renameDocument}
-            storageUsage={storageUsage}
-            getBacklinks={getBacklinks}
-            folders={folders}
-            onCreateFolder={createFolder}
-            onDeleteFolder={deleteFolder}
-            onRenameFolder={renameFolder}
-            onMoveDocument={moveDocument}
-            onReorderDocuments={reorderDocuments}
-            onImportFiles={handleProcessFiles}
-            onImportAsNewDoc={handleImportAsNewDoc}
+            </div>
+          )}
+          <Header
+            mode={mode}
+            isDarkMode={isDarkMode}
+            toggleDarkMode={handleToggleDarkMode}
+            onDownloadMarkdown={downloadMarkdown}
+            onExportImage={exportAsImage}
+            isSyncScroll={isSyncScroll}
+            setIsSyncScroll={setIsSyncScroll}
+            onInsertCode={(newCode) => handleCodeChange(code + '\n\n' + newCode)}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onPrint={() => handlePrint(mode)}
+            isInFolder={!!currentDocument?.folderId}
+            printSettings={settings.printSettings}
+            onUpdatePrintSettings={updatePrintSettings}
+            isCommentMode={isCommentMode}
+            setIsCommentMode={setIsCommentMode}
+            hasOpenDocuments={openDocIds.length > 0}
           />
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept=".xlsx,.xls,.csv,.md,.txt,.mmd"
-            onChange={handleFileChange}
-          />
-
-          {/* Create Document Modal */}
-          <CreateDocModal
-            isOpen={isCreateModalOpen}
-            onClose={() => {
-              setIsCreateModalOpen(false);
-              setPendingFolderId(null);
-            }}
-            onCreate={handleCreateDocument}
-            initialName={initialDocName}
-          />
-          {/* 移除 key={docFadeKey} 以防止全組件樹重掛造成的渲染跳動 */}
-          <div className="layout-main-content print:block">
-            <Editor
-              ref={editorRef}
-              mode={mode}
-              code={code}
-              setCode={handleCodeChange}
-              onCopy={handleCopy}
-              onReset={handleReset}
-              onClear={handleClear}
-              copied={copied}
-              onScroll={handleEditorScroll}
-              isDarkMode={isDarkMode}
-              onMouseEnter={() => {
-                isHoveringEditor.current = true;
-                if (!rafId.current) scrollSource.current = null;
-              }}
-              onMouseLeave={() => {
-                isHoveringEditor.current = false;
-              }}
-              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-              openDocIds={openDocIds}
+          <main className="flex-1 flex justify-center overflow-hidden print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20">
+            {/* 歷史側邊欄 */}
+            <HistorySidebar
+              isOpen={isSidebarOpen}
+              onClose={() => setIsSidebarOpen(false)}
+              documents={documents}
               currentDocId={currentDocId}
-              documents={documents}
-              onSwitchTab={handleDocumentSwitch}
-              onCloseTab={handleCloseTab}
-              hasOpenDocuments={openDocIds.length > 0}
-            />
-
-            <PreviewPanel
-              ref={previewRef}
-              mode={mode}
-              error={error}
-              setError={setError}
-              svgContent={svgContent}
-              zoom={zoom}
-              position={position}
-              isDragging={isDragging}
-              onZoom={handleZoom}
-              onSetZoom={setZoom}
-              onResetNav={resetNavigation}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onWheel={handleWheel}
-              onScroll={handlePreviewScroll}
-              code={deferredCode}
-              isDarkMode={isDarkMode}
-              onMouseEnter={() => {
-                isHoveringPreview.current = true;
-                if (!rafId.current) scrollSource.current = null;
-              }}
-              onMouseLeave={() => {
-                isHoveringPreview.current = false;
-              }}
-              documents={documents}
+              currentDocContent={code}
+              currentDocMode={mode}
+              onInsertIntoDoc={handleInsertIntoDoc}
               onSelectDocument={handleDocumentSwitch}
-              onCreateMissing={handleOpenCreateModal}
-              currentDocId={currentDocId}
-              openDocIds={openDocIds}
-              printSettings={settings.printSettings}
-              previewTheme={settings.printSettings.previewTheme}
-              isPrinting={isPrinting}
-              printSessionId={printSessionId}
-              isCommentMode={isCommentMode}
-              setIsCommentMode={setIsCommentMode}
-              onUpdateLineComment={updateLineComment}
+              onCreateDocument={(fId) => handleOpenCreateModal('', fId)}
+              onDeleteDocument={deleteDocument}
+              onRenameDocument={renameDocument}
+              storageUsage={storageUsage}
+              getBacklinks={getBacklinks}
+              folders={folders}
+              onCreateFolder={createFolder}
+              onDeleteFolder={deleteFolder}
+              onRenameFolder={renameFolder}
+              onMoveDocument={moveDocument}
+              onReorderDocuments={reorderDocuments}
+              onImportFiles={handleProcessFiles}
+              onImportAsNewDoc={handleImportAsNewDoc}
             />
-          </div>
-        </main>
 
-        <IntroModal isOpen={isIntroModalOpen} onClose={() => setIsIntroModalOpen(false)} />
-        {/* SEO Content - Hidden from visual display but visible to search engines */}
-        <SEOContent />
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".xlsx,.xls,.csv,.md,.txt,.mmd"
+              onChange={handleFileChange}
+            />
 
-        {/* Settings Modal */}
-        <SettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          mode={mode}
-          currentMacros={settings.customMacros}
-          onSaveMacros={updateMacros}
-          onRestoreDefaults={restoreDefaults}
-          currentPrintSettings={settings.printSettings}
-          onSavePrintSettings={updatePrintSettings}
-          isStandalone={!documents.find(d => d.id === currentDocId)?.folderId}
-          onOpenIntro={() => setIsIntroModalOpen(true)}
-          favoriteThemes={settings.favoriteThemes || []}
-          onToggleFavoriteTheme={toggleFavoriteTheme}
-        />
-      </div>
-    </MathJaxContext>
+            {/* Create Document Modal */}
+            <CreateDocModal
+              isOpen={isCreateModalOpen}
+              onClose={() => {
+                setIsCreateModalOpen(false);
+                setPendingFolderId(null);
+              }}
+              onCreate={handleCreateDocument}
+              initialName={initialDocName}
+            />
+            {/* 移除 key={docFadeKey} 以防止全組件樹重掛造成的渲染跳動 */}
+            <div className="layout-main-content print:block">
+              <Editor
+                ref={editorRef}
+                mode={mode}
+                code={code}
+                setCode={handleCodeChange}
+                onCopy={handleCopy}
+                onReset={handleReset}
+                onClear={handleClear}
+                copied={copied}
+                onScroll={handleEditorScroll}
+                isDarkMode={isDarkMode}
+                onMouseEnter={() => {
+                  isHoveringEditor.current = true;
+                  if (!rafId.current) scrollSource.current = null;
+                }}
+                onMouseLeave={() => {
+                  isHoveringEditor.current = false;
+                }}
+                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                openDocIds={openDocIds}
+                currentDocId={currentDocId}
+                documents={documents}
+                onSwitchTab={handleDocumentSwitch}
+                onCloseTab={handleCloseTab}
+                hasOpenDocuments={openDocIds.length > 0}
+              />
+
+              <PreviewPanel
+                ref={previewRef}
+                mode={mode}
+                error={error}
+                setError={setError}
+                svgContent={svgContent}
+                zoom={zoom}
+                position={position}
+                isDragging={isDragging}
+                onZoom={handleZoom}
+                onSetZoom={setZoom}
+                onResetNav={resetNavigation}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
+                onWheel={handleWheel}
+                onScroll={handlePreviewScroll}
+                code={deferredCode}
+                isDarkMode={isDarkMode}
+                onMouseEnter={() => {
+                  isHoveringPreview.current = true;
+                  if (!rafId.current) scrollSource.current = null;
+                }}
+                onMouseLeave={() => {
+                  isHoveringPreview.current = false;
+                }}
+                documents={documents}
+                onSelectDocument={handleDocumentSwitch}
+                onCreateMissing={handleOpenCreateModal}
+                currentDocId={currentDocId}
+                openDocIds={openDocIds}
+                printSettings={settings.printSettings}
+                previewTheme={settings.printSettings.previewTheme}
+                isPrinting={isPrinting}
+                printSessionId={printSessionId}
+                isCommentMode={isCommentMode}
+                setIsCommentMode={setIsCommentMode}
+                onUpdateLineComment={updateLineComment}
+              />
+            </div>
+          </main>
+
+          <IntroModal isOpen={isIntroModalOpen} onClose={() => setIsIntroModalOpen(false)} />
+
+          {/* SEO Content - Hidden from visual display but visible to search engines */}
+          <SEOContent />
+
+          {/* Settings Modal */}
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            mode={mode}
+            currentMacros={settings.customMacros}
+            onSaveMacros={updateMacros}
+            onRestoreDefaults={restoreDefaults}
+            currentPrintSettings={settings.printSettings}
+            onSavePrintSettings={updatePrintSettings}
+            isStandalone={!documents.find(d => d.id === currentDocId)?.folderId}
+            onOpenIntro={() => setIsIntroModalOpen(true)}
+            favoriteThemes={settings.favoriteThemes || []}
+            onToggleFavoriteTheme={toggleFavoriteTheme}
+          />
+        </div>
+      </LazyMathJaxProvider>
+    </Suspense>
   );
 };
 

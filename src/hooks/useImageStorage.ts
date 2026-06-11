@@ -386,16 +386,20 @@ export function useImageStorage(): UseImageStorageReturn {
         { success: false; error: string }
     > => {
         // 1. 驗證檔案類型
-        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        const ALLOWED_TYPES = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+            'video/mp4', 'video/webm', 'video/ogg',
+            'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/x-wav'
+        ];
         if (!ALLOWED_TYPES.includes(file.type)) {
-            return { success: false, error: `不支援的檔案類型：${file.type}。僅支援 JPG、PNG、GIF、WebP、SVG。` };
+            return { success: false, error: `不支援的檔案類型：${file.type}。僅支援圖片(JPG, PNG, WebP) 與影片(MP4, WebM) 或音訊(MP3, WAV)。` };
         }
 
         // 2. 驗證檔案大小
         if (file.size > MAX_SIZE_BYTES) {
             return {
                 success: false,
-                error: `圖片檔案過大（${formatFileSize(file.size)}），單張上傳上限為 ${MAX_SIZE_PER_IMAGE_MB} MB。`
+                error: `媒體檔案過大（${formatFileSize(file.size)}），單個上傳上限為 ${MAX_SIZE_PER_IMAGE_MB} MB。`
             };
         }
 
@@ -409,13 +413,13 @@ export function useImageStorage(): UseImageStorageReturn {
             if (unreferenced.length === 0) {
                 return {
                     success: false,
-                    error: `已達到圖片數量上限（${MAX_IMAGES} 張），且所有圖片均被文件引用，無法自動淘汰。請手動刪除不需要的圖片。`
+                    error: `已達到媒體數量上限（${MAX_IMAGES} 個），且所有媒體均被文件引用，無法自動淘汰。請手動刪除不需要的檔案。`
                 };
             }
 
             const toEvict = unreferenced[0];
             await dbDeleteImage(toEvict.id);
-            console.info(`[useImageStorage] LRU 淘汰最舊圖片：${toEvict.name} (${toEvict.id})`);
+            console.info(`[useImageStorage] LRU 淘汰最舊媒體：${toEvict.name} (${toEvict.id})`);
         }
 
         // 4. 轉換 Base64 並寫入 IndexedDB
@@ -437,7 +441,13 @@ export function useImageStorage(): UseImageStorageReturn {
             await dbPutImage(record);
             await refreshAll();
 
-            const markdownRef = `![${file.name}](img-local://${id})`;
+            let markdownRef = `![${file.name}](img-local://${id})`;
+            if (file.type.startsWith('video/')) {
+                markdownRef = `<video src="img-local://${id}"></video>`;
+            } else if (file.type.startsWith('audio/')) {
+                markdownRef = `<audio src="img-local://${id}"></audio>`;
+            }
+
             return { success: true, id, name: file.name, markdownRef };
         } catch (err: any) {
             console.error('[useImageStorage] 圖片上傳失敗:', err);

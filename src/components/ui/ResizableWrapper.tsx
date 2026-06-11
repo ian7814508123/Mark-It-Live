@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlignLeft, AlignCenter, AlignRight, RotateCcw } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, RotateCcw } from './Icons';
 
 /**
  * ResizableWrapper: 可調整寬度的容器組件

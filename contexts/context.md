@@ -18,7 +18,7 @@
 graph TD
     UserEdit["1. CodeMirror 編輯器 (使用者輸入)"]
     MarkdownPreview["2. MarkdownPreview 元件接收 Raw Markdown"]
-    RemarkCompiler["3. Unified/Remark 編譯管線 (AST 樹解析)"]
+    RemarkCompiler["3. Unified/Remark 編譯管線 (AST 樹解析)"
     CustomPlugins["4. 自訂 AST 插件區區 (remarkGithubAlerts, remarkWikiLink, remarkPageBreak)"]
     RehypeCompiler["5. Rehype 編譯管線 (轉換為 HTML AST)"]
     ReactRender["6. React Markdown 渲染 (React DOM)"]

@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback, Suspense } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import { MathJax } from 'better-react-mathjax';
 import rehypeRaw from 'rehype-raw';
-
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import SmilesDrawer from 'smiles-drawer';
+import ExternalMediaShield, { extractDomain } from './ExternalMediaShield';
 import { remarkGithubAlerts } from './remarkGithubAlerts';
 import { remarkWikiLink } from './remarkWikiLink';
 import { remarkPageBreak } from './remarkPageBreak';
@@ -15,12 +12,9 @@ import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
 import { hashString } from '../../utils';
 import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSettings';
-import { useDebounce } from '../../hooks/useDebounce';
-import { WrapText, Info, AlertCircle, AlertTriangle, Lightbulb, Ban } from 'lucide-react';
 import LineCommentItem from './LineCommentItem';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
-import { CodeBlockHeader } from './CodeBlockHeader';
 import { detectMarkdownFeatures } from '../../utils/markdownScanner';
 
 interface MarkdownPreviewProps {
@@ -33,7 +27,7 @@ interface MarkdownPreviewProps {
     isPrinting?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain';
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
@@ -55,12 +49,12 @@ const cleanMermaidSvg = (svgHtml: string) => {
         .replace(/style="max-width:.*?"/i, 'style="max-width: 100%"');
 };
 
-const MermaidBlock: React.FC<{ 
-    code: string; 
-    isDarkMode: boolean; 
-    isPrinting?: boolean; 
-    printSessionId?: number; 
-    previewTheme?: string; 
+const MermaidBlock: React.FC<{
+    code: string;
+    isDarkMode: boolean;
+    isPrinting?: boolean;
+    printSessionId?: number;
+    previewTheme?: string;
 }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0, previewTheme = 'default' }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         // 動態載入 Mermaid（首次渲染時才下載，後續使用已快取實例）
@@ -96,11 +90,11 @@ const MermaidBlock: React.FC<{
             primaryBorderColor: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
             lineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
             edgeLabelBackground: edgeBg || (isDark ? '#1e293b' : '#ffffff'),
-            
+
             // 流程圖 Cluster 適配
             clusterBkg: nodeBg || (isDark ? '#1e293b' : '#f1f5f9'),
             clusterBorder: nodeBorder || (isDark ? '#334155' : '#cbd5e1'),
-            
+
             // 序列圖 (Sequence Diagram) 相關適配
             actorBkg: actorBg || (isDark ? '#1e293b' : '#f1f5f9'),
             actorBorder: actorBorder || (isDark ? '#334155' : '#cbd5e1'),
@@ -108,7 +102,7 @@ const MermaidBlock: React.FC<{
             actorLineColor: lineColor || (isDark ? '#94a3b8' : '#64748b'),
             signalColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
             signalTextColor: actorText || (isDark ? '#f1f5f9' : '#1e293b'),
-            
+
             // 註解 (Note) 適配
             noteBkgColor: noteBg || (isDark ? '#1e293b' : '#ffffff'),
             noteBorderColor: noteBorder || (isDark ? '#334155' : '#cbd5e1'),
@@ -215,6 +209,10 @@ const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bool
 
 const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
+        // Dynamically import SmilesDrawer
+        const SmilesModule = await import('smiles-drawer');
+        const SmilesDrawer = SmilesModule.default || SmilesModule;
+
         const drawer = new SmilesDrawer.SvgDrawer({
             width: 200,
             height: 100,
@@ -267,33 +265,46 @@ const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bo
 
 const AbcBlock = React.lazy(() => import('./AbcBlock'));
 
+// ─── 懶載入程式碼區塊（react-syntax-highlighter 只在有程式碼區塊時才下載）────────────────
+// 這是告知 Lighthouse「此為合法懶載入」的關鍵：
+// React.lazy() + 動態 import() → Vite 建立真正的 async chunk
+// Lighthouse 不再將其標記為「Reduce unused JavaScript」
+const LazyEnhancedCodeBlock = React.lazy(() => import('./EnhancedCodeBlock'));
+
+// ─── 懶載入 MathJax 渲染器（better-react-mathjax + mathjax-full 只在有數學公式時才下載）
+// 與 LazyMathJaxProvider（在 App.tsx）共享同一個 vendor-mathjax async chunk
+const LazyMathRenderer = React.lazy(() => import('./MemoizedMathJaxRenderer'));
+
+const LazyAlertIcon = React.lazy(() => import('./AlertIcon'));
+
 // ─── GitHub-style Alert 標註解析輔助 ──────────────────────────────────────────
-const alertConfig: Record<string, { icon: React.ReactNode; label: string; className: string }> = {
-    note: {
-        icon: <Info size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Note',
-        className: 'markdown-alert-note'
-    },
-    important: {
-        icon: <AlertCircle size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Important',
-        className: 'markdown-alert-important'
-    },
-    warning: {
-        icon: <AlertTriangle size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Warning',
-        className: 'markdown-alert-warning'
-    },
-    caution: {
-        icon: <Ban size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Caution',
-        className: 'markdown-alert-caution'
-    },
-    tip: {
-        icon: <Lightbulb size={14} className="inline mr-1.5 shrink-0" />,
-        label: 'Tip',
-        className: 'markdown-alert-tip'
-    }
+const alertConfig: Record<string, { label: string; className: string }> = {
+    // Note / Info (藍色)
+    note: { label: 'Note', className: 'markdown-alert-note' },
+    info: { label: 'Info', className: 'markdown-alert-note' },
+
+    // Tip / Success (綠色)
+    tip: { label: 'Tip', className: 'markdown-alert-tip' },
+    success: { label: 'Success', className: 'markdown-alert-tip' },
+    check: { label: 'Check', className: 'markdown-alert-tip' },
+    quickstart: { label: 'Quick Start', className: 'markdown-alert-tip' },
+    start: { label: 'Start', className: 'markdown-alert-tip' },
+
+    // Warning / Caution (黃色 / 紅色)
+    warning: { label: 'Warning', className: 'markdown-alert-warning' },
+    attention: { label: 'Attention', className: 'markdown-alert-warning' },
+    caution: { label: 'Caution', className: 'markdown-alert-caution' },
+    ban: { label: 'Ban', className: 'markdown-alert-caution' },
+    danger: { label: 'Danger', className: 'markdown-alert-caution' },
+    error: { label: 'Error', className: 'markdown-alert-caution' },
+    bug: { label: 'Bug', className: 'markdown-alert-caution' },
+    failure: { label: 'Failure', className: 'markdown-alert-caution' },
+
+    // Important / Question (紫色)
+    important: { label: 'Important', className: 'markdown-alert-important' },
+    question: { label: 'Question', className: 'markdown-alert-important' },
+    help: { label: 'Help', className: 'markdown-alert-important' },
+    faq: { label: 'FAQ', className: 'markdown-alert-important' }
 };
 
 
@@ -366,6 +377,168 @@ const LocalImage: React.FC<LocalImageProps & { getImage: (id: string) => Promise
 
 });
 
+// 將 base64 dataURL 轉換成 Blob 物件，提供高相容性流式播放
+const dataURLtoBlob = (dataUrl: string): Blob => {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || '';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+};
+
+// ─── 本地影片元件：非同步從 IndexedDB 讀取 Data URL 並播放 (按需載入) ──────────────────────
+interface LocalMediaProps {
+    id: string;
+    className?: string;
+    controls?: boolean;
+}
+
+const memoryMediaCache = new Map<string, string>();
+
+const LocalVideo: React.FC<LocalMediaProps & { getImage: (id: string) => Promise<string | null> }> = React.memo(({ id, className, controls = true, getImage }) => {
+    const cached = memoryMediaCache.get(id);
+    const [src, setSrc] = useState<string | null>(cached || null);
+    const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(cached ? 'loaded' : 'loading');
+
+    useEffect(() => {
+        if (cached) {
+            window.dispatchEvent(new CustomEvent('content-layout-ready'));
+            return;
+        }
+
+        let cancelled = false;
+        let objectUrl: string | null = null;
+        setStatus('loading');
+
+        getImage(id).then(dataUrl => {
+            if (cancelled) return;
+            if (dataUrl) {
+                try {
+                    const blob = dataURLtoBlob(dataUrl);
+                    objectUrl = URL.createObjectURL(blob);
+
+                    memoryMediaCache.set(id, objectUrl);
+                    setSrc(objectUrl);
+                    setStatus('loaded');
+                } catch (e) {
+                    console.error('Failed to convert base64 video to blob url:', e);
+                    setStatus('error');
+                }
+            } else {
+                setStatus('error');
+            }
+            window.dispatchEvent(new CustomEvent('content-layout-ready'));
+        }).catch(() => {
+            if (!cancelled) {
+                setStatus('error');
+                window.dispatchEvent(new CustomEvent('content-layout-ready'));
+            }
+        });
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                memoryMediaCache.delete(id);
+            }
+        };
+    }, [id, getImage, cached]);
+
+    if (status === 'loading') {
+        return (
+            <div className={`flex flex-col items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800/50 w-full min-h-[150px] ${className || ''}`}>
+                <span className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs">
+                    <span className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin inline-block" />
+                    載入影片中…
+                </span>
+            </div>
+        );
+    }
+
+    if (status === 'error' || !src) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-500 text-xs">
+                ⚠️ 影片不存在或已到期: {id}
+            </span>
+        );
+    }
+
+    return (
+        <video src={src} controls={controls} className={className ?? 'w-full max-h-[500px] block'} />
+    );
+});
+
+// ─── 本地音訊元件：非同步從 IndexedDB 讀取 Data URL 並播放 (按需載入) ──────────────────────
+const LocalAudio: React.FC<LocalMediaProps & { getImage: (id: string) => Promise<string | null> }> = React.memo(({ id, className, controls = true, getImage }) => {
+    const cached = memoryMediaCache.get(id);
+    const [src, setSrc] = useState<string | null>(cached || null);
+    const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(cached ? 'loaded' : 'loading');
+
+    useEffect(() => {
+        if (cached) return;
+
+        let cancelled = false;
+        let objectUrl: string | null = null;
+        setStatus('loading');
+
+        getImage(id).then(dataUrl => {
+            if (cancelled) return;
+            if (dataUrl) {
+                try {
+                    const blob = dataURLtoBlob(dataUrl);
+                    objectUrl = URL.createObjectURL(blob);
+
+                    memoryMediaCache.set(id, objectUrl);
+                    setSrc(objectUrl);
+                    setStatus('loaded');
+                } catch (e) {
+                    console.error('Failed to convert base64 audio to blob url:', e);
+                    setStatus('error');
+                }
+            } else {
+                setStatus('error');
+            }
+        }).catch(() => {
+            if (!cancelled) {
+                setStatus('error');
+            }
+        });
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+                memoryMediaCache.delete(id);
+            }
+        };
+    }, [id, getImage, cached]);
+
+    if (status === 'loading') {
+        return (
+            <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs py-2 pl-4">
+                <span className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin inline-block" />
+                載入音訊中…
+            </div>
+        );
+    }
+
+    if (status === 'error' || !src) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-500 text-xs">
+                ⚠️ 音訊不存在或已到期: {id}
+            </span>
+        );
+    }
+
+    return (
+        <audio src={src} controls={controls} className={className ?? 'w-full max-w-2xl'} />
+    );
+});
+
 // ─── 可縮放圖片元件：整合 ResizableWrapper ───────────────────────────────────────────
 interface ResizableImageProps {
     src: string;
@@ -374,9 +547,10 @@ interface ResizableImageProps {
     currentDocId?: string | null;
     getImage: (id: string) => Promise<string | null>;
     isDarkMode: boolean;
+    isActuallyPrinting?: boolean;
 }
 
-const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode }) => {
+const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode, isActuallyPrinting }) => {
     // ─── 狀態持久化：加上 currentDocId 和 line 避免同圖打架 ──────────────────────────────
     const storageKey = useMemo(() => {
         const docPrefix = currentDocId ? `doc:${currentDocId}` : 'global';
@@ -390,6 +564,28 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
     const isLocal = src?.startsWith('img-local://');
     const imgId = isLocal ? src.replace('img-local://', '') : '';
 
+    if (isActuallyPrinting) {
+        return (
+            <div
+                className={`chart-wrapper align-${align} print:!my-0 flex w-full`}
+                style={{
+                    justifyContent: align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+                }}
+            >
+                <div
+                    className="chart-content"
+                    style={{ width }}
+                >
+                    {isLocal ? (
+                        <LocalImage id={imgId} alt={alt} getImage={getImage} className="max-w-full h-auto block" />
+                    ) : (
+                        <img src={src} alt={alt} className="max-w-full h-auto block" />
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <ResizableWrapper
             width={width}
@@ -401,7 +597,7 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
         >
             <div
                 ref={containerRef}
-                className={`relative rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900/20 flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
+                className={`relative rounded-xl overflow-hidden flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
             >
                 {isLocal ? (
                     <LocalImage id={imgId} alt={alt} getImage={getImage} />
@@ -468,125 +664,13 @@ const WikiLink: React.FC<WikiLinkProps> = React.memo(({ name, children, document
     );
 });
 
-// ─── 數學與化學元件 (Memoized) ────────────────────────────────────────────────
-interface MemoizedMathJaxProps {
-    content: string;
-    inline?: boolean;
-    isDarkMode: boolean;
-}
+// ─── MemoizedMathJax 已移至 MemoizedMathJaxRenderer.tsx ─────────────────────────────────
+// 透過 React.lazy() 懶載入，better-react-mathjax 只在文件包含數學公式時才下載。
+// 詳見上方 LazyMathRenderer 的宣告。
 
-const MemoizedMathJax: React.FC<MemoizedMathJaxProps> = React.memo(({ content, inline, isDarkMode }) => {
-    // 為數學公式加入內部 Debounce，避免公式隨著打字不斷抖動
-    const debouncedContent = useDebounce(content, 300);
-    const [isPending, setIsPending] = useState(false);
-
-    useEffect(() => {
-        if (content !== debouncedContent) {
-            setIsPending(true);
-        } else {
-            setIsPending(false);
-        }
-    }, [content, debouncedContent]);
-
-    const Wrapper = inline ? 'span' : 'div';
-
-    return (
-        <Wrapper className={`transition-opacity duration-300 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
-            <MathJax inline={inline} dynamic hideUntilTypeset="every">
-                {inline ? `\\(${debouncedContent}\\)` : `\\[${debouncedContent}\\]`}
-            </MathJax>
-        </Wrapper>
-    );
-});
-
-// ─── 增強型程式碼區塊 (智能斷行、懸掛縮排與列印控制) ────────────────────────────────────────────────
-interface EnhancedCodeBlockProps {
-    language: string;
-    codeString: string;
-    stableKey: string;
-    isActuallyPrinting: boolean;
-    shouldShowDark: boolean;
-}
-
-const EnhancedCodeBlock: React.FC<EnhancedCodeBlockProps> = ({
-    language,
-    codeString,
-    stableKey,
-    isActuallyPrinting,
-    shouldShowDark
-}) => {
-    // 預設需要換行的語言
-    const defaultWrapLanguages = ['text', 'log', 'json', 'bash', 'sh', 'yaml', 'plaintext', 'markdown'];
-    const [isWrapped, setIsWrapped] = useState(defaultWrapLanguages.includes(language));
-    const [isScrolled, setIsScrolled] = useState(false);
-
-    // 列印模式為了防截斷，強制換行
-    const effectiveWrapped = isActuallyPrinting || isWrapped;
-
-    // 當斷行狀態改變或初次渲染時，通知預覽器重新計算佈局高度（列印同步用）
-    useEffect(() => {
-        window.dispatchEvent(new CustomEvent('content-layout-ready'));
-    }, [effectiveWrapped]);
-
-    const handleScroll = useCallback((e: React.UIEvent<HTMLPreElement>) => {
-        const scrollLeft = e.currentTarget.scrollLeft;
-        setIsScrolled(scrollLeft > 0);
-    }, []);
-
-    // 動態計算最大位數，仿照 VS Code 做法，至少預留 2 位數空間
-    const maxDigits = useMemo(() => {
-        const lineCount = codeString.split('\n').length;
-        return Math.max(2, lineCount.toString().length);
-    }, [codeString]);
-
-    return (
-        <div
-            className="relative group/codeblock w-full my-6"
-            style={{ '--code-max-digits': maxDigits } as React.CSSProperties}
-        >
-            <div
-                className={`enhanced-codeblock ${effectiveWrapped ? 'code-block-wrap' : 'code-block-scroll'} ${!effectiveWrapped && isScrolled ? 'has-scrolled' : ''}`}
-                data-theme-style={(isActuallyPrinting || !shouldShowDark) ? 'light' : 'dark'}
-            >
-                {language && (
-                    <CodeBlockHeader
-                        language={language}
-                        isWrapped={isWrapped}
-                        onToggleWrap={isActuallyPrinting ? undefined : () => setIsWrapped(!isWrapped)}
-                        showWrapButton={!isActuallyPrinting}
-                    />
-                )}
-
-                <SyntaxHighlighter
-                    key={stableKey}
-                    language={language || 'text'}
-                    useInlineStyles={false}
-                    customStyle={{
-                        margin: '0',
-                        padding: language ? '1rem' : '1.2rem 1rem 1rem 1rem',
-                        fontSize: '0.875rem',
-                        lineHeight: '1.5',
-                        backgroundColor: 'var(--code-bg)',
-                        borderRadius: '0', /* 圓角由外層卡片統一裁剪 */
-                        border: 'none', /* 拔除內層重複邊框，消除雙重邊框 Bug */
-                        overflowX: effectiveWrapped ? 'hidden' : 'auto',
-                        tabSize: '2',
-                    }}
-                    showLineNumbers={false} /* 關閉原生的缺陷行號 */
-                    wrapLines={true} /* 強制每一行編織成 span，作為 css counter 基準 */
-                    lineProps={{
-                        className: 'code-line'
-                    }}
-                    preTagProps={{
-                        onScroll: handleScroll
-                    }}
-                >
-                    {codeString}
-                </SyntaxHighlighter>
-            </div>
-        </div>
-    );
-};
+// ─── EnhancedCodeBlock 已移至 EnhancedCodeBlock.tsx ─────────────────────────────────────────────
+// 透過 React.lazy() 懶載入，react-syntax-highlighter 只在文件包含程式碼區塊時才下載。
+// 詳見上方 LazyEnhancedCodeBlock 的宣告。
 
 // ─── 區塊判斷上下文：用於解決 react-markdown v10 移除 inline prop 後的辨識問題 ───────
 const IsInPreContext = React.createContext(false);
@@ -612,6 +696,74 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
     const { getImage } = useImageStorage();
+
+    // ─── 外部媒體隱私安全與授權狀態 ──────────────────────────────────────────────
+    const [temporarilyAllowedUrls, setTemporarilyAllowedUrls] = useState<Set<string>>(new Set());
+    const [trustedDomains, setTrustedDomains] = useState<string[]>([]);
+    const [allowAllExternal, setAllowAllExternal] = useState<boolean>(false);
+
+    const syncExternalMediaSettings = useCallback(() => {
+        try {
+            const allowAll = localStorage.getItem('markdown-previewer:allow-all-external-media') === 'true';
+            const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
+            const trusted = trustedStr ? JSON.parse(trustedStr) : [];
+            setAllowAllExternal(allowAll);
+            setTrustedDomains(Array.isArray(trusted) ? trusted : []);
+        } catch (e) {
+            console.error('Failed to sync external media settings:', e);
+        }
+    }, []);
+
+    useEffect(() => {
+        syncExternalMediaSettings();
+
+        // 監聽外部媒體偏好設定變更的自訂事件
+        window.addEventListener('external-media-settings-changed', syncExternalMediaSettings);
+        return () => {
+            window.removeEventListener('external-media-settings-changed', syncExternalMediaSettings);
+        };
+    }, [syncExternalMediaSettings]);
+
+    const handleAllowOnce = useCallback((url: string) => {
+        setTemporarilyAllowedUrls(prev => {
+            const next = new Set(prev);
+            next.add(url);
+            return next;
+        });
+    }, []);
+
+    const handleTrustDomain = useCallback((domain: string) => {
+        try {
+            const trustedStr = localStorage.getItem('markdown-previewer:trusted-domains');
+            const currentTrusted = trustedStr ? JSON.parse(trustedStr) : [];
+            const nextTrusted = Array.isArray(currentTrusted) ? [...currentTrusted] : [];
+
+            if (!nextTrusted.includes(domain)) {
+                nextTrusted.push(domain);
+                localStorage.setItem('markdown-previewer:trusted-domains', JSON.stringify(nextTrusted));
+                setTrustedDomains(nextTrusted);
+                // 通知系統設定與其他預覽實例已更新
+                window.dispatchEvent(new CustomEvent('external-media-settings-changed'));
+            }
+        } catch (e) {
+            console.error('Failed to trust domain:', e);
+        }
+    }, []);
+
+    const shouldBlock = useCallback((url: string) => {
+        if (!url) return false;
+        if (allowAllExternal) return false;
+        if (url.startsWith('img-local://') || url.startsWith('data-local://') || url.startsWith('data:')) return false;
+        if (temporarilyAllowedUrls.has(url)) return false;
+
+        const domain = extractDomain(url);
+        const isTrusted = trustedDomains.some(d => {
+            const trustedLower = d.toLowerCase();
+            return domain === trustedLower || domain.endsWith('.' + trustedLower);
+        });
+
+        return !isTrusted;
+    }, [allowAllExternal, temporarilyAllowedUrls, trustedDomains]);
 
     const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
     // 穩定化 lineComments 參照：避免空物件 {} 每次 render 都是新參照，
@@ -765,7 +917,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
                 return wrapWithComment(node, (
                     <div key={stableKey} className="code-block-wrapper not-prose">
-                        <EnhancedCodeBlock
+                        <LazyEnhancedCodeBlock
                             language={language}
                             codeString={codeString}
                             stableKey={stableKey}
@@ -790,19 +942,31 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
         blockquote: ({ node, children, ...props }: any) => {
             const line = node?.position?.start?.line;
-            const alertType = node?.data?.alertType;
+            // 優先由 HTML 屬性 data-alert-type 或 dataAlertType 讀取以確保在 Rehype AST 中不丟失，最後 fallback 到 node.data.alertType
+            const alertType = props.dataAlertType || props['data-alert-type'] || node?.data?.alertType;
+            // 優先由 HTML 屬性 data-alert-title 或 dataAlertTitle 讀取以確保在 Rehype AST 中不丟失，最後 fallback 到 node.data.alertTitle
+            const alertTitle = props.dataAlertTitle || props['data-alert-title'] || node?.data?.alertTitle;
 
             if (alertType) {
                 const config = alertConfig[alertType] || alertConfig.note;
+                const titleToDisplay = alertTitle || config.label;
+                
+                // 過濾掉不該直接傳遞到 blockquote DOM 上的自訂屬性，防止 React 在 Console 報 Custom Property Warning
+                const { dataAlertType, dataAlertTitle, ...domProps } = props;
+
+
                 return wrapWithComment(node, (
                     <blockquote
-                        {...props}
+                        {...domProps}
                         className={`markdown-alert ${config.className}`}
                         data-line={line}
                     >
                         <div className="markdown-alert-title">
-                            {config.icon}
-                            <span>{config.label}</span>
+                            <React.Suspense fallback={<div className="w-3.5 h-3.5 mr-1.5 inline-block animate-pulse bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />}>
+                                <LazyAlertIcon type={alertType} />
+                            </React.Suspense>
+
+                            <strong>{titleToDisplay}</strong>
                         </div>
                         <div className="markdown-alert-content">
                             {children}
@@ -822,7 +986,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 const stableKey = hashString(mathContent);
                 return (
                     <div key={stableKey} className="my-4 overflow-x-auto" style={{ whiteSpace: 'nowrap' }} data-line={node?.position?.start?.line}>
-                        <MemoizedMathJax content={mathContent} isDarkMode={ctx.shouldShowDark} />
+                        <Suspense fallback={<span className="opacity-50 font-mono text-sm">{mathContent}</span>}>
+                            <LazyMathRenderer content={mathContent} isDarkMode={ctx.shouldShowDark} />
+                        </Suspense>
                     </div>
                 );
             }
@@ -835,7 +1001,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 const stableKey = hashString(mathContent);
                 return (
                     <span key={stableKey} className="math-inline" style={{ whiteSpace: 'nowrap' }} data-line={node?.position?.start?.line}>
-                        <MemoizedMathJax content={mathContent} inline isDarkMode={ctx.shouldShowDark} />
+                        <Suspense fallback={<span className="opacity-50 font-mono text-sm">{mathContent}</span>}>
+                            <LazyMathRenderer content={mathContent} inline isDarkMode={ctx.shouldShowDark} />
+                        </Suspense>
                     </span>
                 );
             }
@@ -875,10 +1043,175 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     currentDocId={ctx.currentDocId}
                     getImage={ctx.getImage}
                     isDarkMode={ctx.shouldShowDark}
+                    isActuallyPrinting={ctx.isActuallyPrinting}
                 />
             );
         },
-    }), [wrapWithComment, urlTransform]);
+        // ─── 外部媒體解析：支援隱私遮罩、沙箱隔離與延遲載入 ────────────────────────────────────
+        iframe: ({ node, src, ...props }: any) => {
+            if (!src) return null;
+
+            // 🛡️ 安全過濾：僅放行安全加密的 HTTPS 來源
+            if (!src.toLowerCase().startsWith('https://')) {
+                return (
+                    <div className="my-4 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-mono" data-line={node?.position?.start?.line}>
+                        <span className="shrink-0 text-base">⚠️</span>
+                        <span>安全性警告：基於安全性考量，外部嵌入僅支援安全加密的 https:// 來源。已封鎖此內容：{src}</span>
+                    </div>
+                );
+            }
+
+            const blocked = shouldBlock(src);
+
+            if (blocked) {
+                return (
+                    <div className="my-6 w-full" data-line={node?.position?.start?.line}>
+                        <ExternalMediaShield
+                            url={src}
+                            onLoadOnce={() => handleAllowOnce(src)}
+                            onTrustDomain={handleTrustDomain}
+                        />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 my-6 shadow-md bg-slate-50 dark:bg-slate-900/50 group/iframe transition-all duration-300 hover:shadow-lg" data-line={node?.position?.start?.line}>
+                    <iframe
+                        src={src}
+                        className="absolute inset-0 w-full h-full"
+                        frameBorder="0"
+                        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                        loading="lazy"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        {...props}
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 backdrop-blur-sm text-[9px] text-slate-300 font-mono tracking-wider opacity-0 group-hover/iframe:opacity-100 transition-opacity duration-300 pointer-events-none select-none">
+                        SECURE HTTPS EMBED
+                    </div>
+                </div>
+            );
+        },
+        video: ({ node, src, ...props }: any) => {
+            if (!src) return null;
+            const ctx = renderContextRef.current;
+
+            const isLocal = src.startsWith('img-local://');
+            if (isLocal) {
+                const id = src.replace('img-local://', '');
+                if (ctx.isActuallyPrinting) {
+                    return <LocalVideo id={id} getImage={ctx.getImage} className="max-w-full h-auto block" />;
+                }
+                return (
+                    <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md" data-line={node?.position?.start?.line}>
+                        <LocalVideo id={id} getImage={ctx.getImage} />
+                    </div>
+                );
+            }
+
+            if (!src.toLowerCase().startsWith('https://')) {
+                return (
+                    <div className="my-4 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-mono" data-line={node?.position?.start?.line}>
+                        <span className="shrink-0 text-base">⚠️</span>
+                        <span>安全性警告：基於安全性考量，外部影片僅支援安全加密的 https:// 來源。已封鎖此內容：{src}</span>
+                    </div>
+                );
+            }
+
+            const blocked = shouldBlock(src);
+
+            if (blocked) {
+                return (
+                    <div className="my-6 w-full" data-line={node?.position?.start?.line}>
+                        <ExternalMediaShield
+                            url={src}
+                            onLoadOnce={() => handleAllowOnce(src)}
+                            onTrustDomain={handleTrustDomain}
+                        />
+                    </div>
+                );
+            }
+
+            if (ctx.isActuallyPrinting) {
+                return (
+                    <video
+                        src={src}
+                        controls
+                        preload="metadata"
+                        className="max-w-full h-auto block"
+                        {...props}
+                    />
+                );
+            }
+
+            return (
+                <div className="my-6 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md" data-line={node?.position?.start?.line}>
+                    <video
+                        src={src}
+                        controls
+                        preload="metadata"
+                        className="w-full max-h-[500px] block"
+                        {...props}
+                    >
+                        您的瀏覽器不支援播放此外部 HTTPS 影片。
+                    </video>
+                </div>
+            );
+        },
+        audio: ({ node, src, ...props }: any) => {
+            if (!src) return null;
+            const ctx = renderContextRef.current;
+
+            const isLocal = src.startsWith('img-local://');
+            if (isLocal) {
+                const id = src.replace('img-local://', '');
+                return (
+                    <div className="my-4 w-full flex justify-center py-2" data-line={node?.position?.start?.line}>
+                        <LocalAudio id={id} getImage={ctx.getImage} />
+                    </div>
+                );
+            }
+
+            if (!src.toLowerCase().startsWith('https://')) {
+                return (
+                    <div className="my-4 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-mono" data-line={node?.position?.start?.line}>
+                        <span className="shrink-0 text-base">⚠️</span>
+                        <span>安全性警告：基於安全性考量，外部音訊僅支援安全加密的 https:// 來源。已封鎖此內容：{src}</span>
+                    </div>
+                );
+            }
+
+            const blocked = shouldBlock(src);
+
+            if (blocked) {
+                return (
+                    <div className="my-6 w-full" data-line={node?.position?.start?.line}>
+                        <ExternalMediaShield
+                            url={src}
+                            onLoadOnce={() => handleAllowOnce(src)}
+                            onTrustDomain={handleTrustDomain}
+                        />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="my-4 w-full flex justify-center py-2" data-line={node?.position?.start?.line}>
+                    <audio
+                        src={src}
+                        controls
+                        preload="metadata"
+                        className="w-full max-w-2xl"
+                        {...props}
+                    >
+                        您的瀏覽器不支援播放此外部 HTTPS 音訊。
+                    </audio>
+                </div>
+            );
+        },
+    }), [wrapWithComment, urlTransform, shouldBlock, handleAllowOnce, handleTrustDomain]);
 
     // 監聽圖片載入完成，若有必要可觸發同步刷新
     useEffect(() => {
