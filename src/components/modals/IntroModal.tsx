@@ -107,7 +107,7 @@ const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-loose font-medium">
                   {INTRO_SUMMARY.description}
                 </p>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-loose font-medium">更多關於我們的資訊，看看<a href={`${import.meta.env.BASE_URL}about.html`} className="text-sm text-slate-700 dark:text-slate-300 leading-loose font-medium mx-1 underline">關於我們</a></p>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-loose font-medium">更多關於我們的資訊，看看<a href={`${import.meta.env.BASE_URL}about.html`} target="_blank" rel="noopener noreferrer" className="text-sm text-slate-700 dark:text-slate-300 leading-loose font-medium mx-1 underline">關於我們</a></p>
               </div>
 
               {/* Feature Grid */}
