@@ -42,7 +42,7 @@ const PdfSettingsPanel: React.FC<{
     const scaleKey = typeof settings.scale === 'number' ? 'custom' : settings.scale;
 
     return (
-        <div className="px-6 py-4 space-y-6 bg-slate-50/30 dark:bg-slate-900/30">
+        <div className="px-8 pb-8 space-y-6 min-h-full">
             {/* 分組 A：視覺化預覽 */}
             <div className="relative z-0 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 mb-1">
@@ -318,9 +318,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-[2px]" onClick={onClose} />
             <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-slate-800/80 z-[101] flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300 isolate">
 
-                {/* Header & Tabs */}
+                {/* Header Section */}
                 <div className="px-8 pt-6 pb-2 shrink-0">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">偏好設定</h2>
                             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Application Configuration</p>
@@ -331,24 +331,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             <X size={20} />
                         </MagneticButton>
                     </div>
-
-                    {/* Tab 導航：玻璃滑軌，支援拖曳切換分頁 */}
-                    <GlassRailSelector
-                        options={[
-                            { label: '編輯器設定', value: 'editor', icon: <Box size={13} /> },
-                            { label: '列印與匯出', value: 'print', icon: <Printer size={13} /> },
-                            { label: '關於', value: 'about', icon: <AlertCircle size={13} /> },
-                        ]}
-                        value={activeTab}
-                        onChange={(v) => setActiveTab(v as 'editor' | 'print' | 'about')}
-                    />
                 </div>
 
                 {/* 內容區 */}
                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-0 rounded-b-[2rem]">
+                    {/* Tab 導航：設定為 sticky 置頂，讓內容能從其後方滾動穿過 */}
+                    <div className="sticky top-0 z-[50] w-full flex justify-center bg-transparent pointer-events-none pt-4 pb-6 px-8">
+                        <GlassRailSelector
+                            className="pointer-events-auto shadow-sm w-full"
+                            options={[
+                                { label: '編輯器設定', value: 'editor', icon: <Box size={13} /> },
+                                { label: '列印與匯出', value: 'print', icon: <Printer size={13} /> },
+                                { label: '關於', value: 'about', icon: <AlertCircle size={13} /> },
+                            ]}
+                            value={activeTab}
+                            onChange={(v) => setActiveTab(v as 'editor' | 'print' | 'about')}
+                        />
+                    </div>
+
                     {activeTab === 'about' ? (
                         showChangelog ? (
-                            <div key="about-changelog" className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div key="about-changelog" className="px-8 pb-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                                     <MagneticButton variant="icon" onClick={() => setShowChangelog(false)} className="w-8 h-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-full">
                                         <ChevronLeft size={20} />
@@ -410,7 +413,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
                             </div>
                         ) : (
-                            <div key="about-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div key="about-main" className="px-8 pb-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex flex-col items-center text-center space-y-6">
                                     <div
                                         onClick={() => setLogoVariant(prev => prev === 'v1' ? 'v2' : 'v1')}
@@ -504,9 +507,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             onToggleFavoriteTheme={onToggleFavoriteTheme}
                         />
                     ) : (
-                        <div key="editor" className="flex flex-col">
+                        <div key="editor" className="flex flex-col min-h-full">
                             {mode === 'markdown' ? (
-                                <div className="flex flex-col p-8 pt-0">
+                                <div className="flex flex-col px-8 pb-8 flex-1">
                                     <div className="mb-4">
                                         <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">MathJax 自定義巨集 (JSON)</p>
                                         <div className="relative">
