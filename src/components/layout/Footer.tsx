@@ -88,9 +88,9 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
             </p>
             {isCollapsed && (
               <nav className="sm:flex items-center gap-5 hidden border-l border-slate-200 dark:border-slate-700 pl-4 animate-in fade-in duration-300">
-                <a href="/privacy.html" className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">隱私政策</a>
-                <a href="/terms.html" className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">服務條款</a>
-                <a href="/about.html" className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">關於我們</a>
+                <a href={`${import.meta.env.BASE_URL}privacy.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">隱私政策</a>
+                <a href={`${import.meta.env.BASE_URL}terms.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">服務條款</a>
+                <a href={`${import.meta.env.BASE_URL}about.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">關於我們</a>
               </nav>
             )}
           </div>
