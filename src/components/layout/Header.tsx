@@ -3,7 +3,7 @@ import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileTex
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
-
+import DraggableSwitch from '../ui/DraggableSwitch';
 interface HeaderProps {
     mode: 'mermaid' | 'markdown';
     isDarkMode: boolean;
@@ -231,21 +231,18 @@ const Header: React.FC<HeaderProps> = ({
                                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">資料夾合併選項</p>
                                     </div>
 
+
+
                                     <div className="px-1 space-y-1">
                                         <label className="flex items-center justify-between px-3 py-2 cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200">合併下載 (Markdown)</span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500">自動合併同資料夾下所有 .md 原始碼</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnMdExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnMdExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnMdExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnMdExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnMdExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
 
                                         <label className="flex items-center justify-between px-3 py-2 cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">
@@ -253,17 +250,13 @@ const Header: React.FC<HeaderProps> = ({
                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200">合併列印 (PDF)</span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500">將資料夾內容合併為單一 PDF 匯出</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnPdfExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnPdfExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnPdfExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnPdfExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnPdfExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
                                     </div>
+
                                 </div>
                             )}
                         </div>
@@ -372,15 +365,10 @@ const Header: React.FC<HeaderProps> = ({
                                                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100">合併下載 (Markdown)</span>
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-400">自動合併同資料夾下所有 .md 原始碼</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnMdExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnMdExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnMdExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnMdExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnMdExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
 
                                         <label className="flex items-center justify-between px-3 py-2 cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors">
@@ -388,15 +376,10 @@ const Header: React.FC<HeaderProps> = ({
                                                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100">合併列印 (PDF)</span>
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-400">將資料夾內容合併為單一 PDF 匯出</span>
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
+                                            <DraggableSwitch
                                                 checked={printSettings.mergeVaultOnPdfExport}
-                                                onChange={(e) => onUpdatePrintSettings({ mergeVaultOnPdfExport: e.target.checked })}
+                                                onChange={(val) => onUpdatePrintSettings({ mergeVaultOnPdfExport: val })}
                                             />
-                                            <div className={`w-10 h-5.5 rounded-full transition-all relative ${printSettings.mergeVaultOnPdfExport ? 'bg-brand-primary shadow-[0_0_10px_rgba(14,165,233,0.3)]' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                <div className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${printSettings.mergeVaultOnPdfExport ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                                            </div>
                                         </label>
                                     </div>
                                 </div>

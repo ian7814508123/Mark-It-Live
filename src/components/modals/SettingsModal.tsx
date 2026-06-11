@@ -457,23 +457,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {[
-                                            { name: 'React', license: 'MIT', url: 'https://react.dev' },
-                                            { name: 'CodeMirror', license: 'MIT', url: 'https://codemirror.net' },
-                                            { name: 'Mermaid', license: 'MIT', url: 'https://mermaid.js.org' },
-                                            { name: 'MathJax', license: 'Apache-2.0', url: 'https://www.mathjax.org' },
-                                            { name: 'Lucide Icons', license: 'ISC', url: 'https://lucide.dev' },
-                                            { name: 'Vega / Vega-Lite', license: 'BSD-3-Clause', url: 'https://vega.github.io' },
-                                            { name: 'SheetJS', license: 'Apache-2.0', url: 'https://sheetjs.com' },
-                                            { name: 'PDF-lib', license: 'MIT', url: 'https://pdf-lib.js.org' },
-                                            { name: 'abcjs', license: 'MIT', url: 'https://paulrosen.github.io/abcjs/' },
-                                            { name: 'SmilesDrawer', license: 'MIT', url: 'https://github.com/reymendes/smilesDrawer' },
-                                            { name: 'Vite', license: 'MIT', url: 'https://vitejs.dev' },
-                                            { name: 'Tailwind CSS', license: 'MIT', url: 'https://tailwindcss.com' },
+
+                                            { name: 'React', license: 'MIT LICENSE', url: 'https://react.dev' },
+                                            { name: 'CodeMirror', license: 'MIT LICENSE', url: 'https://codemirror.net' },
+                                            { name: 'Mermaid', license: 'MIT LICENSE', url: 'https://mermaid.js.org' },
+                                            { name: 'MathJax', license: 'APACHE-2.0 LICENSE', url: 'https://www.mathjax.org' },
+                                            { name: 'React Icons', license: 'MIT LICENSE', url: 'https://github.com/react-icons/react-icons/blob/master/LICENSE' },
+                                            { name: 'Lucide Icons', license: 'ISC LICENSE', url: 'https://lucide.dev' },
+                                            { name: 'Material Design Icons', license: 'APACHE-2.0 LICENSE', url: 'https://github.com/google/material-design-icons/blob/master/LICENSE' },
+                                            { name: 'Simple Icons', license: 'CC0 1.0 UNIVERSAL LICENSE', url: 'https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md' },
+                                            { name: 'Feather Icons', license: 'MIT LICENSE', url: 'https://github.com/feathericons/feather/blob/master/LICENSE' },
+                                            { name: 'Vega / Vega-Lite', license: 'BSD-3-CLAUSE LICENSE', url: 'https://vega.github.io' },
+                                            { name: 'SheetJS', license: 'APACHE-2.0 LICENSE', url: 'https://sheetjs.com' },
+                                            { name: 'PDF-lib', license: 'MIT LICENSE', url: 'https://pdf-lib.js.org' },
+                                            { name: 'abcjs', license: 'MIT LICENSE', url: 'https://paulrosen.github.io/abcjs/' },
+                                            { name: 'SmilesDrawer', license: 'MIT LICENSE', url: 'https://github.com/reymendes/smilesDrawer' },
+                                            { name: 'Vite', license: 'MIT LICENSE', url: 'https://vite.dev' },
+                                            { name: 'Tailwind CSS', license: 'MIT LICENSE', url: 'https://tailwindcss.com' }
+
                                         ].map((pkg) => (
                                             <div key={pkg.name} className="relative z-10 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-brand-primary/20 dark:hover:border-brand-primary/40 transition-colors text-left">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{pkg.name}</span>
-                                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-tighter">{pkg.license} License</span>
+                                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-tighter">{pkg.license}</span>
                                                 </div>
                                                 <a href={pkg.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-brand-primary hover:text-brand-accent transition-colors uppercase tracking-widest">網站</a>
                                             </div>
