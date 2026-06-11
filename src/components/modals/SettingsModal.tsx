@@ -459,7 +459,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             <Box size={16} className="text-brand-primary opacity-80" />
                                             <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">第三方套件與致謝 (Credits)</h4>
                                         </div>
-                                        <a href="/licenses.html" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors">
+                                        <a href={`${import.meta.env.BASE_URL}licenses.html`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors">
                                             <FileText size={12} />
                                             完整授權聲明
                                         </a>
@@ -498,7 +498,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                                 <div className="rounded-2xl bg-brand-secondary/30 dark:bg-brand-primary/10 px-5 py-4 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed border border-brand-primary/15 dark:border-brand-primary/30 text-center">
                                     © {new Date().getFullYear()} Markdown Live Previewer. All rights reserved. <br />
-                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href="/privacy.html" className="mx-1 underline">隱私政策</a>與<a href="/terms.html" className="mx-1 underline">服務條款</a>。
+                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href={`${import.meta.env.BASE_URL}privacy.html`} className="mx-1 underline">隱私政策</a>與<a href={`${import.meta.env.BASE_URL}terms.html`} className="mx-1 underline">服務條款</a>。
                                 </div>
 
                             </div>

@@ -46,18 +46,16 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
               <div className="flex flex-col gap-2 min-w-[100px]">
                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">法律資訊</span>
                 <div className="flex flex-col gap-1.5">
-                  <a href="/privacy.html" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">隱私政策 <ExternalLink size={10} /></a>
-                  <a href="/terms.html" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">服務條款 <ExternalLink size={10} /></a>
+                  <a href={`${import.meta.env.BASE_URL}privacy.html`} className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">隱私政策 <ExternalLink size={10} /></a>
+                  <a href={`${import.meta.env.BASE_URL}terms.html`} className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">服務條款 <ExternalLink size={10} /></a>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-1">關於</h4>
+                  <a href="https://github.com/HUANGJYUNYING/Markdown-live-previewer" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">GitHub Repo <ExternalLink size={10} /></a>
+                  <a href={`${import.meta.env.BASE_URL}about.html`} className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">關於本站<ExternalLink size={10} /></a>
                 </div>
               </div>
-              {/* 關於我們 */}
-              <div className="flex flex-col gap-2 min-w-[100px]">
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">關於我們</span>
-                <div className="flex flex-col gap-1.5">
-                  <a href="/about.html" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">關於本站<ExternalLink size={10} /></a>
-                  <a href="https://github.com/HUANGJYUNYING/Markdown-live-previewer" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors">GitHub 原始碼</a>
-                </div>
-              </div>
+
               {/* 技術規格 */}
               <div className="flex flex-col gap-2 min-w-[100px]">
                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">技術規格</span>
@@ -73,6 +71,21 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
                 </div>
               </div>
               <div className="flex flex-col gap-2 min-w-[100px]"></div>
+            </div>
+            
+            {/* Bottom Bar: Copyright & Links */}
+            <div className="border-t border-slate-200 dark:border-slate-700/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 text-center md:text-left flex flex-col sm:flex-row gap-1 sm:gap-3">
+                <span>&copy; {new Date().getFullYear()} Markdown Live Previewer. All rights reserved.</span>
+                <span className="hidden sm:inline text-slate-300 dark:text-slate-600">|</span>
+                <span>Designed & Built by HUANGJYUNYING</span>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <a href={`${import.meta.env.BASE_URL}privacy.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">隱私政策</a>
+                <a href={`${import.meta.env.BASE_URL}terms.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">服務條款</a>
+                <a href={`${import.meta.env.BASE_URL}about.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">關於我們</a>
+              </div>
             </div>
           </div>
         )}

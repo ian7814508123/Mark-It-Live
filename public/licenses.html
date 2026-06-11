@@ -110,7 +110,7 @@
         </div>
 
         <div class="footer">
-            <p>© 2026 Markdown Live Previewer. <a href="/">返回首頁 (Back to Home)</a></p>
+            <p>© 2026 Markdown Live Previewer. <a href="./">返回首頁 (Back to Home)</a></p>
         </div>
     </div>
 
@@ -119,7 +119,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const contentDiv = document.getElementById('content');
-            fetch('/THIRD-PARTY-NOTICES.txt')
+            fetch('THIRD-PARTY-NOTICES.txt')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('無法載入授權聲明檔案。。');

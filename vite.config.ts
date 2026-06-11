@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
       license({
         thirdParty: {
           output: {
-            file: path.resolve(__dirname, './public/THIRD-PARTY-NOTICES.txt'),
+            file: path.resolve(__dirname, './dist/THIRD-PARTY-NOTICES.txt'),
             template(dependencies) {
               const seenFamilies = new Set<string>();
               let outputText = '';
@@ -69,6 +69,22 @@ export default defineConfig(({ mode }) => {
           }
         },
       }),
+      {
+        name: 'serve-licenses-in-dev',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url?.endsWith('THIRD-PARTY-NOTICES.txt')) {
+              const file = path.resolve(__dirname, './dist/THIRD-PARTY-NOTICES.txt');
+              if (fs.existsSync(file)) {
+                res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+                res.end(fs.readFileSync(file));
+                return;
+              }
+            }
+            next();
+          });
+        }
+      }
     ],
     define: {
       'global': 'window',
