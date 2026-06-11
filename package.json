@@ -86,6 +86,7 @@
   "build": {
     "appId": "com.markdownlivepreviewer.app",
     "productName": "Markdown Live Previewer",
+    "compression": "normal",
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -116,7 +117,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "differentialPackage": false
+      "differentialPackage": true
     },
     "mac": {
       "target": [
