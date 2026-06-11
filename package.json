@@ -109,11 +109,7 @@
           ]
         }
       ],
-      "icon": "public/favicon.ico",
-      "certificateFile": null,
-      "certificatePassword": null,
-      "signingHashAlgorithms": null,
-      "sign": null
+      "icon": "public/favicon.ico"
     },
     "nsis": {
       "oneClick": false,
