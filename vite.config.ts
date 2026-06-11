@@ -4,6 +4,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
+import license from 'rollup-plugin-license';
 
 export default defineConfig(({ mode }) => {
   const env = {
@@ -26,7 +27,53 @@ export default defineConfig(({ mode }) => {
       viteCommonjs({
         include: ['mathjax-full']
       }),
+      license({
+        thirdParty: {
+          output: {
+            file: path.resolve(__dirname, './dist/THIRD-PARTY-NOTICES.txt'),
+            template(dependencies) {
+              const seenFamilies = new Set<string>();
+              let outputText = '';
 
+              dependencies.forEach((pkg) => {
+                if (!pkg.license || pkg.license.toLowerCase() === 'unknown') return;
+
+                const isScoped = pkg.name?.startsWith('@');
+                const familyName = isScoped && pkg.name ? pkg.name.split('/')[0] : (pkg.name || '');
+
+                if (!familyName || seenFamilies.has(familyName)) return;
+                seenFamilies.add(familyName);
+
+                const repo = typeof pkg.repository === 'string' ? pkg.repository : (pkg.repository?.url || 'N/A');
+                outputText += `#### ${pkg.name}\n`;
+                outputText += `- **License:** ${pkg.license}\n`;
+                outputText += `- **Repository:** ${repo}\n\n`;
+                outputText += '```text\n';
+                outputText += `${pkg.licenseText || 'No license text provided.'}\n`;
+                outputText += '```\n\n';
+              });
+
+              return outputText;
+            }
+          }
+        },
+      }),
+      {
+        name: 'serve-licenses-in-dev',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url?.endsWith('THIRD-PARTY-NOTICES.txt')) {
+              const file = path.resolve(__dirname, './dist/THIRD-PARTY-NOTICES.txt');
+              if (fs.existsSync(file)) {
+                res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+                res.end(fs.readFileSync(file));
+                return;
+              }
+            }
+            next();
+          });
+        }
+      }
     ],
     define: {
       'global': 'window',
@@ -64,7 +111,7 @@ export default defineConfig(({ mode }) => {
             'vendor-ui': [
               'react',
               'react-dom',
-              'lucide-react',
+              'react-icons',
               '@uiw/react-codemirror',
               '@codemirror/view',
               '@codemirror/state'

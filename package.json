@@ -78,7 +78,8 @@
   },
   "overrides": {
     "react": "$react",
-    "react-dom": "$react-dom""vite-plugin-require-transform": "^1.0.21",
+    "react-dom": "$react-dom",
+    "vite-plugin-require-transform": "^1.0.21",
     "wait-on": "^7.2.0"
   },
   "build": {

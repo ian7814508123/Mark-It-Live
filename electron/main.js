@@ -88,7 +88,7 @@ const createMenu = () => {
     }
     // 2. 生產環境：
     if (process.platform === 'darwin') {
-        // macOS 選單顯示在螢幕頂端保留基本選單與 Edit 選單
+        // macOS 選單顯示在螢幕頂端，保留基本選單與 Edit 選單
         const template = [
             {
                 label: app.name,
