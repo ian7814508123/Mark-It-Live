@@ -35,6 +35,7 @@ jobs:
         run: npm run build
         env:
           VITE_ELECTRON: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Compile Electron TypeScript
         run: npm run compile-electron

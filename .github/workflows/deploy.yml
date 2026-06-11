@@ -38,6 +38,7 @@ jobs:
           BASE_URL: /${{ github.event.repository.name }}/
           VITE_GOOGLE_VERIFY_ID: ${{ secrets.VITE_GOOGLE_VERIFY_ID }}
           VITE_GOOGLE_ADSENSE_ID: ${{ secrets.VITE_GOOGLE_ADSENSE_ID }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
