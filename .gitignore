@@ -138,3 +138,4 @@ public/google*.html
 
 # function/unit test
 tests/*
+public/THIRD-PARTY-NOTICES.txt
