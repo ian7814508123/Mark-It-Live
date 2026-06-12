@@ -18,7 +18,7 @@ interface PrintPaperProps {
     isPrinting: boolean;
     printSessionId: number;
     isMergedPrint: boolean;
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
+    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora' | 'eyeburst';
     isDarkMode: boolean;
     documents: any[];
     onSelectDocument?: (docId: string) => void;
@@ -80,7 +80,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto px-8 pb-4 lg:pt-12 lg:px-12 lg:pb-6 min-h-full print:p-0'}>
+            <div className={isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-5xl mx-auto px-4 pb-2 lg:pt-1 lg:px-1 lg:pb-2 min-h-full print:p-0'}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}
@@ -212,7 +212,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                 </style>
             )}
             <section
-                className="flex-1 min-w-0 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto"
+                className="flex-1 min-w-[300px] flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto"
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             >
@@ -224,7 +224,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                             {docsToRenderIds.map(docId => {
                                 const doc = documents?.find((d: any) => d.id === docId);
                                 const isActive = docId === currentDocId;
-                                const isMergedMode = mergeVaultOnPdfExport && currentDoc?.folderId;
+                                const isMergedMode = isPrinting && mergeVaultOnPdfExport && currentDoc?.folderId;
                                 const isVisibleOnScreen = isActive;
                                 const isVisibleInPrint = isMergedMode || isActive;
 
@@ -294,7 +294,7 @@ interface PreviewPanelProps {
     openDocIds?: string[];
     printSettings: any;
     /** Markdown 預覽主題，用於 Mermaid 模式下將主題 class 注入至 SVG 容器 */
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
+    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora' | 'eyeburst';
     isPrinting?: boolean;
     printSessionId?: number;
     isCommentMode?: boolean;
@@ -395,7 +395,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
 
     return (
         <section
-            className={`flex-1 min-w-0 flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} relative overflow-hidden group/preview transition-colors duration-500 preview-panel`}
+            className={`flex-1 min-w-[300px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} relative overflow-hidden group/preview transition-colors duration-500 preview-panel`}
             onWheel={onWheel}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
@@ -550,7 +550,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                     {/* Mermaid Preview */}
                     {svgContent ? (
                         <div
-                            className={`prose max-w-none bg-white dark:bg-slate-900/95 p-16 rounded-[2.5rem] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''}`}
+                            className={`prose max-w-none bg-white dark:bg-slate-900/95 p-6 rounded-[16px] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''}`}
                             style={{ transform: `scale(${zoom / 100})` }}
                             dangerouslySetInnerHTML={{ __html: svgContent }}
                         />

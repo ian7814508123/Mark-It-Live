@@ -10,7 +10,7 @@ export interface ThemeOption {
     icon?: React.ReactNode;
     color: string;
     previewImg?: string;
-    category: 'minimal' | 'tech' | 'creative';
+    category: 'minimal' | 'tech' | 'creative' | 'limited';
 }
 
 interface ThemeGridSelectorProps {
@@ -30,14 +30,15 @@ const ThemeGridSelector: React.FC<ThemeGridSelectorProps> = ({
 }) => {
     const [hoveredOption, setHoveredOption] = useState<ThemeOption | null>(null);
     const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
-    const [activeCategory, setActiveCategory] = useState<'favorite' | 'minimal' | 'tech' | 'creative'>('favorite');
+    const [activeCategory, setActiveCategory] = useState<'favorite' | 'minimal' | 'tech' | 'creative' | 'limited'>('favorite');
     const containerRef = useRef<HTMLDivElement>(null);
 
     const categories = [
         { label: '常用', value: 'favorite' },
         { label: '簡約', value: 'minimal' },
         { label: '專業', value: 'tech' },
-        { label: '創意', value: 'creative' }
+        { label: '創意', value: 'creative' },
+        { label: '限時', value: 'limited' }
     ] as const;
 
     const filteredOptions = activeCategory === 'favorite'

@@ -1,0 +1,314 @@
+/* ==========================================================================
+   主題名稱: 眼睛炸裂 (Eye Burst / eyeburst) - 極端瘋狂版
+   ========================================================================== */
+
+.theme-eyeburst {
+    /* 1. 排版與基礎字體 */
+    --theme-font-family: "Impact", "Arial Black", system-ui, sans-serif;
+    --theme-line-height: 1.6;
+    --theme-text-align: justify;
+    --theme-text-color: #3a0066;
+    --theme-accent-color: #ff007f;
+
+    /* 2. 標題設計 */
+    --theme-heading-font: "Impact", "Arial Black", system-ui, sans-serif;
+    --theme-heading-color: #ff00ff;
+    --theme-heading-weight: 900;
+    --theme-h1-size: 2.3rem;
+    --theme-h2-size: 1.8rem;
+    --theme-h3-size: 1.5rem;
+    --theme-h4-size: 1.25rem;
+    --theme-h5-size: 1.1rem;
+    --theme-h6-size: 1rem;
+    --theme-h1-border: none;
+    --theme-h2-border: 3px solid #39ff14;
+    --theme-h1-transform: uppercase;
+
+    /* 3. 引言區塊 */
+    --theme-quote-bg: #e0ff00;
+    --theme-quote-border-left: 8px solid #ff007f;
+    --theme-quote-text: #4b0082;
+    --theme-quote-font-style: normal;
+
+    /* 4. 超連結 */
+    --theme-link-color: #00ffff;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: #ff007f;
+    --theme-link-hover-border: #39ff14;
+
+    /* 5. 表格設計 */
+    --theme-table-border: 2px solid #ff00ff;
+    --theme-table-header-bg: #bd00ff;
+    --theme-table-header-color: #ffff00;
+    --theme-table-header-border: 3px solid #39ff14;
+
+    /* 6. 系統 UI 對接 (完全拋開色彩規範，強行對撞) */
+    --brand-primary: #ff007f;
+    --brand-secondary: #bd00ff;
+    --brand-surface: #ffff00;      /* 淺色主背景直接用螢光黃！ */
+    --brand-accent: #00ffff;
+    --code-bg: #b574e4;            /* 代碼區塊用深紫 */
+    --code-border: #39ff14;        /* 螢光綠邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(57, 255, 20, 0.4);
+
+    /* 7. 標註系統 (Alerts - 淺色對撞色) */
+    --theme-alert-note-border: #00f0ff;
+    --theme-alert-note-bg: #0000ff;
+    --theme-alert-note-text: #ffffff;
+    --theme-alert-tip-border: #39ff14;
+    --theme-alert-tip-bg: #006400;
+    --theme-alert-tip-text: #39ff14;
+    --theme-alert-important-border: #bd00ff;
+    --theme-alert-important-bg: #4b0082;
+    --theme-alert-important-text: #ffffff;
+    --theme-alert-warning-border: #ffff00;
+    --theme-alert-warning-bg: #ff6600;
+    --theme-alert-warning-text: #ffffff;
+    --theme-alert-caution-border: #ff0055;
+    --theme-alert-caution-bg: #8b0000;
+    --theme-alert-caution-text: #ffffff;
+
+    /* 8. Mermaid 樣式變數 */
+    --mermaid-node-bg: #bd00ff;
+    --mermaid-node-text: #ffff00;
+    --mermaid-node-border: #39ff14;
+    --mermaid-line: #ff007f;
+    --mermaid-edge-bg: #ffff00;
+}
+
+/* --------------------------------------------------------------------------
+   深色模式變數覆蓋 (毒氣綠與發光洋紅的極限世界)
+   -------------------------------------------------------------------------- */
+.dark .theme-eyeburst {
+    --theme-text-color: #39ff14; /* 文字用螢光綠 */
+    --theme-heading-color: #ff00ff;
+    --theme-accent-color: #ff00ff;
+
+    --theme-quote-bg: rgba(255, 0, 255, 0.15);
+    --theme-quote-border-left: 8px solid #39ff14;
+    --theme-quote-text: #ffff00;
+
+    --theme-link-color: #ffff00;
+    --theme-link-hover-bg: #ff00ff;
+    --theme-link-hover-border: #39ff14;
+
+    --theme-table-border: 2px solid #371d5c;
+    --theme-table-header-bg: #1a0f30;
+    --theme-table-header-color: #39ff14;
+    --theme-table-header-border: 3px solid #ff00ff;
+
+    --brand-primary: #39ff14;
+    --brand-secondary: #4b0082;
+    --brand-surface: #05001a;      /* 深色主背景用深靛藍 */
+    --brand-accent: #ff00ff;
+    --code-bg: #640737;            /* 代碼區塊用暗粉紅 */
+    --code-border: #00ffff;        /* 青藍邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 255, 255, 0.4);
+
+    /* 7. 標註系統 (Alerts - 深色模式極致發光) */
+    --theme-alert-note-border: #00f0ff;
+    --theme-alert-note-bg: rgba(0, 240, 255, 0.2);
+    --theme-alert-note-text: #00f0ff;
+    --theme-alert-tip-border: #39ff14;
+    --theme-alert-tip-bg: rgba(57, 255, 20, 0.2);
+    --theme-alert-tip-text: #39ff14;
+    --theme-alert-important-border: #bd00ff;
+    --theme-alert-important-bg: rgba(189, 0, 255, 0.2);
+    --theme-alert-important-text: #bd00ff;
+    --theme-alert-warning-border: #ffff00;
+    --theme-alert-warning-bg: rgba(255, 255, 0, 0.2);
+    --theme-alert-warning-text: #ffff00;
+    --theme-alert-caution-border: #ff003c;
+    --theme-alert-caution-bg: rgba(255, 0, 60, 0.2);
+    --theme-alert-caution-text: #ff003c;
+
+    /* 8. Mermaid 樣式變數 */
+    --mermaid-node-bg: #4a0026;
+    --mermaid-node-text: #39ff14;
+    --mermaid-node-border: #00ffff;
+    --mermaid-line: #ff00ff;
+    --mermaid-edge-bg: #05001a;
+}
+
+/* --------------------------------------------------------------------------
+   Markdown 基礎元素與特色客製 (Prose Binding & Customizations)
+   -------------------------------------------------------------------------- */
+.theme-eyeburst.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color) !important;
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    max-width: 100%;
+}
+
+/* 眼睛炸裂 H1~H6 發光陰影，明度與飽和度拉滿 */
+.theme-eyeburst.prose h1,
+.theme-eyeburst.prose h2,
+.theme-eyeburst.prose h3,
+.theme-eyeburst.prose h4,
+.theme-eyeburst.prose h5,
+.theme-eyeburst.prose h6 {
+    font-family: var(--theme-heading-font);
+    font-weight: var(--theme-heading-weight);
+    text-shadow: 0 0 0px currentColor, 0 0 0px currentColor;
+    letter-spacing: 0.02em;
+}
+
+.theme-eyeburst.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: 4px dashed #ff00ff;
+    color: #ff00ff !important;
+    padding-bottom: 0.5rem;
+}
+
+.theme-eyeburst.prose h2 {
+    font-size: var(--theme-h2-size);
+    color: #39ff14 !important;
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.3rem;
+}
+
+.theme-eyeburst.prose h3 {
+    font-size: var(--theme-h3-size);
+    color: #00ffff !important;
+}
+
+.theme-eyeburst.prose h4 {
+    font-size: var(--theme-h4-size);
+    color: #ffff00 !important;
+}
+
+.theme-eyeburst.prose h5 {
+    font-size: var(--theme-h5-size);
+    color: #ff5500 !important;
+}
+
+.theme-eyeburst.prose h6 {
+    font-size: var(--theme-h6-size);
+    color: #bd00ff !important;
+}
+
+.theme-eyeburst.prose blockquote {
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text) !important;
+    padding: 1.2rem 1.6rem;
+    transform: rotate(-0.5deg); /* 傾斜引言，增加瘋狂感 */
+    box-shadow: 5px 5px 0px #000000;
+}
+
+/* ─── 行內代碼 (Inline Code) 樣式自訂 ─── */
+.theme-eyeburst.prose :not(pre) > code {
+    background-color: var(--code-bg);
+    color: #39ff14 !important;
+    border: 2px solid var(--code-border);
+    border-radius: 0px; /* 像素風直角 */
+    padding: 0.2em 0.5em;
+    font-family: ui-monospace, monospace;
+    font-size: 0.85em;
+    font-weight: 900;
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.dark .theme-eyeburst.prose :not(pre) > code {
+    color: #ff00ff !important;
+}
+
+/* ─── 標註系統 (Alerts) ─── */
+.theme-eyeburst.prose blockquote.markdown-alert {
+    transform: none !important;
+    box-shadow: 6px 6px 0px #000000 !important;
+    border: 3px solid currentColor !important;
+    border-radius: 0px !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-note {
+    border-color: var(--theme-alert-note-border) !important;
+    background-color: var(--theme-alert-note-bg) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-tip {
+    border-color: var(--theme-alert-tip-border) !important;
+    background-color: var(--theme-alert-tip-bg) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-important {
+    border-color: var(--theme-alert-important-border) !important;
+    background-color: var(--theme-alert-important-bg) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-warning {
+    border-color: var(--theme-alert-warning-border) !important;
+    background-color: var(--theme-alert-warning-bg) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-caution {
+    border-color: var(--theme-alert-caution-border) !important;
+    background-color: var(--theme-alert-caution-bg) !important;
+}
+.theme-eyeburst.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text) !important;
+}
+
+/* ─── 表格 ─── */
+.theme-eyeburst.prose table {
+    border: var(--theme-table-border);
+    border-radius: 0px;
+    box-shadow: 6px 6px 0px #000000;
+}
+.theme-eyeburst.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color) !important;
+    border-bottom: var(--theme-table-header-border);
+    font-weight: 900;
+}
+.theme-eyeburst.prose td {
+    border-top: var(--theme-table-border);
+    color: var(--theme-text-color) !important;
+}
+.theme-eyeburst.prose tr:hover {
+    background-color: rgba(255, 0, 127, 0.2) !important;
+}
+.dark .theme-eyeburst.prose tr:hover {
+    background-color: rgba(57, 255, 20, 0.2) !important;
+}
+
+/* ─── 超連結 ─── */
+.theme-eyeburst.prose a {
+    color: var(--theme-link-color) !important;
+    text-decoration: var(--theme-link-decoration);
+    font-weight: 950;
+}
+.theme-eyeburst.prose a:hover {
+    background-color: var(--theme-link-hover-bg) !important;
+    border-bottom: 3px solid var(--theme-link-hover-border) !important;
+    color: #ffffff !important;
+}
+
+/* ─── 關鍵防禦：圖表隔離首字放大 ─── */
+.theme-eyeburst.prose .mermaid p::first-letter,
+.theme-eyeburst.prose .mermaid text::first-letter,
+.theme-eyeburst.prose svg text::first-letter,
+.theme-eyeburst.prose svg p::first-letter,
+.theme-eyeburst.prose svg span::first-letter,
+.theme-eyeburst.prose text::first-letter {
+    font-size: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}

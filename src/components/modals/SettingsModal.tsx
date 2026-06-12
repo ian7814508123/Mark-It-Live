@@ -138,6 +138,13 @@ const PdfSettingsPanel: React.FC<{
                                 description: '高飽和粉紅與深紫雨夜黑擦出賽博火花，伴隨電晶外發光，點燃深夜寫作黑客心流。',
                                 category: 'creative'
                             },
+                            {
+                                label: '眼睛炸裂', value: 'eyeburst', hint: 'Eye Burst',
+                                icon: <Zap size={16} />, color: '#ff0055',
+                                previewImg: '/image/themes/eyeburst.png',
+                                description: '【限時主題】色環 180 度互補色對焦，飽和度拉滿，生活太無聊了嗎？那就來點刺激的！',
+                                category: 'limited'
+                            },
                         ]}
                         value={settings.previewTheme}
                         onChange={(v) => onChange({ previewTheme: v as any })}

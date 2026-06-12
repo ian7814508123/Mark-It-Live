@@ -71,7 +71,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
 
     return (
         <section
-            className="flex-1 min-w-0 lg:min-w-0 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20  transition-colors duration-200 print:hidden"
+            className="flex-1 min-w-[300px] flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20  transition-colors duration-200 print:hidden"
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
