@@ -332,19 +332,6 @@
     background-color: rgba(168, 85, 247, 0.04);
 }
 
-/* Inline Code 樣式 */
-.theme-cosmic.prose :not(pre) > code {
-    background-color: var(--code-bg);
-    color: var(--theme-text-color);
-    border: 1px solid var(--code-border);
-    border-radius: 4px;
-    padding: 0.2em 0.4em;
-    font-family: var(--theme-font-family);
-    font-size: 0.85em;
-}
-
-
-
 /* 🌌 儀表板發光容器 (Glow Hover Card) */
 .theme-cosmic.prose .enhanced-codeblock,
 .theme-cosmic.prose .diagram-block-container {
@@ -442,54 +429,6 @@
    在此僅進行必要的結構性排版微調，無任何 !important 負擔！
    ========================================================================== */
 @media print {
-    /* 1. 強制將所有變數重設為淺色太空艙配色，防禦深色列印黑洞 */
-    .theme-cosmic,
-    .dark .theme-cosmic,
-    [class*="theme-cosmic"] {
-        --theme-text-color: #1e293b !important;
-        --theme-accent-color: #6366f1 !important;
-        --theme-heading-color: #0f172a !important;
-        --theme-quote-bg: #eff6ff !important;
-        --theme-quote-border-left: 4px solid #6366f1 !important;
-        --theme-quote-text: #1e293b !important;
-        --theme-link-color: #6366f1 !important;
-        --theme-table-border: 1px solid #cbd5e1 !important;
-        --theme-table-header-bg: #eff6ff !important;
-        --theme-table-header-color: #0f172a !important;
-        --theme-table-header-border: 2px solid #6366f1 !important;
-        
-        --brand-primary: #6366f1 !important;
-        --brand-secondary: #eff6ff !important;
-        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
-        --brand-accent: #a855f7 !important;
-        --code-bg: #f5f7f9 !important;
-        --code-border: #e0e4e7 !important;
-
-        /* 語法高亮列印淺色變數 */
-        --code-token-comment: #64748b !important;
-        --code-token-keyword: #4f46e5 !important;
-        --code-token-string: #0d9488 !important;
-        --code-token-number: #db2777 !important;
-        --code-token-function: #2563eb !important;
-
-        /* Alerts 標註列印淺色變數 */
-        --theme-alert-note-border: #38bdf8 !important;
-        --theme-alert-note-bg: rgba(56, 189, 248, 0.04) !important;
-        --theme-alert-note-text: #0369a1 !important;
-        --theme-alert-tip-border: #34d399 !important;
-        --theme-alert-tip-bg: rgba(52, 211, 153, 0.04) !important;
-        --theme-alert-tip-text: #047857 !important;
-        --theme-alert-important-border: #a78bfa !important;
-        --theme-alert-important-bg: rgba(167, 139, 250, 0.04) !important;
-        --theme-alert-important-text: #6d28d9 !important;
-        --theme-alert-warning-border: #fbbf24 !important;
-        --theme-alert-warning-bg: rgba(251, 191, 36, 0.04) !important;
-        --theme-alert-warning-text: #a16207 !important;
-        --theme-alert-caution-border: #f87171 !important;
-        --theme-alert-caution-bg: rgba(248, 113, 113, 0.04) !important;
-        --theme-alert-caution-text: #b91c1c !important;
-    }
-
     /* 2. 強制瀏覽器啟用局部背景與色彩列印 */
     *,
     *::before,
@@ -520,14 +459,6 @@
         background-color: var(--code-bg) !important;
         border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
-    }
-
-    .theme-cosmic.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 4px !important;
     }
 
     .theme-cosmic.prose blockquote {

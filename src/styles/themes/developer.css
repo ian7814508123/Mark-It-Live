@@ -306,56 +306,6 @@
 /* Print Specifics */
 @media print {
 
-    /* 1. 強制將所有開發者主題相關的 CSS 變數（即便在深色模式下）重置為淺色模式的開發者配色，
-       以確保白底紙張上高對比度之終端字體與高保真色彩呈現 */
-    .theme-developer,
-    .dark .theme-developer,
-    [class*="theme-developer"] {
-        --theme-text-color: #334155 !important;
-        --theme-accent-color: #10b981 !important;
-        --theme-heading-color: #059669 !important;
-        --theme-quote-bg: #e7fff4 !important;
-        --theme-quote-border-left: 4px solid #059669 !important;
-        --theme-quote-text: #475569 !important;
-        --theme-link-color: #059669 !important;
-        --theme-table-border: 1px solid #cbd5e1 !important;
-        --theme-table-header-bg: #ecfdf5 !important;
-        --theme-table-header-color: #059669 !important;
-        --theme-table-header-border: 2px solid #059669 !important;
-        --brand-primary: #059669 !important;
-        --brand-secondary: #ecfdf5 !important;
-        --brand-surface: #ffffff !important;
-        /* 拔除背景色，強制為白底，防禦 index.css 特色主題背景覆蓋 */
-        --brand-accent: #10b981 !important;
-        --code-bg: #ecfdf5 !important;
-        /* 技術淺灰代碼背景 */
-        --code-border: #cbd5e1 !important;
-
-        /* 語法高亮開發者淺色變數 */
-        --code-token-comment: #64748b !important;
-        --code-token-keyword: #059669 !important;
-        --code-token-string: #d97706 !important;
-        --code-token-number: #2563eb !important;
-        --code-token-function: #0d9488 !important;
-
-        /* Alerts 標註開發者淺色變數 */
-        --theme-alert-note-border: #61afef !important;
-        --theme-alert-note-bg: rgba(97, 175, 239, 0.04) !important;
-        --theme-alert-note-text: #1b5282 !important;
-        --theme-alert-tip-border: #98c379 !important;
-        --theme-alert-tip-bg: rgba(152, 195, 121, 0.04) !important;
-        --theme-alert-tip-text: #3e6e22 !important;
-        --theme-alert-important-border: #c678dd !important;
-        --theme-alert-important-bg: rgba(198, 120, 221, 0.04) !important;
-        --theme-alert-important-text: #7a3e8f !important;
-        --theme-alert-warning-border: #e5c07b !important;
-        --theme-alert-warning-bg: rgba(229, 192, 123, 0.04) !important;
-        --theme-alert-warning-text: #8a651e !important;
-        --theme-alert-caution-border: #e06c75 !important;
-        --theme-alert-caution-bg: rgba(224, 108, 117, 0.04) !important;
-        --theme-alert-caution-text: #9c2c34 !important;
-    }
-
     /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印 */
     *,
     *::before,
@@ -388,84 +338,16 @@
     /* 4. 頑強保留：所有標註區塊 (Alert Box) 的開發者配色，防禦 index.css 覆蓋 */
     .theme-developer.prose blockquote.markdown-alert {
         page-break-inside: avoid !important;
-        color: var(--theme-text-color) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-note {
-        background-color: var(--theme-alert-note-bg) !important;
-        border-left-color: var(--theme-alert-note-border) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-note .markdown-alert-title {
-        color: var(--theme-alert-note-text) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-tip {
-        background-color: var(--theme-alert-tip-bg) !important;
-        border-left-color: var(--theme-alert-tip-border) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-tip .markdown-alert-title {
-        color: var(--theme-alert-tip-text) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-important {
-        background-color: var(--theme-alert-important-bg) !important;
-        border-left-color: var(--theme-alert-important-border) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-important .markdown-alert-title {
-        color: var(--theme-alert-important-text) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-warning {
-        background-color: var(--theme-alert-warning-bg) !important;
-        border-left-color: var(--theme-alert-warning-border) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-warning .markdown-alert-title {
-        color: var(--theme-alert-warning-text) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-caution {
-        background-color: var(--theme-alert-caution-bg) !important;
-        border-left-color: var(--theme-alert-caution-border) !important;
-    }
-
-    .theme-developer.prose blockquote.markdown-alert-caution .markdown-alert-title {
-        color: var(--theme-alert-caution-text) !important;
     }
 
     /* 5. 程式碼區塊在開發者下的列印優化 */
-    .theme-developer.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 3px !important;
-    }
 
     .theme-developer.prose pre,
     .theme-developer.prose .enhanced-codeblock,
     .theme-developer.prose .code-block-wrapper pre {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
     }
 
     /* 6. 表格開發者優化 */
-    .theme-developer.prose table {
-        border-collapse: collapse !important;
-        border: var(--theme-table-border) !important;
-    }
 
-    .theme-developer.prose th {
-        background-color: var(--theme-table-header-bg) !important;
-        border-bottom: var(--theme-table-header-border) !important;
-        color: var(--theme-table-header-color) !important;
-    }
-
-    .theme-developer.prose td {
-        border: var(--theme-table-border) !important;
-    }
 }

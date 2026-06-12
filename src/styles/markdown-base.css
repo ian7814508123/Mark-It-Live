@@ -207,14 +207,61 @@
     border-bottom: none !important; /* 消除表格最後一行與外框重合的雙重底線 */
 }
 
-/* ── 7. Mermaid 圖表基礎骨架與預設變數 [NEW] ────────────────────────────────── */
+/* ── 7. Tailwind Typography ↔ 主題變數橋接與 Mermaid 骨架 ──────────────
+   Tailwind Typography 使用 --tw-prose-* 變數控制 .prose 內所有元素的顏色。
+   本專案的主題系統使用 --theme-* 變數。兩套變數互不相通。
+   此處將 --tw-prose-* 與 --tw-prose-invert-* 橋接到 --theme-*，確保 Typography 的預設色彩
+   能自動追隨主題設定，無論一般模式或列印模式皆一致。
+   ──────────────────────────────────────────────────────────────────────── */
 .prose {
+    /* 文字顏色 */
+    --tw-prose-body: var(--theme-text-color, oklch(37.3% 0.034 259.733));
+    --tw-prose-headings: var(--theme-heading-color, oklch(21% 0.034 264.665));
+    --tw-prose-lead: var(--theme-text-color, oklch(44.6% 0.03 256.802));
+    --tw-prose-links: var(--theme-link-color, oklch(21% 0.034 264.665));
+    --tw-prose-bold: var(--theme-heading-color, oklch(21% 0.034 264.665));
+    --tw-prose-counters: var(--theme-accent-color, oklch(55.1% 0.027 264.364));
+    --tw-prose-bullets: var(--theme-accent-color, oklch(87.2% 0.01 258.338));
+    --tw-prose-quotes: var(--theme-quote-text, oklch(21% 0.034 264.665));
+    --tw-prose-captions: var(--theme-text-color, oklch(55.1% 0.027 264.364));
+    --tw-prose-kbd: var(--theme-heading-color, oklch(21% 0.034 264.665));
+    --tw-prose-code: var(--theme-accent-color, oklch(21% 0.034 264.665));
+    --tw-prose-pre-code: var(--code-token-punctuation, oklch(92.8% 0.006 264.531));
+    --tw-prose-pre-bg: var(--code-bg, oklch(27.8% 0.033 256.848));
+
+    /* 邊框顏色 */
+    --tw-prose-hr: var(--theme-accent-color, oklch(92.8% 0.006 264.531));
+    --tw-prose-quote-borders: var(--theme-accent-color, oklch(92.8% 0.006 264.531));
+    --tw-prose-th-borders: var(--code-border, oklch(87.2% 0.01 258.338));
+    --tw-prose-td-borders: var(--code-border, oklch(92.8% 0.006 264.531));
+
     /* Mermaid 基礎核心變數 (經典黑白極簡) */
     --mermaid-node-bg: #f8fafc;
     --mermaid-node-text: #0f172a;
     --mermaid-node-border: #cbd5e1;
     --mermaid-line: #475569;
     --mermaid-edge-bg: #ffffff;
+}
+
+.prose-invert {
+    /* 深色模式變數橋接 */
+    --tw-prose-invert-body: var(--theme-text-color, oklch(88.2% 0.015 258.338));
+    --tw-prose-invert-headings: var(--theme-heading-color, oklch(100% 0 0));
+    --tw-prose-invert-lead: var(--theme-text-color, oklch(70.8% 0.022 258.338));
+    --tw-prose-invert-links: var(--theme-link-color, oklch(100% 0 0));
+    --tw-prose-invert-bold: var(--theme-heading-color, oklch(100% 0 0));
+    --tw-prose-invert-counters: var(--theme-accent-color, oklch(70.8% 0.022 258.338));
+    --tw-prose-invert-bullets: var(--theme-accent-color, oklch(47.5% 0.033 256.848));
+    --tw-prose-invert-quotes: var(--theme-quote-text, oklch(92.8% 0.006 264.531));
+    --tw-prose-invert-captions: var(--theme-text-color, oklch(70.8% 0.022 258.338));
+    --tw-prose-invert-kbd: var(--theme-heading-color, oklch(100% 0 0));
+    --tw-prose-invert-code: var(--theme-accent-color, oklch(100% 0 0));
+    --tw-prose-invert-pre-code: var(--code-token-punctuation, oklch(88.2% 0.015 258.338));
+    --tw-prose-invert-pre-bg: var(--code-bg, rgba(0, 0, 0, 0.5));
+    --tw-prose-invert-hr: var(--theme-accent-color, oklch(37.3% 0.034 259.733));
+    --tw-prose-invert-quote-borders: var(--theme-accent-color, oklch(37.3% 0.034 259.733));
+    --tw-prose-invert-th-borders: var(--code-border, oklch(37.3% 0.034 259.733));
+    --tw-prose-invert-td-borders: var(--code-border, oklch(27.8% 0.033 256.848));
 }
 
 /* 深色模式下的預設黑白 */
@@ -267,6 +314,7 @@
         margin: 0 !important;
         display: inline-block !important;
     }
+
 }
 
 /* ── 8. Mermaid SVG 外部樣式穿透與連動 [NEW] ────────────────────────────────── */

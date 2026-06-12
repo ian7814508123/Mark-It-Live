@@ -19,6 +19,24 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v4.1.9 (2026/06/12) - 列印樣式優化',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: Palette,
+        title: '更新列印樣式 (Updates)',
+        details: [
+          <>
+            <strong>優化了列印樣式:</strong> 保留各特色主題的樣式, 列印時仍然優先選擇淺色主題但特殊樣式不回退到預設樣式。<br />
+            (若需要列印建議切換至<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">預設樣式</code>,特色主題建議僅做為數位展示使用。)
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v4.1.8 (2026/06/05) - 介面優化與擴充警示框樣式',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',

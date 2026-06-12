@@ -356,41 +356,11 @@
       }
 
       /* 5. Markdown Preview Specific Styles */
-      /* Target the prose container for Markdown content */
+      /* 顏色由各主題 CSS 的 --theme-* 變數控制，此處只重置排版 */
       .prose {
         max-width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
-        /* 確保 Markdown 內容從頁面頂部開始 */
-        color: black !important;
-      }
-
-      /* 重置 Tailwind Typography 的深色模式變數，確保列印時永遠是白紙黑字 */
-      .prose,
-      .prose-invert {
-        --tw-prose-body: #000 !important;
-        --tw-prose-headings: #000 !important;
-        --tw-prose-lead: #333 !important;
-        --tw-prose-links: #000 !important;
-        --tw-prose-bold: #000 !important;
-        --tw-prose-counters: #4b5563 !important;
-        --tw-prose-bullets: #222 !important;
-        --tw-prose-hr: #e5e7eb !important;
-        --tw-prose-quotes: #111827 !important;
-        --tw-prose-quote-borders: #e5e7eb !important;
-        --tw-prose-captions: #4b5563 !important;
-        --tw-prose-code: #000 !important;
-        --tw-prose-pre-code: #e5e7eb !important;
-        --tw-prose-pre-bg: #1f2937 !important;
-        --tw-prose-th-borders: #d1d5db !important;
-        --tw-prose-td-borders: #e5e7eb !important;
-      }
-
-      /* 強制將所有文字設為黑色，防止繼承深色模式的淺灰色 */
-      .prose *,
-      .prose-invert * {
-        color: black !important;
-        border-color: #ddd !important;
       }
 
       /* Remove any top margin from first element */

@@ -6,14 +6,11 @@
     --theme-line-height: 1.7;
     --theme-text-align: left;
     --theme-text-color: #334155;
-    /* Slate 700 */
     --theme-accent-color: #005B94;
-    /* Industrial Deep Blue */
 
     /* 2. 標題設計 (Headings) */
     --theme-heading-font: "Inter", system-ui, -apple-system, sans-serif;
     --theme-heading-color: #0f172a;
-    /* Slate 900 */
     --theme-heading-weight: 900;
     --theme-h1-size: 2.4rem;
     --theme-h2-size: 1.8rem;
@@ -49,7 +46,6 @@
     --brand-surface: #ffffff;
     --brand-accent: #0366d6;
     --code-bg: #f0f9ff;
-    /* 統一 diagram 與 code block */
     --code-border: #cbd5e1;
     --code-line-number-bg: var(--code-bg);
     --code-line-number-shadow: rgba(0, 91, 148, 0.05);
@@ -93,6 +89,7 @@
     --mermaid-node-border: var(--code-border);
     --mermaid-line: var(--theme-accent-color, var(--brand-primary));
     --mermaid-edge-bg: var(--brand-surface, #ffffff);
+    
     --theme-text-color: #cbd5e1;
     --theme-heading-color: #f1f5f9;
     --theme-accent-color: #38bdf8;
@@ -320,50 +317,6 @@
 
 /* Print Specifics: 工業藍藍圖美學列印微調 */
 @media print {
-
-    /* 1. 強制將所有實作計畫主題相關的 CSS 變數（即便在深色模式下）重置為淺色模式的實作計畫配色，
-       以確保白底紙張上高對比度之文字與高保真色彩呈現 */
-    .theme-implementation-plan,
-    .dark .theme-implementation-plan,
-    [class*="theme-implementation-plan"] {
-        --theme-text-color: #334155 !important;
-        --theme-accent-color: #005B94 !important;
-        --theme-heading-color: #0f172a !important;
-        --theme-quote-bg: #f8fafc !important;
-        --theme-quote-border-left: 4px solid #e2e8f0 !important;
-        --theme-quote-text: #334155 !important;
-        --theme-link-color: #0366d6 !important;
-        --theme-table-border: 1px solid #e2e8f0 !important;
-        --theme-table-header-bg: #f0f9ff !important;
-        --theme-table-header-color: #0f172a !important;
-        --theme-table-header-border: 2px solid #e2e8f0 !important;
-        --brand-primary: #005B94 !important;
-        --brand-secondary: #f0f9ff !important;
-        --brand-surface: #ffffff !important;
-        /* 拔除背景色，強制為白底，防禦 index.css 特色主題背景覆蓋 */
-        --brand-accent: #0366d6 !important;
-        --code-bg: #f0f9ff !important;
-        /* 藍圖淺藍代碼背景 */
-        --code-border: #cbd5e1 !important;
-
-        /* Alerts 標註實作計畫淺色變數 */
-        --theme-alert-note-border: #1d4ed8 !important;
-        --theme-alert-note-bg: rgba(29, 78, 216, 0.04) !important;
-        --theme-alert-note-text: #1e3a8a !important;
-        --theme-alert-tip-border: #047857 !important;
-        --theme-alert-tip-bg: rgba(4, 120, 87, 0.04) !important;
-        --theme-alert-tip-text: #064e3b !important;
-        --theme-alert-important-border: #6d28d9 !important;
-        --theme-alert-important-bg: rgba(109, 40, 217, 0.04) !important;
-        --theme-alert-important-text: #3b0764 !important;
-        --theme-alert-warning-border: #d1a11c !important;
-        --theme-alert-warning-bg: rgba(194, 65, 12, 0.04) !important;
-        --theme-alert-warning-text: #7c2d12 !important;
-        --theme-alert-caution-border: #b91c1c !important;
-        --theme-alert-caution-bg: rgba(185, 28, 28, 0.04) !important;
-        --theme-alert-caution-text: #7f1d1d !important;
-    }
-
     /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印 */
     *,
     *::before,
@@ -387,84 +340,16 @@
     /* 4. 保留所有標註區塊 (Alert Box) 的實作計畫配色，防禦 index.css 覆蓋 */
     .theme-implementation-plan.prose blockquote.markdown-alert {
         page-break-inside: avoid !important;
-        color: var(--theme-text-color) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-note {
-        background-color: var(--theme-alert-note-bg) !important;
-        border-left-color: var(--theme-alert-note-border) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-note .markdown-alert-title {
-        color: var(--theme-alert-note-text) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-tip {
-        background-color: var(--theme-alert-tip-bg) !important;
-        border-left-color: var(--theme-alert-tip-border) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-tip .markdown-alert-title {
-        color: var(--theme-alert-tip-text) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-important {
-        background-color: var(--theme-alert-important-bg) !important;
-        border-left-color: var(--theme-alert-important-border) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-important .markdown-alert-title {
-        color: var(--theme-alert-important-text) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-warning {
-        background-color: var(--theme-alert-warning-bg) !important;
-        border-left-color: var(--theme-alert-warning-border) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-warning .markdown-alert-title {
-        color: var(--theme-alert-warning-text) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-caution {
-        background-color: var(--theme-alert-caution-bg) !important;
-        border-left-color: var(--theme-alert-caution-border) !important;
-    }
-
-    .theme-implementation-plan.prose blockquote.markdown-alert-caution .markdown-alert-title {
-        color: var(--theme-alert-caution-text) !important;
     }
 
     /* 5. 程式碼區塊在實作計畫下的列印優化 */
-    .theme-implementation-plan.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 3px !important;
-    }
 
     .theme-implementation-plan.prose pre,
     .theme-implementation-plan.prose .enhanced-codeblock,
     .theme-implementation-plan.prose .code-block-wrapper pre {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
     }
 
     /* 6. 表格工業優化 */
-    .theme-implementation-plan.prose table {
-        border-collapse: collapse !important;
-        border: var(--theme-table-border) !important;
-    }
 
-    .theme-implementation-plan.prose th {
-        background-color: var(--theme-table-header-bg) !important;
-        border-bottom: var(--theme-table-header-border) !important;
-        color: var(--theme-table-header-color) !important;
-    }
-
-    .theme-implementation-plan.prose td {
-        border-bottom: var(--theme-table-border) !important;
-    }
 }
