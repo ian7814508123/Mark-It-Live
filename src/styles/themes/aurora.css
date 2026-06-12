@@ -305,17 +305,6 @@
     background-color: rgba(6, 182, 212, 0.05);
 }
 
-/* Inline Code 樣式排除 pre 避免誤傷 [CRITICAL] */
-.theme-aurora.prose :not(pre) > code {
-    background-color: var(--code-bg);
-    color: var(--theme-text-color);
-    border: 1px solid var(--code-border);
-    border-radius: 4px;
-    padding: 0.2em 0.4em;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.85em;
-}
-
 /* Alert 標註系統客製 */
 .theme-aurora.prose blockquote.markdown-alert-note {
     border-left-color: var(--theme-alert-note-border);
@@ -384,37 +373,6 @@
    本主題遵循高保真特色列印。在此僅進行必要的結構性排版微調，無任何 !important 負擔！
    ========================================================================== */
 @media print {
-    /* 1. 強制將所有變數重設為淺色護眼配色，防禦深色列印黑洞 */
-    .theme-aurora,
-    .dark .theme-aurora,
-    [class*="theme-aurora"] {
-        --theme-text-color: #1e293b !important;
-        --theme-accent-color: #0891b2 !important;
-        --theme-heading-color: #0f172a !important;
-        --theme-quote-bg: #f0f7f9 !important;
-        --theme-quote-border-left: 4px solid #0891b2 !important;
-        --theme-quote-text: #334155 !important;
-        --theme-link-color: #0891b2 !important;
-        --theme-table-border: 1px solid #d0e1e8 !important;
-        --theme-table-header-bg: #f0f7f9 !important;
-        --theme-table-header-color: #0f172a !important;
-        --theme-table-header-border: 2px solid #0891b2 !important;
-        
-        --brand-primary: #0891b2 !important;
-        --brand-secondary: #f0f7f9 !important;
-        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
-        --brand-accent: #06b6d4 !important;
-        --code-bg: #e6f0f4 !important;
-        --code-border: #d0e1e8 !important;
-
-        /* 語法高亮列印變數 */
-        --code-token-comment: #64748b !important;
-        --code-token-keyword: #0284c7 !important;
-        --code-token-string: #0f766e !important;
-        --code-token-number: #0891b2 !important;
-        --code-token-function: #2563eb !important;
-    }
-
     /* 2. 強制瀏覽器啟用背景與色彩列印 */
     *,
     *::before,
@@ -443,14 +401,6 @@
         background-color: var(--code-bg) !important;
         border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
-    }
-
-    .theme-aurora.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 4px !important;
     }
 
     .theme-aurora.prose blockquote {

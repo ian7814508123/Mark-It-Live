@@ -138,6 +138,11 @@
     --code-token-string: #22d3ee; /* 冰晶青綠 */
     --code-token-number: #f43f5e; /* 電光紅 */
     --code-token-function: #3b82f6; /* 電子藍 */
+    --code-token-operator: #fdf4ff;
+    --code-token-variable: #fdf4ff;
+    --code-token-class: #818cf8;
+    --code-token-tag: #ec4899;
+    --code-token-attr-name: #fb923c;
 
     /* 深色模式下的 Alerts */
     --theme-alert-note-border: #ec4899;
@@ -209,12 +214,18 @@
 }
 .theme-neonrain.prose h4 { 
     font-size: var(--theme-h4-size);
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
 }
 .theme-neonrain.prose h5 { 
     font-size: var(--theme-h5-size);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
 }
 .theme-neonrain.prose h6 { 
     font-size: var(--theme-h6-size);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
 }
 
@@ -230,6 +241,16 @@
 
 .theme-neonrain.prose blockquote p {
     margin: 0.5rem 0;
+}
+
+/* 霓虹粉圓點無序列表符號 */
+.theme-neonrain.prose ul {
+    list-style-type: disc;
+}
+
+.theme-neonrain.prose li::marker {
+    color: var(--theme-accent-color);
+    font-size: 0.9em;
 }
 
 /* 超連結特色樣式 */
@@ -314,16 +335,6 @@
     background-color: rgba(236, 72, 153, 0.05);
 }
 
-/* Inline Code 樣式排除 pre 避免誤傷 [CRITICAL] */
-.theme-neonrain.prose :not(pre) > code {
-    background-color: var(--code-bg);
-    color: var(--theme-text-color);
-    border: 1px solid var(--code-border);
-    border-radius: 4px;
-    padding: 0.2em 0.4em;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 0.85em;
-}
 
 /* 🌌 電晶外發光 Hover 特效 (Glow Hover Box Shadow) */
 .theme-neonrain.prose .enhanced-codeblock:hover,
@@ -388,6 +399,21 @@
     letter-spacing: normal !important;
 }
 
+/* 重置圖表內部的 ::first-letter 防止文字放大干擾 */
+.theme-neonrain.prose .not-prose p::first-letter,
+.theme-neonrain.prose .not-prose div::first-letter,
+.theme-neonrain.prose .not-prose span::first-letter,
+.theme-neonrain.prose .not-prose text::first-letter {
+    font-size: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
 .theme-neonrain.prose .not-prose .mermaid text,
 .theme-neonrain.prose .not-prose .mermaid .node text,
 .theme-neonrain.prose .not-prose .mermaid .edgeLabel text,
@@ -401,47 +427,6 @@
    本主題遵循高保真特色列印。在此僅進行必要的結構性排版微調，無任何 !important 負擔！
    ========================================================================== */
 @media print {
-    /* 1. 強制將所有變數重設為淺色護眼配色，防禦深色列印黑洞 */
-    .theme-neonrain,
-    .dark .theme-neonrain,
-    [class*="theme-neonrain"] {
-        --theme-text-color: #1e1b4b !important;
-        --theme-accent-color: #db2777 !important;
-        --theme-heading-color: #0f172a !important;
-        --theme-quote-bg: #fdf2f8 !important;
-        --theme-quote-border-left: 4px solid #db2777 !important;
-        --theme-quote-text: #1e1b4b !important;
-        --theme-link-color: #db2777 !important;
-        --theme-table-border: 1px solid #e8c3ff !important;
-        --theme-table-header-bg: #fdf2f8 !important;
-        --theme-table-header-color: #1e1b4b !important;
-        --theme-table-header-border: 2px solid #db2777 !important;
-        
-        --brand-primary: #db2777 !important;
-        --brand-secondary: #fdf2f8 !important;
-        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
-        --brand-accent: #db2777 !important;
-        --code-bg: #f5e6ff !important;
-        --code-border: #e8c3ff !important;
-
-        /* Alerts 標註列印變數 */
-        --theme-alert-note-border: #db2777 !important;
-        --theme-alert-note-bg: rgba(219, 39, 119, 0.04) !important;
-        --theme-alert-note-text: #be185d !important;
-        --theme-alert-tip-border: #059669 !important;
-        --theme-alert-tip-bg: rgba(5, 150, 105, 0.04) !important;
-        --theme-alert-tip-text: #065f46 !important;
-        --theme-alert-important-border: #7c3aed !important;
-        --theme-alert-important-bg: rgba(124, 58, 237, 0.04) !important;
-        --theme-alert-important-text: #5b21b6 !important;
-        --theme-alert-warning-border: #d97706 !important;
-        --theme-alert-warning-bg: rgba(217, 119, 6, 0.04) !important;
-        --theme-alert-warning-text: #b45309 !important;
-        --theme-alert-caution-border: #ef4444 !important;
-        --theme-alert-caution-bg: rgba(239, 68, 68, 0.04) !important;
-        --theme-alert-caution-text: #b91c1c !important;
-    }
-
     /* 2. 強制瀏覽器啟用背景與色彩列印 */
     *,
     *::before,
@@ -472,14 +457,6 @@
         page-break-inside: avoid !important;
     }
 
-    .theme-neonrain.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 4px !important;
-    }
-
     .theme-neonrain.prose blockquote {
         background-color: var(--theme-quote-bg) !important;
         border-left: var(--theme-quote-border-left) !important;
@@ -489,6 +466,15 @@
     .theme-neonrain.prose table {
         border: var(--theme-table-border) !important;
         page-break-inside: avoid !important;
+    }
+
+    .theme-neonrain.prose th {
+        background-color: var(--theme-table-header-bg) !important;
+        border-bottom: var(--theme-table-header-border) !important;
+    }
+
+    .theme-neonrain.prose td {
+        border-top: var(--theme-table-border) !important;
     }
 
     .theme-neonrain.prose h1,

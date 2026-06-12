@@ -404,9 +404,6 @@
 
         /* 1. 全域重置：關閉所有動畫與過渡效果，並確保顏色忠實呈現 */
         * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
             transition: none !important;
             animation: none !important;
             text-shadow: none !important;
@@ -419,7 +416,6 @@
         body {
             background-color: white !important;
             color: black;
-            -webkit-print-color-adjust: exact;
         }
 
         /* 確保暗色模式下的 html 不會帶入深色背景 */
@@ -429,155 +425,7 @@
             color-scheme: light !important;
         }
 
-        /* 3. 預設主題 (DEFAULT) 專屬列印洗淨變數與樣式 (.prose:not([class*="theme-"]))
-         *    將預設主題渲染為極致清晰的高對比黑白，適用於商務與學術論文正規列印 */
-        .prose:not([class*="theme-"]),
-        .prose:not([class*="theme-"]) .enhanced-codeblock {
-            --code-bg: #f8f9fa !important;
-            --code-border: #e2e8f0 !important;
-            --code-token-comment: #008000 !important;
-            --code-token-keyword: #0000FF !important;
-            --code-token-string: #A31515 !important;
-            --code-token-number: #098658 !important;
-            --code-token-function: #795E26 !important;
-            --code-token-operator: #000000 !important;
-            --code-token-variable: #001080 !important;
-            --code-token-constant: #0000FF !important;
-            --code-token-builtin: #267F99 !important;
-            --code-token-class: #267F99 !important;
-            --code-token-attr-name: #E50000 !important;
-            --code-token-tag: #800000 !important;
-            --code-token-punctuation: #393A34 !important;
-        }
 
-        .prose:not([class*="theme-"]) a {
-            color: black !important;
-            text-decoration: underline !important;
-        }
-
-        /* DEFAULT 主題的 Alerts 標註黑白洗淨：強制洗為無彩色的優雅灰白 */
-        .prose:not([class*="theme-"]) blockquote.markdown-alert {
-            background-color: #f8fafc !important;
-            border-left-color: #94a3b8 !important;
-            color: #334155 !important;
-        }
-
-        .prose:not([class*="theme-"]) blockquote.markdown-alert .markdown-alert-title {
-            color: #0f172a !important;
-        }
-
-        .prose:not([class*="theme-"]) blockquote.markdown-alert .markdown-alert-title svg {
-            fill: none !important;
-            stroke: currentColor !important;
-        }
-
-        /* DEFAULT 主題的行內程式碼黑白洗淨 */
-        .prose:not([class*="theme-"]) :not(pre)>code {
-            background-color: #f1f5f9 !important;
-            color: black !important;
-            border: 1px solid #cbd5e1 !important;
-        }
-
-        /* 4. 特色主題 (.prose[class*="theme-"]) 列印背景與文字色透傳
-         *    解決原生列印時因 body 強制白色而使特色背景（如 Classical 宣紙黃 #faf6eb）流失的 Bug */
-        .prose[class*="theme-"] {
-            background-color: var(--brand-surface) !important;
-            color: var(--theme-text-color) !important;
-        }
-
-        /* 特色主題的 Alerts 標註列印高保真保護：防禦性對抗任何第三方或瀏覽器黑白覆寫，強制還原彩色 */
-        .prose[class*="theme-"] blockquote.markdown-alert {
-            color: inherit !important;
-        }
-        .prose[class*="theme-"] blockquote.markdown-alert .markdown-alert-title svg {
-            fill: none !important;
-            stroke: currentColor !important;
-        }
-
-        .prose[class*="theme-"] blockquote.markdown-alert-note {
-            background-color: var(--theme-alert-note-bg) !important;
-            border-left-color: var(--theme-alert-note-border) !important;
-            color: var(--theme-alert-note-text) !important;
-        }
-        .prose[class*="theme-"] blockquote.markdown-alert-note .markdown-alert-title {
-            color: var(--theme-alert-note-text) !important;
-        }
-
-        .prose[class*="theme-"] blockquote.markdown-alert-tip {
-            background-color: var(--theme-alert-tip-bg) !important;
-            border-left-color: var(--theme-alert-tip-border) !important;
-            color: var(--theme-alert-tip-text) !important;
-        }
-        .prose[class*="theme-"] blockquote.markdown-alert-tip .markdown-alert-title {
-            color: var(--theme-alert-tip-text) !important;
-        }
-
-        .prose[class*="theme-"] blockquote.markdown-alert-important {
-            background-color: var(--theme-alert-important-bg) !important;
-            border-left-color: var(--theme-alert-important-border) !important;
-            color: var(--theme-alert-important-text) !important;
-        }
-        .prose[class*="theme-"] blockquote.markdown-alert-important .markdown-alert-title {
-            color: var(--theme-alert-important-text) !important;
-        }
-
-        .prose[class*="theme-"] blockquote.markdown-alert-warning {
-            background-color: var(--theme-alert-warning-bg) !important;
-            border-left-color: var(--theme-alert-warning-border) !important;
-            color: var(--theme-alert-warning-text) !important;
-        }
-        .prose[class*="theme-"] blockquote.markdown-alert-warning .markdown-alert-title {
-            color: var(--theme-alert-warning-text) !important;
-        }
-
-        .prose[class*="theme-"] blockquote.markdown-alert-caution {
-            background-color: var(--theme-alert-caution-bg) !important;
-            border-left-color: var(--theme-alert-caution-border) !important;
-            color: var(--theme-alert-caution-text) !important;
-        }
-        .prose[class*="theme-"] blockquote.markdown-alert-caution .markdown-alert-title {
-            color: var(--theme-alert-caution-text) !important;
-        }
-
-        /* 5. 程式碼與圖表容器：不再需要與 prose 激烈爭奪，回歸標準卡片定義 */
-        .diagram-block-container,
-        .enhanced-codeblock {
-            background-color: var(--code-bg) !important;
-            /* PDF 導出必須強制背景 */
-            border: 1px solid var(--code-border) !important;
-            border-radius: 6px !important;
-            margin: 1.5rem 0 !important;
-            width: 100% !important;
-            overflow: visible !important;
-        }
-
-        .diagram-block-container {
-            padding: 1rem 0 !important;
-        }
-
-        /* 列印時內層 pre 防禦性洗淨，徹底消除雙重邊框 */
-        .enhanced-codeblock pre,
-        .enhanced-codeblock pre[style] {
-            border: none !important;
-            border-radius: 0 !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            background-color: transparent !important;
-            width: 100% !important;
-            overflow: visible !important;
-            white-space: pre-wrap !important;
-        }
-
-        /* 6. 語言標籤列印樣式：強制使用淺色風格，改為不透明以消除與底層邊框的疊影 */
-        .code-lang-label {
-            color: #475569 !important;
-            /* slate-600 */
-            background-color: #f1f5f9 !important;
-            /* 不透明淺灰 */
-            border-bottom: 1px solid #cbd5e1;
-            border-right: 1px solid #cbd5e1;
-            text-shadow: none !important;
-        }
     }
 
     /* ── 預覽模式：清除 .prose pre 外層容器的干擾樣式 ──

@@ -165,12 +165,12 @@
 }
 
 /* 標題設計：學術特有字型與粗細 */
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4,
-.prose h5,
-.prose h6 {
+.theme-academic.prose h1,
+.theme-academic.prose h2,
+.theme-academic.prose h3,
+.theme-academic.prose h4,
+.theme-academic.prose h5,
+.theme-academic.prose h6 {
     font-family: var(--theme-heading-font);
     color: var(--theme-heading-color);
     font-weight: var(--theme-heading-weight);
@@ -294,61 +294,7 @@
 
 /* Print Specifics: 學術排版尺寸與間距微調，色彩自訂度完美保留 */
 @media print {
-
-    /* 1. 強制將所有學術主題相關的 CSS 變數（即便在深色模式下）重置為淺色模式的學術配色，
-       以確保白底紙張上高對比度之文字與高保真色彩呈現 */
-    .theme-academic,
-    .dark .theme-academic,
-    [class*="theme-academic"] {
-        --theme-text-color: #1a1a1a !important;
-        --theme-accent-color: #000000 !important;
-        --theme-heading-color: #000000 !important;
-        --theme-quote-text: #374151 !important;
-        --theme-link-color: #1a1a1a !important;
-        --theme-table-header-color: #000000 !important;
-        --brand-primary: #1a1a1a !important;
-        --brand-secondary: #f3f4f6 !important;
-        --brand-surface: #ffffff !important; /* 拔除背景色，強制為白底，防禦 index.css 特色主題背景覆蓋 */
-        --brand-accent: #4b5563 !important;
-        --code-bg: #f9fafb !important; /* 學術淺灰代碼背景 */
-        --code-border: #d1d5db !important;
-
-        /* Mermaid 樣式變數 (學術列印降級) */
-        --mermaid-node-bg: #f3f4f6 !important;
-        --mermaid-node-text: #1a1a1a !important;
-        --mermaid-node-border: #d1d5db !important;
-        --mermaid-line: #4b5563 !important;
-        --mermaid-edge-bg: #ffffff !important;
-
-        /* 語法高亮學術淺色變數 */
-        --code-token-comment: #71717a !important;
-        --code-token-keyword: #09090b !important;
-        --code-token-string: #27272a !important;
-        --code-token-number: #18181b !important;
-        --code-token-function: #09090b !important;
-        --code-token-operator: #27272a !important;
-        --code-token-variable: #27272a !important;
-        --code-token-class: #09090b !important;
-
-        /* Alerts 標註學術淺色變數 */
-        --theme-alert-note-border: #2b5797 !important;
-        --theme-alert-note-bg: rgba(43, 87, 151, 0.04) !important;
-        --theme-alert-note-text: #1a3b6d !important;
-        --theme-alert-tip-border: #1b5e20 !important;
-        --theme-alert-tip-bg: rgba(27, 94, 32, 0.04) !important;
-        --theme-alert-tip-text: #0d3c13 !important;
-        --theme-alert-important-border: #4a148c !important;
-        --theme-alert-important-bg: rgba(74, 20, 140, 0.04) !important;
-        --theme-alert-important-text: #320b5f !important;
-        --theme-alert-warning-border: #b7791f !important;
-        --theme-alert-warning-bg: rgba(183, 121, 31, 0.04) !important;
-        --theme-alert-warning-text: #744a0b !important;
-        --theme-alert-caution-border: #b71c1c !important;
-        --theme-alert-caution-bg: rgba(183, 28, 28, 0.04) !important;
-        --theme-alert-caution-text: #7f1212 !important;
-    }
-
-    /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印 */
+    /* 必須：強制瀏覽器啟用局部背景與色彩列印 */
     *,
     *::before,
     *::after {
@@ -356,7 +302,7 @@
         print-color-adjust: exact !important;
     }
 
-    /* 3. 學術排版與文字尺寸微調 */
+    /* 學術排版與文字尺寸微調 */
     .theme-academic.prose {
         font-size: 11pt !important;
         line-height: 1.5 !important;
@@ -367,93 +313,38 @@
         font-size: 22pt !important;
         margin-top: 0 !important;
         margin-bottom: 30pt !important;
-        color: var(--theme-heading-color) !important;
     }
 
     .theme-academic.prose h2 {
         border-bottom: 1pt solid var(--theme-heading-color) !important;
         font-size: 16pt !important;
         margin-top: 20pt !important;
-        color: var(--theme-heading-color) !important;
     }
 
     .theme-academic.prose blockquote {
         font-style: italic !important;
-        color: var(--theme-quote-text) !important;
-        border-left: 2pt solid var(--theme-quote-border-left) !important;
     }
 
-    /* 4. 頑強保留：所有標註區塊 (Alert Box) 的學術配色，防禦 index.css 覆蓋 */
+    /* 所有標註區塊避免跨頁切斷 */
     .theme-academic.prose blockquote.markdown-alert {
         page-break-inside: avoid !important;
-        color: var(--theme-text-color) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-note {
-        background-color: var(--theme-alert-note-bg) !important;
-        border-left-color: var(--theme-alert-note-border) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-note .markdown-alert-title {
-        color: var(--theme-alert-note-text) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-tip {
-        background-color: var(--theme-alert-tip-bg) !important;
-        border-left-color: var(--theme-alert-tip-border) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-tip .markdown-alert-title {
-        color: var(--theme-alert-tip-text) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-important {
-        background-color: var(--theme-alert-important-bg) !important;
-        border-left-color: var(--theme-alert-important-border) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-important .markdown-alert-title {
-        color: var(--theme-alert-important-text) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-warning {
-        background-color: var(--theme-alert-warning-bg) !important;
-        border-left-color: var(--theme-alert-warning-border) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-warning .markdown-alert-title {
-        color: var(--theme-alert-warning-text) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-caution {
-        background-color: var(--theme-alert-caution-bg) !important;
-        border-left-color: var(--theme-alert-caution-border) !important;
-    }
-    .theme-academic.prose blockquote.markdown-alert-caution .markdown-alert-title {
-        color: var(--theme-alert-caution-text) !important;
     }
 
-    /* 5. 程式碼區塊在學術下的列印優化 */
-    .theme-academic.prose :not(pre) > code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 3px !important;
-    }
+    /* 程式碼區塊在學術下的列印優化 */
     .theme-academic.prose pre,
     .theme-academic.prose .enhanced-codeblock,
     .theme-academic.prose .code-block-wrapper pre {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
     }
 
-    /* 6. 三線表學術優化 */
+    /* 三線表學術優化 */
     .theme-academic.prose table {
-        border-collapse: collapse !important;
-        border-top: 2px solid var(--theme-heading-color) !important;
-        border-bottom: 2px solid var(--theme-heading-color) !important;
-        border-left: none !important;
-        border-right: none !important;
+        page-break-inside: avoid !important;
     }
-    .theme-academic.prose th {
-        color: var(--theme-table-header-color) !important;
-        border-bottom: var(--theme-table-header-border) !important;
-        background-color: transparent !important;
-    }
-    .theme-academic.prose td {
-        border: none !important;
+
+    .theme-academic.prose h1,
+    .theme-academic.prose h2,
+    .theme-academic.prose h3 {
+        page-break-after: avoid !important;
     }
 }

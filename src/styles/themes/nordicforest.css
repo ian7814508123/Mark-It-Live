@@ -327,19 +327,6 @@
     background-color: rgba(110, 231, 183, 0.05);
 }
 
-/* Inline Code 樣式 */
-.theme-nordicforest.prose :not(pre) > code {
-    background-color: var(--code-bg);
-    color: var(--theme-text-color);
-    border: 1px solid var(--code-border);
-    border-radius: 4px;
-    padding: 0.2em 0.4em;
-    font-family: "Fira Code", "JetBrains Mono", monospace;
-    font-size: 0.85em;
-}
-
-
-
 /* Alert 標註系統客製 */
 .theme-nordicforest.prose blockquote.markdown-alert-note {
     border-left-color: var(--theme-alert-note-border);
@@ -425,54 +412,6 @@
    在此僅進行必要的結構性排版微調，無任何 !important 負擔！
    ========================================================================== */
 @media print {
-    /* 1. 強制將所有變數重設為淺色薄霧護眼配色，防禦深色列印黑洞 */
-    .theme-nordicforest,
-    .dark .theme-nordicforest,
-    [class*="theme-nordicforest"] {
-        --theme-text-color: #1c2d20 !important;
-        --theme-accent-color: #2d4a36 !important;
-        --theme-heading-color: #0d3d2d !important;
-        --theme-quote-bg: #edf2ed !important;
-        --theme-quote-border-left: 4px solid #2d4a36 !important;
-        --theme-quote-text: #1c2d20 !important;
-        --theme-link-color: #2d4a36 !important;
-        --theme-table-border: 1px solid #d2ded2 !important;
-        --theme-table-header-bg: #edf2ed !important;
-        --theme-table-header-color: #0d3d2d !important;
-        --theme-table-header-border: 2px solid #2d4a36 !important;
-        
-        --brand-primary: #2d4a36 !important;
-        --brand-secondary: #edf2ed !important;
-        --brand-surface: #ffffff !important; 
-        --brand-accent: #6ee7b7 !important;
-        --code-bg: #f3f7f3 !important; 
-        --code-border: #dae3da !important;
-
-        /* 語法高亮列印淺色變數 */
-        --code-token-comment: #7a9a60 !important;
-        --code-token-keyword: #2d4a36 !important;
-        --code-token-string: #b8860b !important;
-        --code-token-number: #c27a3f !important;
-        --code-token-function: #0d3d2d !important;
-
-        /* Alerts 標註列印淺色變數 */
-        --theme-alert-note-border: #2d4a36 !important;
-        --theme-alert-note-bg: rgba(45, 74, 54, 0.05) !important;
-        --theme-alert-note-text: #0d3d2d !important;
-        --theme-alert-tip-border: #16a34a !important;
-        --theme-alert-tip-bg: rgba(22, 163, 74, 0.05) !important;
-        --theme-alert-tip-text: #15803d !important;
-        --theme-alert-important-border: #7c3aed !important;
-        --theme-alert-important-bg: rgba(124, 58, 237, 0.05) !important;
-        --theme-alert-important-text: #6d28d9 !important;
-        --theme-alert-warning-border: #d97706 !important;
-        --theme-alert-warning-bg: rgba(217, 119, 6, 0.05) !important;
-        --theme-alert-warning-text: #b45309 !important;
-        --theme-alert-caution-border: #dc2626 !important;
-        --theme-alert-caution-bg: rgba(220, 38, 38, 0.05) !important;
-        --theme-alert-caution-text: #b91c1c !important;
-    }
-
     /* 2. 強制瀏覽器啟用局部背景與色彩列印 */
     *,
     *::before,
@@ -503,14 +442,6 @@
         background-color: var(--code-bg) !important;
         border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
-    }
-
-    .theme-nordicforest.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 4px !important;
     }
 
     .theme-nordicforest.prose blockquote {

@@ -302,16 +302,6 @@
     background-color: rgba(249, 115, 22, 0.05);
 }
 
-/* Inline Code 樣式排除 pre 避免誤傷 [CRITICAL] */
-.theme-sunsetglow.prose :not(pre) > code {
-    background-color: var(--code-bg);
-    color: var(--theme-text-color);
-    border: 1px solid var(--code-border);
-    border-radius: 4px;
-    padding: 0.2em 0.4em;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 0.85em;
-}
 
 /* Alert 標註系統客製 */
 .theme-sunsetglow.prose blockquote.markdown-alert-note {
@@ -381,37 +371,6 @@
    本主題遵循高保真特色列印。在此僅進行必要的結構性排版微調，無任何 !important 負擔！
    ========================================================================== */
 @media print {
-    /* 1. 強制將所有變數重設為淺色護眼配色，防禦深色列印黑洞 */
-    .theme-sunsetglow,
-    .dark .theme-sunsetglow,
-    [class*="theme-sunsetglow"] {
-        --theme-text-color: #5c3d2e !important;
-        --theme-accent-color: #ea580c !important;
-        --theme-heading-color: #442a1e !important;
-        --theme-quote-bg: #fbf3db !important;
-        --theme-quote-border-left: 4px solid #ea580c !important;
-        --theme-quote-text: #5c3d2e !important;
-        --theme-link-color: #ea580c !important;
-        --theme-table-border: 1px solid #e4d9b4 !important;
-        --theme-table-header-bg: #fbf3db !important;
-        --theme-table-header-color: #442a1e !important;
-        --theme-table-header-border: 2px solid #ea580c !important;
-        
-        --brand-primary: #ea580c !important;
-        --brand-secondary: #fbf3db !important;
-        --brand-surface: #ffffff !important; /* 強制背景為白底防禦 */
-        --brand-accent: #f97316 !important;
-        --code-bg: #faf4db !important;
-        --code-border: #ebdca5 !important;
-
-        /* 語法高亮列印變數 */
-        --code-token-comment: #8c7355 !important;
-        --code-token-keyword: #b24b17 !important;
-        --code-token-string: #4f6b28 !important;
-        --code-token-number: #a16207 !important;
-        --code-token-function: #385d7a !important;
-    }
-
     /* 2. 強制瀏覽器啟用背景與色彩列印 */
     *,
     *::before,
@@ -440,14 +399,6 @@
         background-color: var(--code-bg) !important;
         border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
-    }
-
-    .theme-sunsetglow.prose :not(pre)>code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 4px !important;
     }
 
     .theme-sunsetglow.prose blockquote {

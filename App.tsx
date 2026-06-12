@@ -345,6 +345,34 @@ const App: React.FC = () => {
     }
   }, [isDarkMode]);
 
+  // 列印深色模式回退：列印前暫時移除 dark class (回到淺色模式)，列印後自動復原
+  // 此方案不需修改任何主題 CSS，自動支援全部現有與未來新增的主題
+  useEffect(() => {
+    let wasDark = false;
+
+    const handleBeforePrint = () => {
+      wasDark = document.documentElement.classList.contains('dark');
+      if (wasDark) {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    const handleAfterPrint = () => {
+      if (wasDark) {
+        document.documentElement.classList.add('dark');
+      }
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
+
+
   // 同步 openDocIds：當 currentDocId 改變且不在 openDocIds 中時，加入它
   useEffect(() => {
     if (currentDocId && !openDocIds.includes(currentDocId)) {
@@ -855,9 +883,9 @@ const App: React.FC = () => {
       // Markdown 模式：當開啟列印預覽時，我們需要確保列印時捨棄所有 UI，只留紙張
       additionalCSS = `
         /* 強制所有背景為白色，文字為黑色 */
+        /* 強制所有背景為白色 */
         html, body, .preview-panel, .print-paper {
             background-color: white !important;
-            color: black !important;
             color-scheme: light !important;
             box-shadow: none !important;
             --tw-ring-shadow: none !important;
@@ -918,10 +946,8 @@ const App: React.FC = () => {
             background-color: white !important;
         }
 
-        /* 修正程式碼區塊：強制淺色底色，無視深色模式設定 */
+        /* 修正程式碼區塊：確保內容換行顯示，背景色交由 theme 決定 */
         .prose pre {
-            background-color: #f8f9fa !important;
-            border: 1px solid #ddd !important;
             white-space: pre-wrap !important;
             overflow-wrap: break-word !important;
             word-break: normal !important;
@@ -933,12 +959,9 @@ const App: React.FC = () => {
             text-shadow: none !important;
         }
 
-        /* 所有預覽區在列印時的 inline code 基礎骨架，確保 padding 與圓角不遺失 */
+        /* 確保語法高亮不被反轉 */
         .prose :not(pre) > code {
-        
-            background-color: #f1f5f9 !important;
-            color: #333 !important;
-            border: 1px solid #cbd5e1 !important;
+            /* 顏色交由 theme 決定，不強制覆蓋 */
         }
 
         /* 語法高亮插件內部的 pre 可能有自己的樣式 */
@@ -981,19 +1004,7 @@ const App: React.FC = () => {
             height: auto !important;
         }
 
-        /* 讓 Mermaid 文字在列印時變為純黑 */
-        .mermaid .label text, .mermaid .edgeLabel, .mermaid .node text {
-            fill: black !important;
-            color: black !important;
-        }
-
-        .mermaid .node rect, .mermaid .node circle, .mermaid .node polygon, .mermaid .node path {
-            fill: #fff !important;
-            stroke: #000 !important;
-        }
-        .mermaid .edgePath path {
-            stroke: #000 !important;
-        }
+        /* Mermaid 圖表顏色由 theme 決定，不強制覆蓋為黑白 */
 
         /* 針對 Vega/Canvas 的文字顏色 (如果有的話) */
         .vega-embed canvas {
@@ -1003,7 +1014,6 @@ const App: React.FC = () => {
         /* 內容區塊間隔優化：段落與標題允許在中間分頁，但盡量保持標題與內容在一起 */
         .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
             page-break-after: avoid !important;
-            color: black !important;
         }
 
         .prose p, .prose li, .prose pre, .prose blockquote {

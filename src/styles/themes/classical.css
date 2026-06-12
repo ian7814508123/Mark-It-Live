@@ -109,12 +109,6 @@
     --mermaid-node-border: var(--code-border);
     --mermaid-line: var(--theme-accent-color, var(--brand-primary));
     --mermaid-edge-bg: var(--brand-surface, #1e293b);
-    /* Mermaid 樣式變數 (自適應主題連動) */
-    --mermaid-node-bg: var(--brand-secondary, var(--code-bg));
-    --mermaid-node-text: var(--theme-text-color, inherit);
-    --mermaid-node-border: var(--code-border);
-    --mermaid-line: var(--theme-accent-color, var(--brand-primary));
-    --mermaid-edge-bg: var(--brand-surface, #ffffff);
     --theme-text-color: #e5dfd3;
     /* 溫潤玉白 */
     --theme-accent-color: #c9423a;
@@ -191,12 +185,12 @@
 }
 
 /* 標題設計：濃墨黑與宣紙字體 */
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4,
-.prose h5,
-.prose h6 {
+.theme-classical.prose h1,
+.theme-classical.prose h2,
+.theme-classical.prose h3,
+.theme-classical.prose h4,
+.theme-classical.prose h5,
+.theme-classical.prose h6 {
     font-family: var(--theme-heading-font);
     color: var(--theme-heading-color);
     font-weight: var(--theme-heading-weight);
@@ -328,58 +322,9 @@
     color: var(--theme-accent-color);
 }
 
-/* Print Specifics: 全純白紙底色，但全面保留硃砂紅、三線表、Alert與代碼高亮樣式 */
+/* Print Specifics: 保留硃砂紅、三線表、Alert 與代碼高亮樣式 */
 @media print {
-
-    /* 1. 強制將所有古典主題相關的 CSS 變數（即便在深色模式下）重置為淺色模式的古典配色，
-       以確保白底紙張上高對比度之徽墨字體與高保真硃砂色澤呈現 */
-    .theme-classical,
-    .dark .theme-classical,
-    [class*="theme-classical"] {
-        --theme-text-color: #2c2a29 !important;
-        --theme-accent-color: #b22222 !important;
-        --theme-heading-color: #111111 !important;
-        --theme-quote-text: #4a4a4a !important;
-        --theme-link-color: #b22222 !important;
-        --theme-table-header-color: #b22222 !important;
-        --brand-primary: #b22222 !important;
-        --brand-secondary: #faf6eb !important;
-        --brand-surface: #ffffff !important; /* 拔除宣紙米黃底色，強制為白底，防禦 index.css 特色主題背景覆蓋 */
-        --brand-accent: #c9423a !important;
-        --code-bg: #fdfbf7 !important; /* 竹麻色代碼背景 */
-        --code-border: #e6dfd3 !important;
-
-        /* 語法高亮淺色變數，防禦深色高亮色彩在白底上失去對比度 */
-        --code-token-comment: #5c4a43 !important;
-        --code-token-keyword: #1b315e !important;
-        --code-token-string: #8b1e0f !important;
-        --code-token-number: #7c4c1a !important;
-        --code-token-function: #5d3f1a !important;
-        --code-token-operator: #2c2a29 !important;
-        --code-token-variable: #2c2a29 !important;
-        --code-token-class: #3d5e46 !important;
-        --code-token-tag: #8b1e0f !important;
-        --code-token-attr-name: #7c4c1a !important;
-
-        /* Alerts 標註古典淺色變數 */
-        --theme-alert-note-border: #2a4b60 !important;
-        --theme-alert-note-bg: rgba(42, 75, 96, 0.03) !important;
-        --theme-alert-note-text: #193140 !important;
-        --theme-alert-tip-border: #3b6e4c !important;
-        --theme-alert-tip-bg: rgba(59, 110, 76, 0.03) !important;
-        --theme-alert-tip-text: #254b32 !important;
-        --theme-alert-important-border: #5e3c6d !important;
-        --theme-alert-important-bg: rgba(94, 60, 109, 0.03) !important;
-        --theme-alert-important-text: #3b2347 !important;
-        --theme-alert-warning-border: #b57c1e !important;
-        --theme-alert-warning-bg: rgba(181, 124, 30, 0.03) !important;
-        --theme-alert-warning-text: #7b510d !important;
-        --theme-alert-caution-border: #9e2a2b !important;
-        --theme-alert-caution-bg: rgba(158, 42, 43, 0.03) !important;
-        --theme-alert-caution-text: #6f1b1c !important;
-    }
-
-    /* 2. 必須：強制瀏覽器啟用局部背景與色彩列印（確保 Alert 背景、代碼背景、線條顏色不被抹除） */
+    /* 必須：強制瀏覽器啟用局部背景與色彩列印 */
     *,
     *::before,
     *::after {
@@ -387,132 +332,37 @@
         print-color-adjust: exact !important;
     }
 
-    /* 3. 全域與主體容器徹底白化：拔除宣紙色，確保整張 A4 紙是純白底色 */
-    html,
-    body,
-    #app,
-    main,
-    .theme-classical,
-    .theme-classical.prose {
-        background: #ffffff !important;
-        background-color: #ffffff !important;
-        color: var(--theme-text-color) !important;
-        /* 保留徽墨暖黑字色，非死黑 */
-        box-shadow: none !important;
-        padding: 0 !important;
-        /* 歸零為預設列印邊距 */
-        border: none !important;
-    }
-
-    /* 4. 排版與文字尺寸微調 */
+    /* 排版與文字尺寸微調 */
     .theme-classical.prose {
         font-size: 11pt;
         line-height: 1.6;
     }
 
-    /* 5. 頑強保留：標題、連結、列表符號的古典色調 */
-    .theme-classical.prose h1,
-    .theme-classical.prose h2,
-    .theme-classical.prose h3 {
-        color: var(--theme-heading-color) !important;
-        /* 濃墨黑 */
-    }
-
+    /* h2 保留硃砂紅虛線底邊（主題特有排版） */
     .theme-classical.prose h2 {
         border-bottom: var(--theme-h2-border) !important;
-        /* 硃砂紅虛線底邊 */
     }
 
-    .theme-classical.prose li::marker {
-        color: var(--theme-accent-color) !important;
-        /* 硃砂紅列表點 */
-    }
-
-    .theme-classical.prose a {
-        color: var(--theme-link-color) !important;
-        /* 硃砂紅超連結 */
-    }
-
-    /* 6. 頑強保留：所有標註區塊 (Alert Box) 的亮點古典色彩，覆蓋 index.css 中通用黑白化樣式 */
+    /* 所有標註區塊避免跨頁切斷 */
     .theme-classical.prose blockquote.markdown-alert {
-        page-break-inside: avoid !important; /* 避免標註區塊在跨頁時被切斷 */
-        color: var(--theme-text-color) !important;
-    }
-
-    .theme-classical.prose blockquote.markdown-alert-note {
-        background-color: var(--theme-alert-note-bg) !important;
-        border-left-color: var(--theme-alert-note-border) !important;
-    }
-    .theme-classical.prose blockquote.markdown-alert-note .markdown-alert-title {
-        color: var(--theme-alert-note-text) !important;
-    }
-
-    .theme-classical.prose blockquote.markdown-alert-tip {
-        background-color: var(--theme-alert-tip-bg) !important;
-        border-left-color: var(--theme-alert-tip-border) !important;
-    }
-    .theme-classical.prose blockquote.markdown-alert-tip .markdown-alert-title {
-        color: var(--theme-alert-tip-text) !important;
-    }
-
-    .theme-classical.prose blockquote.markdown-alert-important {
-        background-color: var(--theme-alert-important-bg) !important;
-        border-left-color: var(--theme-alert-important-border) !important;
-    }
-    .theme-classical.prose blockquote.markdown-alert-important .markdown-alert-title {
-        color: var(--theme-alert-important-text) !important;
-    }
-
-    .theme-classical.prose blockquote.markdown-alert-warning {
-        background-color: var(--theme-alert-warning-bg) !important;
-        border-left-color: var(--theme-alert-warning-border) !important;
-    }
-    .theme-classical.prose blockquote.markdown-alert-warning .markdown-alert-title {
-        color: var(--theme-alert-warning-text) !important;
-    }
-
-    .theme-classical.prose blockquote.markdown-alert-caution {
-        background-color: var(--theme-alert-caution-bg) !important;
-        border-left-color: var(--theme-alert-caution-border) !important;
-    }
-    .theme-classical.prose blockquote.markdown-alert-caution .markdown-alert-title {
-        color: var(--theme-alert-caution-text) !important;
-    }
-
-    /* 7. 頑強保留：行內程式碼與代碼區塊的竹麻色調與語法高亮 */
-    .theme-classical.prose :not(pre) > code {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
-        color: var(--theme-text-color) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 3px !important;
-    }
-
-    /* 區塊代碼容器 */
-    .theme-classical.prose pre,
-    .theme-classical.prose .enhanced-codeblock,
-    .theme-classical.prose .code-block-wrapper pre {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
     }
 
-    /* 8. 頑強保留：古典雙橫線三線表格 */
+    /* 程式碼區塊列印優化 */
+    .theme-classical.prose pre,
+    .theme-classical.prose .enhanced-codeblock,
+    .theme-classical.prose .code-block-wrapper pre {
+        page-break-inside: avoid !important;
+    }
+
+    /* 古典三線表格列印優化 */
     .theme-classical.prose table {
-        border-collapse: collapse !important;
-        border-top: 2px solid var(--theme-accent-color) !important;
-        border-bottom: 2px solid var(--theme-accent-color) !important;
-        border-left: none !important;
-        border-right: none !important;
+        page-break-inside: avoid !important;
     }
 
-    .theme-classical.prose th {
-        color: var(--theme-table-header-color) !important;
-        border-bottom: var(--theme-table-header-border) !important;
-        background-color: transparent !important;
-    }
-
-    .theme-classical.prose td {
-        border: none !important;
+    .theme-classical.prose h1,
+    .theme-classical.prose h2,
+    .theme-classical.prose h3 {
+        page-break-after: avoid !important;
     }
 }

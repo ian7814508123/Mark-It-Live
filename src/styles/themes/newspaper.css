@@ -489,55 +489,12 @@
    列印與輸出相容性 (Print Compatibility)
    ========================================================================== */
 @media print {
-    /* 
-     * 強制將所有變數重設為淺色報紙配色，並開啟局部背景與色彩列印。
-     * 系統會以泛黃老舊報紙底色搭配高保真黑字進行 PDF 輸出，保留極致美學。
-     */
-    .theme-newspaper,
-    .dark .theme-newspaper,
-    [class*="theme-newspaper"] {
-        --theme-text-color: #111111 !important;
-        --theme-accent-color: #000000 !important;
-        --theme-heading-color: #111111 !important;
-        --theme-quote-text: #111111 !important;
-        --theme-link-color: #111111 !important;
-        --theme-table-header-color: #111111 !important;
-        --brand-primary: #111111 !important;
-        --brand-secondary: #f5ede1 !important;
-        --brand-surface: #ffffff !important; /* 確保主背景為白色以符合印表紙張防護，但保留預覽內容的報紙質感 */
-        --code-bg: #ebe3d5 !important;
-        --code-border: #d1c7b7 !important;
-
-        --code-token-comment: #6e6557 !important;
-        --code-token-keyword: #111111 !important;
-        --code-token-string: #2b4c3f !important;
-        --code-token-number: #7d3c1a !important;
-        --code-token-class: #3c546a !important;
-
-        --theme-alert-note-border: #111111 !important;
-        --theme-alert-note-bg: #ebe3d5 !important;
-        --theme-alert-note-text: #111111 !important;
-        --theme-alert-tip-border: #2b4c3f !important;
-        --theme-alert-tip-bg: #e1ede8 !important;
-        --theme-alert-tip-text: #2b4c3f !important;
-    }
 
     *,
     *::before,
     *::after {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-    }
-
-    html,
-    body,
-    .theme-newspaper,
-    .theme-newspaper.prose {
-        background: #ffffff !important;
-        background-color: #ffffff !important;
-        color: var(--theme-text-color) !important;
-        box-shadow: none !important;
-        border: none !important;
     }
 
     .theme-newspaper.prose {
@@ -565,55 +522,8 @@
         border-bottom: 3px double var(--theme-text-color) !important;
     }
 
-    .theme-newspaper.prose blockquote.markdown-alert-note {
-        background-color: var(--theme-alert-note-bg) !important;
-        border-top-color: var(--theme-alert-note-border) !important;
-        border-bottom-color: var(--theme-alert-note-border) !important;
-    }
-    .theme-newspaper.prose blockquote.markdown-alert-note .markdown-alert-title {
-        color: var(--theme-alert-note-text) !important;
-    }
-
-    .theme-newspaper.prose blockquote.markdown-alert-tip {
-        background-color: var(--theme-alert-tip-bg) !important;
-        border-top-color: var(--theme-alert-tip-border) !important;
-        border-bottom-color: var(--theme-alert-tip-border) !important;
-    }
-    .theme-newspaper.prose blockquote.markdown-alert-tip .markdown-alert-title {
-        color: var(--theme-alert-tip-text) !important;
-    }
-
-    .theme-newspaper.prose blockquote.markdown-alert-important {
-        background-color: var(--theme-alert-important-bg) !important;
-        border-top-color: var(--theme-alert-important-border) !important;
-        border-bottom-color: var(--theme-alert-important-border) !important;
-    }
-    .theme-newspaper.prose blockquote.markdown-alert-important .markdown-alert-title {
-        color: var(--theme-alert-important-text) !important;
-    }
-
-    .theme-newspaper.prose blockquote.markdown-alert-warning {
-        background-color: var(--theme-alert-warning-bg) !important;
-        border-top-color: var(--theme-alert-warning-border) !important;
-        border-bottom-color: var(--theme-alert-warning-border) !important;
-    }
-    .theme-newspaper.prose blockquote.markdown-alert-warning .markdown-alert-title {
-        color: var(--theme-alert-warning-text) !important;
-    }
-
-    .theme-newspaper.prose blockquote.markdown-alert-caution {
-        background-color: var(--theme-alert-caution-bg) !important;
-        border-top-color: var(--theme-alert-caution-border) !important;
-        border-bottom-color: var(--theme-alert-caution-border) !important;
-    }
-    .theme-newspaper.prose blockquote.markdown-alert-caution .markdown-alert-title {
-        color: var(--theme-alert-caution-text) !important;
-    }
-
     .theme-newspaper.prose pre,
     .theme-newspaper.prose .enhanced-codeblock {
-        background-color: var(--code-bg) !important;
-        border: 1px solid var(--code-border) !important;
         page-break-inside: avoid !important;
     }
 
@@ -622,4 +532,11 @@
         border-bottom: 3px double var(--theme-text-color) !important;
         page-break-inside: avoid !important;
     }
+
+    .theme-newspaper.prose h1,
+    .theme-newspaper.prose h2,
+    .theme-newspaper.prose h3 {
+        page-break-after: avoid !important;
+    }
 }
+
