@@ -515,6 +515,10 @@ npm run electron-build
     # 範例二：純數字發布標籤（防呆自動相容）
     git tag 4.1.3
     git push origin 4.1.3
+
+    # 範例三：移動標籤到新版本
+    git tag -f v<recent-version> <new-commit-id>
+    git push origin v<recent-version> -f
     ```
 *   **Actions 自動掛載附件**：
     打包成功後，執行檔將全自動上傳至對應的 GitHub Draft Release 附件中。
