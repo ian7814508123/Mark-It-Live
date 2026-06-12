@@ -188,7 +188,7 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
         EditorState.tabSize.of(2),
         EditorView.theme({
             '&': { height: '100%', overflow: 'hidden' },
-            '.cm-scroller': { overflow: 'auto' },
+            '.cm-scroller': { overflow: 'auto', height: '100%' },
             '.cm-content, .cm-gutter': { lineHeight: '1.5' },
             '.cm-gutterElement': { fontStyle: 'italic' },
         }),
@@ -279,6 +279,10 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
                 position: 'relative',
                 height: '100%',
                 width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                minHeight: 0,
                 // VS Code 明/暗主題色票
                 ['--sg-bg' as string]: isDarkMode ? '#0F172A' : '#ffffff',
                 ['--sg-gutter' as string]: isDarkMode ? '#0F172A' : '#f5f5f5',

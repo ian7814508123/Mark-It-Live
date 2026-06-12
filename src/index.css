@@ -287,12 +287,35 @@
     /* ── 大螢幕佈局優化 (Large Screen Layout Optimization) ── */
     /* 針對超寬螢幕，限制最大寬度並增加內距以確保閱讀舒適度 */
     .layout-main-content {
-        display: flex;
+        /* 不分媒體皆生效的基礎屬性 */
         flex: 1;
+        min-height: 0;
         width: 100%;
-        overflow: hidden;
         transition: max-width 0.3s ease, padding 0.3s ease;
     }
+
+    /* display:flex + overflow:hidden 僅在螢幕模式下需要：
+     * - flex   → 讓編輯器與預覽面板並排
+     * - hidden → 防止面板在螢幕上溢出
+     * 列印時讓瀏覽器自然使用 display:block + overflow:visible，
+     * 內容才能完整展開輸出，不需要任何 !important 覆蓋。 */
+    @media screen {
+        .layout-main-content {
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* main 容器的 overflow:hidden 同理，僅用於螢幕模式剪裁 */
+        .app-main {
+            overflow: hidden;
+        }
+    }
+
+    /* 拖曳時防禦性防止文字選取，不使用 pointer-events 阻斷以防狀態殘留卡死 */
+    .layout-resizing * {
+        user-select: none !important;
+    }
+
 
     @media (min-width: 2560px) {
         .layout-main-content {
@@ -307,6 +330,7 @@
             padding: 0 4rem;
         }
     }
+
 
     /* ── MD3 Ripple Effect ─────────────────────────────────── */
 
@@ -401,7 +425,58 @@
  * 確保多分頁情境下 window.print() 只輸出當前文件，而非所有開啟的分頁
  * ─────────────────────────────────────────────────────────────────────── */
     @media print {
+                
+        /* ==========================================================================
+           列印模式全域排版覆寫 (Print Mode Global Layout Overrides)
+           目的：解決 React 應用程式中 Flexbox 佈局在列印時產生的「高度塌陷」問題。
+           因傳統列印為由上而下的紙張瀑布流（Block Formatting Context），
+           必須強制剝除所有的 Flex 屬性、絕對定位，並釋放高度限制。
+           ========================================================================== */
+                
+        /* 
+         * 1. 釋放全域畫布 (Release Global Canvas Context)
+         * 確保最外層的根節點不再受到 100vh 或是隱藏溢出內容的限制，
+         * 讓列印的頁面可以無限制向下延伸跨頁。
+         */
+        html, body, #root, .app-main {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            display: block !important;
+            position: relative !important;
+        }
 
+        /* 
+         * 2. 解除佈局框架的 Flex 限制 (Break Layout Framework Flex Constraints)
+         * 由於 .layout-main-content 預設使用 Flexbox 來容納編輯器與預覽面板，
+         * 在列印時強制轉換為 block 元素，並解除絕對定位。
+         */
+        .layout-main-content, 
+        .layout-resizing {
+            position: static !important;
+            display: block !important;
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+        }
+
+        /* 
+         * 3. 預防深層容器高度塌陷 (Prevent Deep Container Height Collapse)
+         * 針對擁有 flex-1 或 h-full 屬性的預覽面板與其子容器進行覆寫。
+         * 避免父層失去 fixed height 時，子層因 flex-basis: 0% 或百分比高度而塌陷為 0px。
+         */
+        div.flex.flex-col.overflow-hidden,
+        .preview-panel,
+        .print-preview-container,
+        .print-paper,
+        .prose-container {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+            position: static !important;
+            min-height: 0 !important;
+        }
         /* 1. 全域重置：關閉所有動畫與過渡效果，並確保顏色忠實呈現 */
         * {
             transition: none !important;
@@ -1028,12 +1103,14 @@
         transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
-    .cm-sticky-scroll-wrapper {
+    .cm-sticky-scroll-wrapper,
+    .hide-scrollbar {
         /* 隱藏原生捲軸*/
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
     }
-    .cm-sticky-scroll-wrapper::-webkit-scrollbar {
+    .cm-sticky-scroll-wrapper::-webkit-scrollbar,
+    .hide-scrollbar::-webkit-scrollbar {
         display: none !important; 
     }
 
