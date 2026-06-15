@@ -418,20 +418,20 @@ function GlassRailSelector<T extends string | number>({
                 'relative flex rounded-2xl p-1 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary',
                 'bg-transparent dark:bg-transparent',
                 'border border-black/10 dark:border-white/10',
-                'backdrop-blur-md',
+                'backdrop-blur-xs',
                 className,
             ].join(' ')}
         >
             {/* ── SVG 邊緣折射濾鏡 ──
              filter pipeline：
              1. feImage 載入 canvas 徑向方向貼圖 → feDisplacementMap 折射 backdrop
-             2. feGaussianBlur → 霧面化 backdrop（中心用）
-             3. feFlood + feMorphology(erode 2px) + feComposite → 製作精確 2px 邊緣遮罩
-             4. feComposite(in) + feComposite(out) + feBlend → 邊緣折射 ∪ 中心霧面 */}
+             2. feFlood + feMorphology(erode radius="x y") + feComposite → 製作精確 2px 邊緣遮罩
+             3. feComposite(in) + feComposite(out) + feMerge → 邊緣折射 ∪ 中心透明 */}
             <svg aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
                 <defs>
                     {/* x/y/width/height 設為元素邊界，使貼圖尺寸能自動隨 preserveAspectRatio 完美拉伸適應 */}
                     <filter id={filterId} x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+                        {/* 1. 折射背景 */}
                         <feImage href={lensMapUrl} preserveAspectRatio="none" result="dirMap" />
                         <feDisplacementMap
                             ref={displacementRef}
@@ -440,7 +440,20 @@ function GlassRailSelector<T extends string | number>({
                             scale="0"
                             xChannelSelector="R"
                             yChannelSelector="G"
+                            result="refracted"
                         />
+                        {/* 2. 製作 2px 邊緣遮罩 */}
+                        <feFlood floodColor="white" result="fullArea" />
+                        <feMorphology in="fullArea" operator="erode" radius="15 5" result="centerMask" />
+                        <feComposite in="fullArea" in2="centerMask" operator="out" result="edgeMask" />
+                        {/* 3. 分離並合併：邊緣套用折射，中心保持透明 (原始 SourceGraphic) */}
+                        <feComposite in="refracted" in2="edgeMask" operator="in" result="edgeRefraction" />
+                        <feComposite in="SourceGraphic" in2="centerMask" operator="in" result="centerClear" />
+
+                        <feMerge>
+                            <feMergeNode in="centerClear" />
+                            <feMergeNode in="edgeRefraction" />
+                        </feMerge>
                     </filter>
                 </defs>
             </svg>
