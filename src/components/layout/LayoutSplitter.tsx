@@ -37,8 +37,6 @@ const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing
             >
                 <InteractiveLogo size={20} variant={'v2'} showBg={true} />
             </div>
-
-
         </div >
     );
 };
