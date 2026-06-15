@@ -1,5 +1,5 @@
 
-import React, { forwardRef, useState, useMemo, useEffect } from 'react';
+import React, { forwardRef, useState, useMemo, useEffect, useRef } from 'react';
 import { FileCode, Check, Copy, RefreshCw, Trash2, Menu, X, FileText, FileSearch } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import CodeMirrorEditor from './CodeMirrorEditor';
@@ -53,6 +53,25 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
 }, ref) => {
 
     const [isIntroOpen, setIsIntroOpen] = useState(false);
+    const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+    // 當前 active 的分頁改變時，自動滾動定位使該分頁在隱形捲軸中可見
+    useEffect(() => {
+        if (currentDocId && tabsContainerRef.current) {
+            const children = tabsContainerRef.current.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i] as HTMLElement;
+                if (child.getAttribute('data-tab-id') === currentDocId) {
+                    child.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'nearest'
+                    });
+                    break;
+                }
+            }
+        }
+    }, [currentDocId]);
 
     // 優化：建立 ID 到文件的映射，避免在 map 中重複搜尋
     const docMap = useMemo(() => {
@@ -71,7 +90,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
 
     return (
         <section
-            className="flex-1 min-w-0 lg:min-w-0 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20  transition-colors duration-200 print:hidden"
+            className="flex-1 min-h-0 min-w-[300px] flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20  transition-colors duration-200 print:hidden"
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
@@ -93,7 +112,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                     </div>
 
                     {/* 分頁區域 */}
-                    <div className="flex items-end flex-1 min-w-0 h-full overflow-hidden">
+                    <div ref={tabsContainerRef} className="flex items-end flex-1 min-w-0 h-full overflow-x-auto overflow-y-hidden hide-scrollbar">
                         {openDocIds.map((id, index) => {
                             const doc = docMap.get(id);
                             if (!doc) return null;
@@ -103,9 +122,10 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                             return (
                                 <div
                                     key={id}
+                                    data-tab-id={id}
                                     onClick={() => onSwitchTab?.(id)}
                                     className={`
-                                        flex items-center gap-1 px-3 text-[10px] font-medium cursor-pointer transition-all relative group
+                                        flex items-center gap-1 px-3 text-[10px] font-medium cursor-pointer transition-all relative group shrink-0
                                         ${isActive
                                             ? 'bg-white dark:bg-slate-900 text-brand-primary rounded-t-xl z-20 flex-[3_3_0%] min-w-[60px] h-9 mb-[0px] mx-0.5'
                                             : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/90 rounded-lg flex-1 min-w-[30px] h-7 mb-[4px] mx-1'
@@ -231,7 +251,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
             </div>
 
             {/* 編輯區域 */}
-            <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-200 relative">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-200 relative">
                 {/* 核心編輯器 */}
                 {openDocIds.length > 0 && (
                     <CodeMirrorEditor

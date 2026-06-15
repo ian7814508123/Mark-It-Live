@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import InteractiveLogo from '../ui/InteractiveLogo';
 
 interface LayoutSplitterProps {
     onMouseDown: (e: React.MouseEvent) => void;
@@ -9,38 +10,36 @@ interface LayoutSplitterProps {
 const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing, isDarkMode }) => {
     return (
         <div
-            className={`group relative w-1 hover:w-1.5 transition-all cursor-col-resize z-50 flex items-center justify-center ${isResizing ? 'w-1.5' : ''
+            className={`group relative w-0.5 hover:w-1 transition-all cursor-col-resize z-50 flex items-center justify-center ${isResizing ? 'w-1' : ''
                 }`}
             onMouseDown={onMouseDown}
         >
+            {/* 隱形擴大點擊區域：向右邊（預覽側）延伸，避開左邊（編輯器側）緊貼邊緣的垂直捲軸點擊範圍 */}
+            <div className="absolute inset-y-0 left-0 -right-2 cursor-col-resize" />
+
             {/* 拖動線本體 */}
             <div
                 className={`w-full h-full transition-colors duration-200 ${isResizing
-                        ? 'bg-brand-primary'
-                        : isDarkMode
-                            ? 'bg-slate-800 group-hover:bg-brand-primary/50'
-                            : 'bg-slate-200 group-hover:bg-brand-primary/50'
+                    ? 'bg-brand-primary'
+                    : isDarkMode
+                        ? 'bg-slate-800 group-hover:bg-brand-primary/50'
+                        : 'bg-slate-200 group-hover:bg-brand-primary/50'
                     }`}
             />
-
-            {/* 拖動手柄 */}
+            {/* 拖動手柄：小圓形 + 品牌 M */}
             <div
-                className={`absolute top-1/2 -translate-y-1/2 w-4 h-12 rounded-full border shadow-lg transition-all flex items-center justify-center pointer-events-none ${isResizing
+                className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border transition-all flex items-center justify-center pointer-events-none duration-300 font-bold text-[11px]
+                    ${isResizing
                         ? 'scale-110 opacity-100 bg-brand-primary border-brand-accent text-white'
-                        : isDarkMode
-                            ? 'opacity-0 group-hover:opacity-100 bg-slate-800 border-slate-700 text-slate-400'
-                            : 'opacity-0 group-hover:opacity-100 bg-white border-slate-200 text-slate-400'
+                        : `opacity-0 scale-90 group-hover:scale-100 group-hover:opacity-100 group-hover:bg-brand-primary group-hover:border-brand-accent group-hover:text-white ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-400'
+                        }`
                     }`}
             >
-                <div className="flex gap-0.5">
-                    <div className="w-0.5 h-4 bg-currentColor rounded-full opacity-40" />
-                    <div className="w-0.5 h-4 bg-currentColor rounded-full opacity-40" />
-                </div>
+                <InteractiveLogo size={20} variant={'v2'} showBg={true} />
             </div>
 
-            {/* 隱形擴大點擊區域 */}
-            <div className="absolute inset-y-0 -left-1 -right-1 cursor-col-resize" />
-        </div>
+
+        </div >
     );
 };
 

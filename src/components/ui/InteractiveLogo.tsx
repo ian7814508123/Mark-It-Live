@@ -36,11 +36,6 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
     hover: {},
     loading: showBg ? {
       scale: [0.96, 1.04, 0.96],
-      boxShadow: [
-        "0 8px 32px 0 rgba(0, 0, 0, 0.15), 0 0 0px 0px rgba(56, 189, 248, 0)",
-        "0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 16px 4px rgba(56, 189, 248, 0.4)",
-        "0 8px 32px 0 rgba(0, 0, 0, 0.15), 0 0 0px 0px rgba(56, 189, 248, 0)"
-      ],
       transition: {
         duration: 2,
         repeat: Infinity,
@@ -126,7 +121,6 @@ const InteractiveLogo: React.FC<InteractiveLogoProps> = ({ className, size = 40,
         backdropFilter: showBg ? "blur(var(--logo-blur))" : "none",
         WebkitBackdropFilter: showBg ? "blur(var(--logo-blur))" : "none",
         border: showBg ? "1px solid var(--logo-border)" : "none",
-        boxShadow: showBg ? "0 8px 32px 0 rgba(0, 0, 0, 0.1)" : "none",
       }}
       initial="initial"
       animate={loading ? "loading" : "animate"}

@@ -18,7 +18,7 @@ interface PrintPaperProps {
     isPrinting: boolean;
     printSessionId: number;
     isMergedPrint: boolean;
-    previewTheme: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
+    previewTheme: import('../../config/previewThemes').PreviewTheme;
     isDarkMode: boolean;
     documents: any[];
     onSelectDocument?: (docId: string) => void;
@@ -80,7 +80,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={isPrinting ? 'prose-container relative h-full min-h-full' : 'max-w-4xl mx-auto px-8 pb-4 lg:pt-12 lg:px-12 lg:pb-6 min-h-full print:p-0'}>
+            <div className={isPrinting ? 'prose-container relative h-auto' : 'max-w-5xl mx-auto px-4 pb-2 lg:pt-1 lg:px-1 lg:pb-2 min-h-full print:p-0'}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}
@@ -212,19 +212,19 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                 </style>
             )}
             <section
-                className="flex-1 min-w-0 flex flex-col bg-slate-100 dark:bg-slate-950 relative overflow-hidden group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto"
+                className={`min-w-[300px] flex flex-col bg-slate-100 dark:bg-slate-950 relative group/preview transition-colors duration-200 preview-panel print:overflow-visible print:bg-white print:h-auto print:block print:static ${isPrinting ? 'w-full' : 'flex-1 overflow-hidden'}`}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             >
                 <div
-                    className={`flex-1 relative ${isPrinting ? 'overflow-auto' : 'overflow-hidden'} print:overflow-visible print:h-auto print:static print:p-0`}
+                    className={`relative flex-1 print:overflow-visible print:h-auto print:static print:p-0 ${isPrinting ? 'block' : 'overflow-hidden'}`}
                 >
-                    <div className="w-full h-full">
+                    <div className={`w-full print:h-auto ${isPrinting ? 'h-auto block' : 'h-full'}`}>
                         <div className={isPrinting ? 'print-preview-container flex flex-col gap-8 print:block print:h-auto' : 'w-full h-full'}>
                             {docsToRenderIds.map(docId => {
                                 const doc = documents?.find((d: any) => d.id === docId);
                                 const isActive = docId === currentDocId;
-                                const isMergedMode = mergeVaultOnPdfExport && currentDoc?.folderId;
+                                const isMergedMode = isPrinting && mergeVaultOnPdfExport && currentDoc?.folderId;
                                 const isVisibleOnScreen = isActive;
                                 const isVisibleInPrint = isMergedMode || isActive;
 
@@ -294,7 +294,7 @@ interface PreviewPanelProps {
     openDocIds?: string[];
     printSettings: any;
     /** Markdown 預覽主題，用於 Mermaid 模式下將主題 class 注入至 SVG 容器 */
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
+    previewTheme?: import('../../config/previewThemes').PreviewTheme;
     isPrinting?: boolean;
     printSessionId?: number;
     isCommentMode?: boolean;
@@ -395,7 +395,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
 
     return (
         <section
-            className={`flex-1 min-w-0 flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} relative overflow-hidden group/preview transition-colors duration-500 preview-panel`}
+            className={`min-w-[300px] flex flex-col flex-1 ${isDarkMode ? 'bg-black' : 'bg-white'} relative group/preview transition-colors duration-500 preview-panel print:block print:overflow-visible print:bg-white print:static print:h-auto ${isPrinting ? '' : 'overflow-hidden'}`}
             onWheel={onWheel}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
@@ -524,7 +524,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
 
             {/* Main Viewport */}
             <div
-                className={`flex-1 overflow-hidden relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                className={`relative flex-1 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} print:static print:block print:overflow-visible print:h-auto ${isPrinting ? '' : 'overflow-hidden'}`}
                 onMouseDown={onMouseDown}
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
@@ -541,17 +541,17 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
             >
                 <div
                     ref={ref}
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none print:static print:transform-none print:h-auto print:block print:overflow-visible"
                     style={{
-                        transform: `translate(${position.x}px, ${position.y}px)`,
+                        transform: isPrinting ? 'none' : `translate(${position.x}px, ${position.y}px)`,
                         transition: isDragging ? 'none' : 'transform 0.1s ease-out'
                     }}
                 >
                     {/* Mermaid Preview */}
                     {svgContent ? (
                         <div
-                            className={`prose max-w-none bg-white dark:bg-slate-900/95 p-16 rounded-[2.5rem] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''}`}
-                            style={{ transform: `scale(${zoom / 100})` }}
+                            className={`prose max-w-none bg-white dark:bg-slate-900/95 p-6 rounded-[16px] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent print:static print:transform-none print:block print:max-w-full print:h-auto print:overflow-visible ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''}`}
+                            style={{ transform: isPrinting ? 'none' : `scale(${zoom / 100})` }}
                             dangerouslySetInnerHTML={{ __html: svgContent }}
                         />
                     ) : !error && (

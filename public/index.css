@@ -430,12 +430,4 @@ mjx-container:not([display="true"]) {
 .dark .print-paper {
     box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
 }
-
-/* 滾動容器優化 */
-.show-print-preview .preview-panel > div.flex-1 {
-    background-color: #f1f5f9; /* 外層灰底，凸顯白紙 */
-}
-
-.dark .show-print-preview .preview-panel > div.flex-1 {
-    background-color: #0f172a;
-}
+

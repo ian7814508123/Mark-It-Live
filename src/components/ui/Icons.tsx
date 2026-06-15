@@ -39,6 +39,7 @@ export {
   LuFolderInput as FolderInput,
   LuFolderOpen as FolderOpen,
   LuChevronDown as ChevronDown,
+  LuRefreshCw as RefreshCw,
 
   // 介紹彈窗相關
   LuSparkles as Sparkles,
@@ -136,9 +137,9 @@ export {
   FiEdit3 as Edit3,
   FiDatabase as Database,
   FiBox as Box,
-  FiRefreshCw as RefreshCw,
   FiChevronLeft as ChevronLeft,
-  FiChevronRight as ChevronRight
+  FiChevronRight as ChevronRight,
+  FiEye as Eye
 } from 'react-icons/fi';
 
 export {

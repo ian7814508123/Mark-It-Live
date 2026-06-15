@@ -27,7 +27,7 @@ interface MarkdownPreviewProps {
     isPrinting?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora';
+    previewTheme?: import('../../config/previewThemes').PreviewTheme;
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
@@ -645,7 +645,7 @@ const WikiLink: React.FC<WikiLinkProps> = React.memo(({ name, children, document
             onClick={(e) => {
                 // 如果在目前的「列印預覽模式」或「PDF」中，不攔截預設跳轉（讓它實現頁面內移動）
                 // 但為了瀏覽器內的使用者體驗，如果是正常模式，依然執行切換文件
-                if (window.location.hash.includes('wikilink-') || document.querySelector('.show-print-preview')) {
+                if (window.location.hash.includes('wikilink-') || isActuallyPrinting) {
                     // 讓瀏覽器自然跳轉
                 } else {
                     e.preventDefault();

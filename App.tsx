@@ -5,6 +5,7 @@ const LazyMathJaxProvider = React.lazy(() => import('./src/components/markdown/L
 import Header from './src/components/layout/Header';
 import Editor from './src/components/layout/Editor';
 import PreviewPanel from './src/components/layout/PreviewPanel';
+import LayoutSplitter from './src/components/layout/LayoutSplitter';
 import HistorySidebar from './src/components/layout/HistorySidebar';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import CreateDocModal from './src/components/modals/CreateDocModal';
@@ -234,6 +235,9 @@ const App: React.FC = () => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printSessionId, setPrintSessionId] = useState(0);
   const [isCommentMode, setIsCommentMode] = useState(false);
+  const [editorRatio, setEditorRatio] = useState<number>(50);
+  const [isResizing, setIsResizing] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const printTimeoutRef = useRef<any>(null);
 
   const { settings, updateMacros, updatePrintSettings, toggleFavoriteTheme, restoreDefaults } = useAppSettings();
@@ -451,8 +455,15 @@ const App: React.FC = () => {
     const container = previewRef.current;
 
     // 獲取目前啟動中的頁面容器
-    const activePapers = container.querySelectorAll(`.print-paper[data-doc-id="${currentDocId}"]`);
-    const searchContext = activePapers.length > 0 ? activePapers[0] : container;
+    const papers = container.getElementsByClassName('print-paper');
+    let activePaper: Element | null = null;
+    for (let i = 0; i < papers.length; i++) {
+      if (papers[i].getAttribute('data-doc-id') === currentDocId) {
+        activePaper = papers[i];
+        break;
+      }
+    }
+    const searchContext = activePaper ? activePaper : container;
 
     const elements = searchContext.querySelectorAll('[data-line]');
     const containerRect = container.getBoundingClientRect();
@@ -673,6 +684,49 @@ const App: React.FC = () => {
     }
   };
 
+  // ─── 拖曳調整編輯器與預覽面板比例 ──────────────────────────────────────────
+  const handleSplitterMouseDown = useCallback((e: React.MouseEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const containerWidth = containerRef.current.clientWidth;
+      if (containerWidth <= 0) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+
+      const minEditorRatio = (300 / containerWidth) * 100;
+      const maxEditorRatio = ((containerWidth - 300) / containerWidth) * 100;
+
+      let newRatio = (clientX / containerWidth) * 100;
+      newRatio = Math.max(minEditorRatio, Math.min(maxEditorRatio, newRatio));
+
+      requestAnimationFrame(() => {
+        setEditorRatio(newRatio);
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      requestAnimationFrame(() => {
+        rebuildLineMap();
+      });
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, rebuildLineMap]);
+
   // 處理新增文檔
   const handleCreateDocument = (newMode: 'markdown' | 'mermaid', name: string, templateId: string = '', icon?: string) => {
     if (!defaultContents) return;
@@ -892,19 +946,7 @@ const App: React.FC = () => {
             --tw-ring-offset-shadow: none !important;
         }
 
-        /* 內容容器展開 */
-        .print-outer-wrapper { 
-            width: 100% !important; 
-            height: auto !important; 
-            min-height: auto !important; 
-            transform: none !important; 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            position: static !important;
-            display: block !important;
-            overflow: visible !important;
-        }
-        
+
         .print-preview-container { 
             transform: none !important; 
             width: 100% !important; 
@@ -959,20 +1001,6 @@ const App: React.FC = () => {
             text-shadow: none !important;
         }
 
-        /* 確保語法高亮不被反轉 */
-        .prose :not(pre) > code {
-            /* 顏色交由 theme 決定，不強制覆蓋 */
-        }
-
-        /* 語法高亮插件內部的 pre 可能有自己的樣式 */
-        .prose pre {
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            white-space: pre-wrap !important;
-            overflow-wrap: break-word !important;
-            word-break: normal !important;
-            filter: invert(0) !important;
-        }
 
         /* 確保圖表在列印時不被濾鏡反轉 (針對深色模式) */
         svg, img, canvas, .mermaid, .vega-embed, .smiles-drawer {
@@ -1041,17 +1069,29 @@ const App: React.FC = () => {
     style.textContent = `
       @media print {
         @page { size: ${paperSize} ${orientation}; margin: ${marginMap[margin] ?? '1.5cm'}; }
+
+
         header, footer, aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
         /* 靜默遮罩不應被列印 */
         #app-print-mask { display: none !important; }
+
         .preview-panel { 
+          display: block !important;
           overflow: visible !important; 
           width: 100% !important; 
           height: auto !important; 
           position: static !important;
+          min-width: 0 !important;
+          flex: none !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
           color-adjust: exact !important;
+        }
+        .preview-panel > div {
+          display: block !important;
+          overflow: visible !important;
+          height: auto !important;
+          position: static !important;
         }
         * {
           -webkit-print-color-adjust: exact !important;
@@ -1505,7 +1545,7 @@ const App: React.FC = () => {
     // 首次 render 後 LazyMathJaxProvider 即被証實，前後大約 ~100ms 的差異對使用者完全無感
     <Suspense fallback={<div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900" />}>
       <LazyMathJaxProvider config={mathJaxConfig}>
-        <div className="flex flex-col h-screen max-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+        <div className={`flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-200 ${isPrinting ? 'min-h-screen h-auto block' : 'h-screen max-h-screen'}`}>
 
           {/* ── premium 列印 Loading Overlay ──────────────────────────────── */}
           {isPrinting && (
@@ -1547,7 +1587,7 @@ const App: React.FC = () => {
             hasOpenDocuments={openDocIds.length > 0}
           />
 
-          <main className="flex-1 flex justify-center overflow-hidden print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20">
+          <main className={`app-main flex-1 min-h-0 flex justify-center print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20 ${isPrinting ? 'h-auto' : 'overflow-hidden'}`}>
             {/* 歷史側邊欄 */}
             <HistorySidebar
               isOpen={isSidebarOpen}
@@ -1592,73 +1632,96 @@ const App: React.FC = () => {
               initialName={initialDocName}
             />
             {/* 移除 key={docFadeKey} 以防止全組件樹重掛造成的渲染跳動 */}
-            <div className="layout-main-content print:block">
-              <Editor
-                ref={editorRef}
-                mode={mode}
-                code={code}
-                setCode={handleCodeChange}
-                onCopy={handleCopy}
-                onReset={handleReset}
-                onClear={handleClear}
-                copied={copied}
-                onScroll={handleEditorScroll}
-                isDarkMode={isDarkMode}
-                onMouseEnter={() => {
-                  isHoveringEditor.current = true;
-                  if (!rafId.current) scrollSource.current = null;
-                }}
-                onMouseLeave={() => {
-                  isHoveringEditor.current = false;
-                }}
-                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-                openDocIds={openDocIds}
-                currentDocId={currentDocId}
-                documents={documents}
-                onSwitchTab={handleDocumentSwitch}
-                onCloseTab={handleCloseTab}
-                hasOpenDocuments={openDocIds.length > 0}
-              />
+            {/* 移除 key={docFadeKey} 以防止全組件樹重掛造成的渲染跳動 */}
+            <div
+              ref={containerRef}
+              className={`layout-main-content print:block print:static print:h-auto print:overflow-visible ${isResizing ? 'layout-resizing' : ''}`}
+              style={isPrinting ? { display: 'block', height: 'auto', overflow: 'visible', position: 'static' } : undefined}
+            >
+              <div
+                className="print:hidden h-full flex flex-col overflow-hidden min-h-0 min-w-0"
+                style={{ width: isPrinting ? '0' : `${editorRatio}%`, minWidth: isPrinting ? '0' : '300px', display: isPrinting ? 'none' : undefined }}
+              >
+                <Editor
+                  ref={editorRef}
+                  mode={mode}
+                  code={code}
+                  setCode={handleCodeChange}
+                  onCopy={handleCopy}
+                  onReset={handleReset}
+                  onClear={handleClear}
+                  copied={copied}
+                  onScroll={handleEditorScroll}
+                  isDarkMode={isDarkMode}
+                  onMouseEnter={() => {
+                    isHoveringEditor.current = true;
+                    if (!rafId.current) scrollSource.current = null;
+                  }}
+                  onMouseLeave={() => {
+                    isHoveringEditor.current = false;
+                  }}
+                  onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                  openDocIds={openDocIds}
+                  currentDocId={currentDocId}
+                  documents={documents}
+                  onSwitchTab={handleDocumentSwitch}
+                  onCloseTab={handleCloseTab}
+                  hasOpenDocuments={openDocIds.length > 0}
+                />
+              </div>
 
-              <PreviewPanel
-                ref={previewRef}
-                mode={mode}
-                error={error}
-                setError={setError}
-                svgContent={svgContent}
-                zoom={zoom}
-                position={position}
-                isDragging={isDragging}
-                onZoom={handleZoom}
-                onSetZoom={setZoom}
-                onResetNav={resetNavigation}
-                onMouseDown={onMouseDown}
-                onMouseMove={onMouseMove}
-                onMouseUp={onMouseUp}
-                onWheel={handleWheel}
-                onScroll={handlePreviewScroll}
-                code={deferredCode}
-                isDarkMode={isDarkMode}
-                onMouseEnter={() => {
-                  isHoveringPreview.current = true;
-                  if (!rafId.current) scrollSource.current = null;
-                }}
-                onMouseLeave={() => {
-                  isHoveringPreview.current = false;
-                }}
-                documents={documents}
-                onSelectDocument={handleDocumentSwitch}
-                onCreateMissing={handleOpenCreateModal}
-                currentDocId={currentDocId}
-                openDocIds={openDocIds}
-                printSettings={settings.printSettings}
-                previewTheme={settings.printSettings.previewTheme}
-                isPrinting={isPrinting}
-                printSessionId={printSessionId}
-                isCommentMode={isCommentMode}
-                setIsCommentMode={setIsCommentMode}
-                onUpdateLineComment={updateLineComment}
-              />
+              {!isPrinting && (
+                <LayoutSplitter
+                  onMouseDown={handleSplitterMouseDown}
+                  isResizing={isResizing}
+                  isDarkMode={isDarkMode}
+                />
+              )}
+
+              <div
+                className={`print:w-full print:h-auto print:overflow-visible print:block min-w-0 min-h-0 print:static ${isPrinting ? 'block h-auto overflow-visible w-full static' : 'flex-1 h-full flex flex-col overflow-hidden'}`}
+                style={{ minWidth: isPrinting ? '0' : '300px' }}
+              >
+                <PreviewPanel
+                  ref={previewRef}
+                  mode={mode}
+                  error={error}
+                  setError={setError}
+                  svgContent={svgContent}
+                  zoom={zoom}
+                  position={position}
+                  isDragging={isDragging}
+                  onZoom={handleZoom}
+                  onSetZoom={setZoom}
+                  onResetNav={resetNavigation}
+                  onMouseDown={onMouseDown}
+                  onMouseMove={onMouseMove}
+                  onMouseUp={onMouseUp}
+                  onWheel={handleWheel}
+                  onScroll={handlePreviewScroll}
+                  code={deferredCode}
+                  isDarkMode={isDarkMode}
+                  onMouseEnter={() => {
+                    isHoveringPreview.current = true;
+                    if (!rafId.current) scrollSource.current = null;
+                  }}
+                  onMouseLeave={() => {
+                    isHoveringPreview.current = false;
+                  }}
+                  documents={documents}
+                  onSelectDocument={handleDocumentSwitch}
+                  onCreateMissing={handleOpenCreateModal}
+                  currentDocId={currentDocId}
+                  openDocIds={openDocIds}
+                  printSettings={settings.printSettings}
+                  previewTheme={settings.printSettings.previewTheme}
+                  isPrinting={isPrinting}
+                  printSessionId={printSessionId}
+                  isCommentMode={isCommentMode}
+                  setIsCommentMode={setIsCommentMode}
+                  onUpdateLineComment={updateLineComment}
+                />
+              </div>
             </div>
           </main>
 

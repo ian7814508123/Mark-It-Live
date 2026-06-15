@@ -19,6 +19,32 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v4.1.10 (2026/06/12) - 新增主題與分割面板',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: PackagePlus,
+        title: '新增功能 (New Features)',
+        details: [
+          <>
+            <strong>分割面板:</strong> 編輯區與預覽區加入了全新的<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">分割條</code>！現在你可以自由拖曳調整左右比例，完美掌控你的工作視野，快來滑滑看吧！
+          </>
+        ]
+      },
+      {
+        icon: Palette,
+        title: '介面與體驗優化 (Improvements)',
+        details: [
+          <>
+            <strong>新增主題樣式:</strong>新的主題<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">眼睛炸裂</code>現已可在<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">限時預覽風格</code>中使用。
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v4.1.9 (2026/06/12) - 列印樣式優化',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
