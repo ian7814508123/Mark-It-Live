@@ -1,6 +1,6 @@
 # 🔌 自訂 Remark 插件維護指南 (Custom Remark Plugins Guide)
 
-本文件提供 Markdown Live Previewer 中自訂的三個 Remark 插件（`remarkGithubAlerts`、`remarkWikiLink`、`remarkPageBreak`）的技術解析與維護指引。這些插件均位於 [src/components/markdown/](file:///c:/Users/User/Desktop/Markdown-live-previewer/src/components/markdown/)。
+本文件提供 Markdown Live Previewer 中自訂的三個 Remark 插件（`remarkGithubAlerts`、`remarkWikiLink`、`remarkPageBreak`）的技術解析與維護指引。這些插件均位於 [src/components/markdown/](../src/components/markdown/)。
 
 ---
 
@@ -18,7 +18,7 @@
 ## 🧩 插件架構與運作機制 (Plugin Mechanisms)
 
 ### 1. remarkGithubAlerts (警示盒插件)
-*   **檔案路徑**：[remarkGithubAlerts.ts](file:///c:/Users/User/Desktop/Markdown-live-previewer/src/components/markdown/remarkGithubAlerts.ts)
+*   **檔案路徑**：[remarkGithubAlerts.ts](../src/components/markdown/remarkGithubAlerts.ts)
 *   **設計目的**：解析 GitHub-style Alert 語法（例如：`> [!NOTE]`），將其渲染為美觀的自訂警告方塊。
 *   **AST 轉換邏輯**：
     1. 遍歷 AST 樹中的所有 `blockquote` 節點。
@@ -41,7 +41,7 @@
 ---
 
 ### 2. remarkWikiLink (雙括號連結插件)
-*   **檔案路徑**：[remarkWikiLink.ts](file:///c:/Users/User/Desktop/Markdown-live-previewer/src/components/markdown/remarkWikiLink.ts)
+*   **檔案路徑**：[remarkWikiLink.ts](../src/components/markdown/remarkWikiLink.ts)
 *   **設計目的**：將 `[[頁面名稱]]` 的雙括號 WikiLink 語法安全地轉換為內部錨點連結。
 *   **AST 轉換與分裂邏輯**：
     1. 遍歷 AST 中所有的 `text` 節點。
@@ -59,7 +59,7 @@
 ---
 
 ### 3. remarkPageBreak (強制分頁插件)
-*   **檔案路徑**：[remarkPageBreak.ts](file:///c:/Users/User/Desktop/Markdown-live-previewer/src/components/markdown/remarkPageBreak.ts)
+*   **檔案路徑**：[remarkPageBreak.ts](../src/components/markdown/remarkPageBreak.ts)
 *   **設計目的**：識別單獨成行的手動分頁指令（`\pagebreak`, `[page-break]`, `---pb---`），並將其編譯成列印時生效的物理分頁元素。
 *   **AST 轉換邏輯**：
     1. 遍歷所有的 `paragraph` 節點。
