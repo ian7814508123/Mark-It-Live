@@ -27,7 +27,7 @@ interface MarkdownPreviewProps {
     isPrinting?: boolean;
     printSessionId?: number;
     isMergedPrint?: boolean;
-    previewTheme?: 'default' | 'academic' | 'minimal' | 'developer' | 'implementation-plan' | 'classical' | 'newspaper' | 'nordicforest' | 'cosmic' | 'sunsetglow' | 'neonrain' | 'aurora' | 'eyeburst';
+    previewTheme?: import('../../config/previewThemes').PreviewTheme;
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;

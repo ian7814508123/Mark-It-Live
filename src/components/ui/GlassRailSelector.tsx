@@ -127,7 +127,7 @@ function GlassRailSelector<T extends string | number>({
     const [aspect, setAspect] = useState(2.5);
     useEffect(() => {
         if (!trackRef.current) return;
-        
+
         let timeoutId: number;
         const updateAspect = () => {
             if (trackRef.current) {
@@ -321,7 +321,7 @@ function GlassRailSelector<T extends string | number>({
     // Pointer Events: 處理拖曳移動與放開吸附
     const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
         if (!isPressed) return;
-        
+
         // 檢查是否超過拖曳閾值 (5px)
         if (!isDraggingRef.current && dragStartXRef.current !== null) {
             if (Math.abs(e.clientX - dragStartXRef.current) > 5) {
@@ -341,7 +341,7 @@ function GlassRailSelector<T extends string | number>({
 
     const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
         if (!isPressed) return;
-        
+
         const track = e.currentTarget;
         track.releasePointerCapture(e.pointerId);
 
@@ -400,6 +400,14 @@ function GlassRailSelector<T extends string | number>({
                 e.currentTarget.setPointerCapture(e.pointerId);
                 dragStartXRef.current = e.clientX;
                 setIsPressed(true);
+
+                // 預測滑動：按下時立刻更新 optimisticValue，觸發彈簧動畫
+                if (totalOptions > 1) {
+                    const leftPercent = getLeftPercentByX(e.clientX);
+                    let closestIdx = Math.round((leftPercent / maxLeftPercent) * (totalOptions - 1));
+                    closestIdx = Math.max(0, Math.min(totalOptions - 1, closestIdx));
+                    setOptimisticValue(options[closestIdx].value);
+                }
             }}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
