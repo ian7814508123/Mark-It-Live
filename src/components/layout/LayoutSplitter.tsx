@@ -10,7 +10,7 @@ interface LayoutSplitterProps {
 const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing, isDarkMode }) => {
     return (
         <div
-            className={`group relative w-0.5 hover:w-1 transition-all cursor-col-resize z-50 flex items-center justify-center ${isResizing ? 'w-1' : ''
+            className={`group relative w-0.5 hover:w-1 transition-all cursor-col-resize flex items-center justify-center ${isResizing ? 'w-1' : ''
                 }`}
             onMouseDown={onMouseDown}
         >
@@ -19,7 +19,7 @@ const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing
 
             {/* 拖動線本體 */}
             <div
-                className={`w-full h-full transition-colors duration-200 ${isResizing
+                className={`w-full h-full transition-colors duration-200 z-49 ${isResizing
                     ? 'bg-brand-primary'
                     : isDarkMode
                         ? 'bg-slate-800 group-hover:bg-brand-primary/50'
@@ -37,8 +37,6 @@ const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing
             >
                 <InteractiveLogo size={20} variant={'v2'} showBg={true} />
             </div>
-
-
         </div >
     );
 };
