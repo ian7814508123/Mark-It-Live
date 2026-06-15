@@ -10,7 +10,7 @@ interface LayoutSplitterProps {
 const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing, isDarkMode }) => {
     return (
         <div
-            className={`group relative w-0.5 hover:w-1 transition-all cursor-col-resize z-50 flex items-center justify-center ${isResizing ? 'w-1' : ''
+            className={`group relative w-0.5 hover:w-1 transition-all cursor-col-resize z-48 flex items-center justify-center ${isResizing ? 'w-1' : ''
                 }`}
             onMouseDown={onMouseDown}
         >
@@ -19,7 +19,7 @@ const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing
 
             {/* 拖動線本體 */}
             <div
-                className={`w-full h-full transition-colors duration-200 ${isResizing
+                className={`w-full h-full transition-colors duration-200 z-48 ${isResizing
                     ? 'bg-brand-primary'
                     : isDarkMode
                         ? 'bg-slate-800 group-hover:bg-brand-primary/50'
@@ -28,7 +28,7 @@ const LayoutSplitter: React.FC<LayoutSplitterProps> = ({ onMouseDown, isResizing
             />
             {/* 拖動手柄：小圓形 + 品牌 M */}
             <div
-                className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border transition-all flex items-center justify-center pointer-events-none duration-300 font-bold text-[11px]
+                className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border transition-all flex items-center justify-center pointer-events-none duration-300 font-bold text-[11px] z-49
                     ${isResizing
                         ? 'scale-110 opacity-100 bg-brand-primary border-brand-accent text-white'
                         : `opacity-0 scale-90 group-hover:scale-100 group-hover:opacity-100 group-hover:bg-brand-primary group-hover:border-brand-accent group-hover:text-white ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-400'
