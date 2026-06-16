@@ -1108,7 +1108,7 @@ const App: React.FC = () => {
         @page { size: ${paperSize} ${orientation}; margin: ${marginMap[margin] ?? '1.5cm'}; }
 
 
-        header, footer, aside, .tab-bar, section:not(.preview-panel), .status-bar, .floating-controls { display: none !important; }
+        header, footer, aside, .tab-bar, .status-bar, .floating-controls { display: none !important; }
         /* 靜默遮罩不應被列印 */
         #app-print-mask { display: none !important; }
 

@@ -285,7 +285,6 @@
 
       /* 2. Hide Non-Print Elements */
       header,
-      section:first-of-type,
       /* Editor Panel */
       aside,
       /* Sidebar */
@@ -388,6 +387,11 @@
       /* Ensure margins are exactly 10mm */
       @page {
         margin: 10mm !important;
+      }
+
+      /* 確保 Markdown 腳註 (Footnotes) 在列印時正常顯示 */
+      .prose section.footnotes {
+        display: block !important;
       }
     }
   </style>
