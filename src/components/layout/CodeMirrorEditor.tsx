@@ -18,6 +18,7 @@ interface CodeMirrorEditorProps {
     onScroll?: (e: any) => void;
     placeholder?: string;
     ariaLabel?: string;
+    onStickyChange?: (hasSticky: boolean) => void;
 }
 
 interface StickyHeaderNode {
@@ -101,8 +102,9 @@ function buildStickyExtension(
                                     // 檢查此標題行是否完全在可視區內
                                     const isTopLine = i === topLineNum;
                                     if (isTopLine) {
-                                        // 如果頂端行是標題，且它的 top >= scrollTop，代表完全可見，還沒開始滾出，不納入 sticky scroll
-                                        if (lineBlock.top >= scrollTop) {
+                                        // 如果頂端行是標題，且它的 top >= scrollTop + (當前有 sticky 時的 22px 高度)，代表完全可見，還沒開始滾出，不納入 sticky scroll
+                                        const currentStickyHeight = this.last.length > 0 ? 22 : 0;
+                                        if (lineBlock.top >= scrollTop + currentStickyHeight) {
                                             continue;
                                         }
                                     }
@@ -141,7 +143,10 @@ const CodeMirrorEditor = React.forwardRef<ReactCodeMirrorRef, CodeMirrorEditorPr
 
     useEffect(() => {
         stickyHeadersRef.current = stickyHeaders;
-    }, [stickyHeaders]);
+        if (props.onStickyChange) {
+            props.onStickyChange(stickyHeaders.length > 0);
+        }
+    }, [stickyHeaders, props.onStickyChange]);
 
     // ─── 測量 CodeMirror 的實際邊界與捲軸寬度，並動態設定為 CSS 變數 ───
     const measure = useCallback(() => {

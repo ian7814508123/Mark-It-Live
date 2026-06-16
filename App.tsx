@@ -237,6 +237,12 @@ const App: React.FC = () => {
   const [isCommentMode, setIsCommentMode] = useState(false);
   const [editorRatio, setEditorRatio] = useState<number>(50);
   const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [hasSticky, setHasSticky] = useState<boolean>(false);
+  const hasStickyRef = useRef<boolean>(false);
+  const handleStickyChange = useCallback((val: boolean) => {
+    setHasSticky(val);
+    hasStickyRef.current = val;
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const printTimeoutRef = useRef<any>(null);
 
@@ -564,15 +570,38 @@ const App: React.FC = () => {
     const editorView = editorRef.current.view;
     const scrollDOM = editorView.scrollDOM;
 
-    // 1. 取得編輯器當前高度對應的行區塊
-    const lineBlock = editorView.lineBlockAtHeight(scrollDOM.scrollTop);
+    // 1. 取得編輯器當前高度對應的行區塊（先以 scrollTop 判定該行上方是否有標題，以推導是否顯示 sticky）
+    const tempLineBlock = editorView.lineBlockAtHeight(scrollDOM.scrollTop);
+    const tempLine = editorView.state.doc.lineAt(tempLineBlock.from);
+    const tempLineNumber = tempLine.number;
+
+    let hasHeaderAbove = false;
+    try {
+      for (let i = tempLineNumber; i >= 1; i--) {
+        if (/^(#{1,6})\s+(.+)$/.test(editorView.state.doc.line(i).text)) {
+          hasHeaderAbove = true;
+          break;
+        }
+      }
+    } catch (e) { }
+
+    const hasStickyActive = hasHeaderAbove && scrollDOM.scrollTop > 4;
+    const lineBlock = editorView.lineBlockAtHeight(scrollDOM.scrollTop + (hasStickyActive ? 22 : 0));
     const line = editorView.state.doc.lineAt(lineBlock.from);
     const lineNumber = line.number;
 
     if (previewRef.current) {
       const getEditorLineTop = (l: number) => {
         try {
-          return editorView.lineBlockAt(editorView.state.doc.line(l).from).top;
+          const top = editorView.lineBlockAt(editorView.state.doc.line(l).from).top;
+          let hasHeader = false;
+          for (let i = l; i >= 1; i--) {
+            if (/^(#{1,6})\s+(.+)$/.test(editorView.state.doc.line(i).text)) {
+              hasHeader = true;
+              break;
+            }
+          }
+          return (hasHeader && top > 4) ? Math.max(0, top - 22) : top;
         } catch (e) {
           return 0;
         }
@@ -608,7 +637,15 @@ const App: React.FC = () => {
 
       const getEditorLineTop = (l: number) => {
         try {
-          return editorView.lineBlockAt(editorView.state.doc.line(l).from).top;
+          const top = editorView.lineBlockAt(editorView.state.doc.line(l).from).top;
+          let hasHeader = false;
+          for (let i = l; i >= 1; i--) {
+            if (/^(#{1,6})\s+(.+)$/.test(editorView.state.doc.line(i).text)) {
+              hasHeader = true;
+              break;
+            }
+          }
+          return (hasHeader && top > 4) ? Math.max(0, top - 22) : top;
         } catch (e) {
           return 0;
         }
@@ -1119,7 +1156,7 @@ const App: React.FC = () => {
     Object.assign(mask.style, {
       position: 'fixed',
       inset: '0',
-      zIndex: '2147483647',           // 最大 z-index，壓過所有 UI
+      zIndex: '2047483647',           // 最大 z-index，壓過所有 UI
       backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', // 匹配當前背景色，視覺無縫
       opacity: '1',
       pointerEvents: 'none',          // 不阻擋後續 window.print() 的焦點事件
@@ -1663,6 +1700,7 @@ const App: React.FC = () => {
                   onSwitchTab={handleDocumentSwitch}
                   onCloseTab={handleCloseTab}
                   hasOpenDocuments={openDocIds.length > 0}
+                  onStickyChange={handleStickyChange}
                 />
               </div>
 
