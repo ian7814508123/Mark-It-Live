@@ -144,5 +144,6 @@ export {
 
 export {
   MdCheckCircle as CheckCircle,
-  MdOutlineViewInAr as View
+  MdOutlineViewInAr as View,
+  MdStars as Stars
 } from 'react-icons/md';

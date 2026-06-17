@@ -1,5 +1,5 @@
 import React from 'react';
-import { PackagePlus, Palette, MessageSquare, Check, X, Star } from '../components/ui/Icons';
+import { PackagePlus, Palette, MessageSquare, Check, X, Stars } from '../components/ui/Icons';
 
 export interface ChangelogSubSection {
   icon: React.ComponentType<any>;
@@ -17,6 +17,42 @@ export interface ChangelogCard {
 }
 
 export const CHANGELOG_CARDS: ChangelogCard[] = [
+  {
+    type: 'version_header',
+    title: 'v5.0.1 (2026/06/17) - 修正預覽主題',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: Palette,
+        title: '預覽主題樣式優化 (Improvements)',
+        details: [
+          <>
+            <strong>修正預覽主題:</strong> 修正部分主題在深色模式下出現顯示錯誤問題。<br />
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
+    title: 'v5.0.0 (2026/06/17) - 全新品牌名稱上線了',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: Stars,
+        title: 'Mark It Live 誕生了',
+        details: [
+          <>
+            <strong>Mark It Live</strong> 從<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">MarkDown Live Previewer</code> 正式升級為 <strong>Mark It Live</strong>！
+            <p>(舊版功能同時兼容)
+            </p>
+          </>
+        ]
+      }
+    ]
+  },
   {
     type: 'version_header',
     title: 'v4.1.10 (2026/06/12) - 新增主題與分割面板',

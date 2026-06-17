@@ -4,7 +4,7 @@
   "email": "ian7814508123@mail.com",
   "description": "A desktop application for live previewing Markdown files.",
   "private": true,
-  "version": "5.0.0",
+  "version": "5.0.1",
   "type": "module",
   "main": "electron/main.js",
   "engines": {
