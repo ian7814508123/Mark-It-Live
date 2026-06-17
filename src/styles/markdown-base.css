@@ -131,6 +131,7 @@
     margin: 2rem 0;
     border-left-width: 4px;
     border-style: solid;
+    background-color: var(--theme-quote-bg, transparent);
 }
 
 .prose blockquote.markdown-alert {
@@ -164,9 +165,64 @@
     margin-right: 0.375rem;
 }
 
+/* ── 4.1 預設主題 Alerts 色彩對接與注入 ───────────────────────────── */
+.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
+
 /* ── 5. 超連結基礎骨架 ────────────────────────────────────────────────── */
 .prose a {
     transition: all 0.2s ease-in-out;
+    /* 預設主題 Alert 變數 (淺色) */
+    --theme-alert-note-border: #0969da;
+    --theme-alert-note-bg: rgba(9, 105, 218, 0.05);
+    --theme-alert-note-text: #0969da;
+    --theme-alert-tip-border: #1a7f37;
+    --theme-alert-tip-bg: rgba(26, 127, 55, 0.05);
+    --theme-alert-tip-text: #1a7f37;
+    --theme-alert-important-border: #8250df;
+    --theme-alert-important-bg: rgba(130, 80, 223, 0.05);
+    --theme-alert-important-text: #8250df;
+    --theme-alert-warning-border: #9a6700;
+    --theme-alert-warning-bg: rgba(154, 103, 0, 0.05);
+    --theme-alert-warning-text: #9a6700;
+    --theme-alert-caution-border: #cf222e;
+    --theme-alert-caution-bg: rgba(207, 34, 46, 0.05);
+    --theme-alert-caution-text: #cf222e;
+    /* 普通 Blockquote 背景色 (淺色) */
+    --theme-quote-bg: rgba(148, 163, 184, 0.06);
 }
 
 /* ── 6. 表格基礎骨架 ────────────────────────────────────────────────────
@@ -271,6 +327,34 @@
     --mermaid-node-border: #334155;
     --mermaid-line: #94a3b8;
     --mermaid-edge-bg: #0f172a;
+    --theme-text-color: #cbd5e1;
+    --theme-heading-color: #f8fafc;
+    --theme-quote-text: #cbd5e1;
+    --theme-link-color: #38bdf8;
+    --theme-accent-color: #38bdf8;
+
+    /* 表格深色模式優化 */
+    --theme-table-header-bg: #1e293b;
+    --theme-table-header-color: #f8fafc;
+    --theme-table-border: #334155;
+    /* 預設主題 Alert 變數 (深色) */
+    --theme-alert-note-border: #38bdf8;
+    --theme-alert-note-bg: rgba(56, 189, 248, 0.08);
+    --theme-alert-note-text: #38bdf8;
+    --theme-alert-tip-border: #4ade80;
+    --theme-alert-tip-bg: rgba(74, 222, 128, 0.08);
+    --theme-alert-tip-text: #4ade80;
+    --theme-alert-important-border: #c084fc;
+    --theme-alert-important-bg: rgba(192, 132, 252, 0.08);
+    --theme-alert-important-text: #c084fc;
+    --theme-alert-warning-border: #fbbf24;
+    --theme-alert-warning-bg: rgba(251, 191, 36, 0.08);
+    --theme-alert-warning-text: #fbbf24;
+    --theme-alert-caution-border: #f87171;
+    --theme-alert-caution-bg: rgba(248, 113, 113, 0.08);
+    --theme-alert-caution-text: #f87171;
+    /* 普通 Blockquote 背景色 (深色) */
+    --theme-quote-bg: rgba(148, 163, 184, 0.08);
 }
 
 /* Mermaid SVG 居中與縮放防禦 */
