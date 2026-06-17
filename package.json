@@ -1,10 +1,10 @@
 {
-  "name": "markdown-live-previewer",
+  "name": "mark-it-live",
   "author": "Ian Huang",
   "email": "ian7814508123@mail.com",
   "description": "A desktop application for live previewing Markdown files.",
   "private": true,
-  "version": "4.1.10",
+  "version": "5.0.0",
   "type": "module",
   "main": "electron/main.js",
   "engines": {

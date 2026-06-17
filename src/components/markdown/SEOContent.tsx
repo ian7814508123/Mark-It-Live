@@ -13,14 +13,14 @@ const SEOContent: React.FC = () => {
           核心關鍵字自然融入，同時兼顧 Google 判斷頁面主題的準確性。
           English title is handled as H2 below to maintain single-H1 rule.
           ────────────────────────────────────────────────────────────────── */}
-      <h1>Markdown Live Previewer — 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表與 LaTeX 公式</h1>
+      <h1> Mark It Live — Markdown Live Previewer — 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表與 LaTeX 公式</h1>
 
       {/* ==========================================
           CHINESE SEO CONTENT (中文 SEO 關鍵字最佳化)
           ========================================== */}
 
       <p>
-        歡迎使用 Markdown Live Previewer，這是一款功能強大的<strong>免費線上 Markdown 編輯器</strong>。
+        歡迎使用 Mark It Live，這是一款功能強大的<strong>免費線上 Markdown 編輯器</strong>。
         我們提供最流暢的<strong>Markdown 即時預覽</strong>與<strong>線上預覽</strong>服務，
         無須安裝任何軟體或擴充功能，打開瀏覽器即可開始寫作。
         本工具注重您的數據隱私，所有編輯、渲染與導出操作皆在本地端完成，無須上傳雲端，是您最安全的線上 Markdown 編輯工具。
@@ -110,7 +110,7 @@ const SEOContent: React.FC = () => {
       {/* H2：讓 Google 同時掌握中英文搜尋意圖 */}
       <h2>Free Online Markdown Editor with Live Preview — Key Features</h2>
       <p>
-        Markdown Live Previewer is a free, feature-rich <strong>online Markdown editor</strong>
+        Mark It Live is a free, feature-rich <strong>online Markdown editor</strong>
         providing seamless <strong>live Markdown preview</strong>. Write, edit, and visualize
         Markdown files in real-time right in your browser. With a privacy-first architecture,
         all editing, rendering, and exporting are processed locally on your device, ensuring

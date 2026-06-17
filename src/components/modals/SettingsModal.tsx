@@ -338,7 +338,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         <InteractiveLogo size={60} variant={logoVariant} />
                                     </div>
                                     <div className="pt-0">
-                                        <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Markdown Live Previewer</h3>
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight"> Mark It Live</h3>
                                         <div className="flex items-center justify-center gap-2 mt-2">
                                             <p className="text-1xl font-bold text-slate-600 dark:text-slate-300 tracking-widest">Version {version}</p>
                                             <button
@@ -395,8 +395,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
 
                                 <div className="rounded-2xl bg-brand-secondary/30 dark:bg-brand-primary/10 px-5 py-4 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed border border-brand-primary/15 dark:border-brand-primary/30 text-center">
-                                    © {new Date().getFullYear()} Markdown Live Previewer. All rights reserved. <br />
-                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noopener noreferrer" className="mx-1 underline">隱私政策</a>與<a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noopener noreferrer" className="mx-1 underline">服務條款</a>。
+                                    © 2026 Mark It Live. All rights reserved. <br />
+                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href={`${import.meta.env.BASE_URL}privacy.html`} className="mx-1 underline">隱私政策</a>與<a href={`${import.meta.env.BASE_URL}terms.html`} className="mx-1 underline">服務條款</a>。
                                 </div>
 
                             </div>

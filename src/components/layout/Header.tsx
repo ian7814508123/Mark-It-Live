@@ -147,8 +147,8 @@ const Header: React.FC<HeaderProps> = ({
                     <InteractiveLogo size={40} variant={logoVariant} />
                 </button>
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Markdown Live Previewer</h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">專業的線上編輯器 給 標註掉落</p>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100"> Mark IT LIVE</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-450 font-medium tracking-wider">專業編輯 給 標註掉落</p>
                 </div>
             </div>
 

@@ -29,6 +29,7 @@ interface EditorProps {
     onCloseTab?: (docId: string, e: React.MouseEvent) => void;
     /** 是否有任何文件被打開 */
     hasOpenDocuments?: boolean;
+    onStickyChange?: (hasSticky: boolean) => void;
 }
 
 const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
@@ -50,6 +51,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
     onSwitchTab,
     onCloseTab,
     hasOpenDocuments = false,
+    onStickyChange,
 }, ref) => {
 
     const [isIntroOpen, setIsIntroOpen] = useState(false);
@@ -262,6 +264,7 @@ const Editor = forwardRef<ReactCodeMirrorRef, EditorProps>(({
                         isDarkMode={isDarkMode}
                         onScroll={onScroll}
                         placeholder={mode === 'mermaid' ? "Enter Mermaid code..." : "Enter Markdown content..."}
+                        onStickyChange={onStickyChange}
                     />
                 )}
 

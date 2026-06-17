@@ -49,7 +49,7 @@ graph TD
 *   **BreadcrumbList**: 提供明確的導航層級結構。
 
 ### 3. SEO 友善內容 (SEO Friendly Content)
-由於 React 應用主要由 JS 在客戶端動態渲染，我們建立了 [SEOContent.tsx](file:///c:/Users/User/Desktop/Markdown-live-previewer/src/components/markdown/SEOContent.tsx) 組件：
+由於 React 應用主要由 JS 在客戶端動態渲染，我們建立了 [SEOContent.tsx](../src/components/markdown/SEOContent.tsx) 組件：
 *   **8,000+ 字豐富內容**：詳細描述專案的 20+ 個主題與核心功能。
 *   **語義化 HTML**：使用正確的 `<h1>` 到 `<h3>`、`<ul>`、`<li>`，使爬蟲能輕鬆抓取文字脈絡。
 *   **sr-only 技術**：透過 CSS 樣式使該內容對一般視覺用戶隱藏，但對 Googlebot 與螢幕閱讀器完全開放，從而極大補足了 SPA 靜態文本不足的問題。
