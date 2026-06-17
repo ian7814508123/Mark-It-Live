@@ -137,7 +137,7 @@ const setupAutoUpdater = () => {
         dialog.showMessageBox({
             type: 'info',
             title: '發現新版本',
-            message: `  Markdown Live Previewer 新版本 ${info.version} 已經下載完成，是否立即重啟安裝更新？`,
+            message: `  Mark It Live 新版本 ${info.version} 已經下載完成，是否立即重啟安裝更新？`,
             buttons: ['是', '稍後'],
         }).then((result) => {
             if (result.response === 0) {
