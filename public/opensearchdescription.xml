@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
-  <ShortName>Markdown Live Previewer</ShortName>
+  <ShortName> Mark It Live</ShortName>
   <Description>專業在線 Markdown 編輯器 - 支持即時預覽、Mermaid 圖表、LaTeX 公式、PDF 導出</Description>
   <Url type="text/html" 
        template="https://markdown-live-previewer-a6dx.onrender.com/"/>
@@ -9,7 +9,7 @@
   </Image>
   <Contact>ian7814508123@gmail.com</Contact>
   <Tags>markdown editor preview mermaid latex export</Tags>
-  <LongName>Markdown Live Previewer - Professional Online Markdown Editor</LongName>
+  <LongName> Mark It Live — Markdown Live Previewer - Professional Online Markdown Editor</LongName>
   <InputEncoding>UTF-8</InputEncoding>
   <OutputEncoding>UTF-8</OutputEncoding>
 </OpenSearchDescription>

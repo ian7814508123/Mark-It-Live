@@ -74,7 +74,7 @@ const IntroModal: React.FC<IntroModalProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center justify-center gap-3">
             <InteractiveLogo size={40} variant="v1" />
             <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-              歡迎使用 Markdown Live Previewer
+              歡迎使用 Mark It Live
             </h2>
             <InteractiveLogo size={40} variant="v2" />
           </div>

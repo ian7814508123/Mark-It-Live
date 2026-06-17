@@ -1,9 +1,9 @@
 {
-  "name": "markdown-live-previewer",
+  "name": "mark-it-live",
   "author": "Ian Huang",
-  "description": "A desktop application for live previewing Markdown files.",
+  "description": "A web and desktop application for live previewing Markdown files ( Mark It Live).",
   "private": true,
-  "version": "4.1.10",
+  "version": "5.0.0",
   "type": "module",
   "engines": {
     "node": ">=22"

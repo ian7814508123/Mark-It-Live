@@ -1,4 +1,4 @@
-# Markdown Live Previewer
+# Mark It Live — Markdown Live Previewer
 
 > A free, privacy-first online Markdown editor with live preview. All data is processed locally in your browser — zero cloud uploads.
 

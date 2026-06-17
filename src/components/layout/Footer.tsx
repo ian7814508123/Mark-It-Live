@@ -29,9 +29,9 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
             {/* Left: Branding & Tagline */}
             <div className="max-w-md space-y-3 mb-8 lg:mb-0">
               <div className="flex items-center gap-3">
-                <img src="./image/markdown_liveditor.svg?v=2" alt="Markdown Live Previewer Logo" className="w-5 h-5" />
+                <img src="./image/markdown_liveditor.svg?v=2" alt=" Mark It Live Logo" className="w-5 h-5" />
                 <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 tracking-widest">
-                  Markdown Live Previewer
+                  Mark It Live
                 </h3>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -53,7 +53,7 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
               <div className="flex flex-col gap-2 min-w-[100px]">
                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">關於</span>
                 <div className="flex flex-col gap-1.5">
-                  <a href="https://github.com/HUANGJYUNYING/Markdown-live-previewer" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">GitHub Repo <ExternalLink size={10} /></a>
+                  <a href="https://github.com/ian7814508123/Markdown-live-previewer" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">GitHub Repo <ExternalLink size={10} /></a>
                   <a href={`${import.meta.env.BASE_URL}about.html`} className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">關於本站<ExternalLink size={10} /></a>
                 </div>
               </div>
@@ -81,7 +81,7 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
         <div className={`flex flex-col sm:flex-row justify-between items-center gap-3 ${!isCollapsed ? 'border-t border-slate-100 dark:border-slate-800/50 pt-6' : ''}`}>
           <div className="flex items-center gap-5">
             <p className="text-[10px] text-slate-600 dark:text-slate-300 font-medium">
-              © {new Date().getFullYear()} Markdown Live Previewer. All rights reserved.
+              © 2026 Mark It Live. All rights reserved.
               <span className="hidden sm:inline-block">
                 {!isCollapsed && "　Maintained by Huang Jyun Ying."}
               </span>
