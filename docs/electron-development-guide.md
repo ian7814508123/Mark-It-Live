@@ -269,8 +269,8 @@ npm run electron-build
    - 打包為 Windows .exe 文件
 
 3. ✓ 生成輸出文件
-   - `dist/Markdown Live Previewer Setup 0.0.0.exe`
-   - `dist/Markdown Live Previewer 0.0.0.exe`
+   - `dist/ Mark It Live Setup 0.0.0.exe`
+   - `dist/ Mark It Live 0.0.0.exe`
 
 ### 分步構建
 
@@ -304,8 +304,8 @@ dist/
 │   ├── index-*.js
 │   ├── index-*.css
 │   └── ...（大量文件）
-├── Markdown Live Previewer Setup 0.0.0.exe
-├── Markdown Live Previewer 0.0.0.exe
+├──  Mark It Live Setup 0.0.0.exe
+├──  Mark It Live 0.0.0.exe
 ├── win-unpacked/           ← 未打包的文件（中間產物）
 └── builder-effective-config.yaml
 ```
@@ -351,7 +351,7 @@ dist/
 {
   "build": {
     "appId": "com.markdownlivepreviewer.app",
-    "productName": "Markdown Live Previewer",
+    "productName": " Mark It Live",
     "directories": {
       "buildResources": "public"
     },
@@ -528,7 +528,7 @@ npm run electron-build
 ### 2. 🔄 Windows 桌面端背景無感更新 (Auto-Update)
 應用內建了 `electron-updater` 模組。發布新版本後，使用者端的使用體驗如下：
 *   **背景自動下載**：
-    每次使用者打開 Markdown Live Previewer 時，軟體會自動向 GitHub Releases 發送請求，比對 `latest.yml` 索引檔。若發現有高於本地的最新版本，將在背景靜默、自動地下載更新包。
+    每次使用者打開  Mark It Live 時，軟體會自動向 GitHub Releases 發送請求，比對 `latest.yml` 索引檔。若發現有高於本地的最新版本，將在背景靜默、自動地下載更新包。
 *   **一鍵彈窗重啟安裝**：
     下載完成後，軟體會優雅地跳出系統彈窗：
     > 💡 **發現新版本**

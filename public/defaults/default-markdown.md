@@ -113,7 +113,7 @@ _你也可以 **混合使用** 不同樣式_
 
 ```javascript
 function sayHello() {
-  console.log('Hello, Markdown Live Previewer!');
+  console.log('Hello,  Mark It Live!');
 }
 ```
 

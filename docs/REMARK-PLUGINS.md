@@ -1,6 +1,6 @@
 # 🔌 自訂 Remark 插件維護指南 (Custom Remark Plugins Guide)
 
-本文件提供 Markdown Live Previewer 中自訂的三個 Remark 插件（`remarkGithubAlerts`、`remarkWikiLink`、`remarkPageBreak`）的技術解析與維護指引。這些插件均位於 [src/components/markdown/](../src/components/markdown/)。
+本文件提供  Mark It Live 中自訂的三個 Remark 插件（`remarkGithubAlerts`、`remarkWikiLink`、`remarkPageBreak`）的技術解析與維護指引。這些插件均位於 [src/components/markdown/](../src/components/markdown/)。
 
 ---
 

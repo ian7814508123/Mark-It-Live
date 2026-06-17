@@ -1,6 +1,6 @@
 # 🛠️ 開發與部署完整指南 (Development & Deployment Comprehensive Guide)
 
-本文件提供 Markdown Live Previewer 的一站式技術指南，涵蓋本地開發環境設定、Docker 容器化部署、GitHub Pages 自動化部屬、多種雲端平台託管方案以及自訂網域 DNS 設定與驗證。
+本文件提供  Mark It Live 的一站式技術指南，涵蓋本地開發環境設定、Docker 容器化部署、GitHub Pages 自動化部屬、多種雲端平台託管方案以及自訂網域 DNS 設定與驗證。
 
 ---
 

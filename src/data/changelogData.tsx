@@ -45,7 +45,7 @@ export const CHANGELOG_CARDS: ChangelogCard[] = [
         title: 'Mark It Live 誕生了',
         details: [
           <>
-            <strong>Mark It Live</strong> 從<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">MarkDown Live Previewer</code> 正式升級為 <strong>Mark It Live</strong>！
+            <strong>Mark It Live</strong> 從<code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 "> Mark It Live</code> 正式升級為 <strong>Mark It Live</strong>！
             <p>(舊版功能同時兼容)
             </p>
           </>

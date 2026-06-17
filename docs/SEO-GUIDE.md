@@ -1,12 +1,12 @@
-# 🎯 Markdown Live Previewer - SEO 核心與維護指南
+# 🎯  Mark It Live - SEO 核心與維護指南
 
-本指南旨在幫助開發者與專案維護者了解 Markdown Live Previewer 的 SEO 架構、優化策略、日常維護檢查清單以及故障排除方法。
+本指南旨在幫助開發者與專案維護者了解  Mark It Live 的 SEO 架構、優化策略、日常維護檢查清單以及故障排除方法。
 
 ---
 
 ## 📌 概述 (Overview)
 
-Markdown Live Previewer 專案已實施**企業級的 SEO 優化**，旨在提升在 Google 搜尋引擎中的內容品質評分與點擊率。所有優化均遵循 Google 搜尋中心與 Schema.org 的最佳實踐，確保單頁應用程式 (SPA) 在完全由客戶端渲染的情況下，也能獲得卓越的爬蟲索引效果。
+ Mark It Live 專案已實施**企業級的 SEO 優化**，旨在提升在 Google 搜尋引擎中的內容品質評分與點擊率。所有優化均遵循 Google 搜尋中心與 Schema.org 的最佳實踐，確保單頁應用程式 (SPA) 在完全由客戶端渲染的情況下，也能獲得卓越的爬蟲索引效果。
 
 ### 核心目標
 *   **提升點擊率 (CTR)**：透過 Rich Snippet (豐富網頁摘要) 讓搜尋結果在 SERP 中更具吸引力。

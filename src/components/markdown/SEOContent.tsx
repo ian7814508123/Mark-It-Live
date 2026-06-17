@@ -13,7 +13,7 @@ const SEOContent: React.FC = () => {
           核心關鍵字自然融入，同時兼顧 Google 判斷頁面主題的準確性。
           English title is handled as H2 below to maintain single-H1 rule.
           ────────────────────────────────────────────────────────────────── */}
-      <h1> Mark It Live — Markdown Live Previewer — 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表與 LaTeX 公式</h1>
+      <h1> Mark It Live —  Mark It Live — 免費線上 Markdown 編輯器，支援即時預覽、Mermaid 圖表與 LaTeX 公式</h1>
 
       {/* ==========================================
           CHINESE SEO CONTENT (中文 SEO 關鍵字最佳化)

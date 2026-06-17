@@ -1,6 +1,6 @@
 # 🔄 從 origin/main 同步樣式到 origin/electron-desktop 的方法說明
 
-本文件旨在提供 **Markdown Live Previewer** 開發團隊一份安全、標準化且零衝突的「樣式同步與衝突處理解決方案」。這份指南將協助開發者在不破壞 Electron 桌面端特有功能（如預覽列印、頁尾隱藏、離線載入等）的前提下，完美繼承網頁版最新的美學樣式。
+本文件旨在提供 ** Mark It Live** 開發團隊一份安全、標準化且零衝突的「樣式同步與衝突處理解決方案」。這份指南將協助開發者在不破壞 Electron 桌面端特有功能（如預覽列印、頁尾隱藏、離線載入等）的前提下，完美繼承網頁版最新的美學樣式。
 
 ---
 
@@ -198,7 +198,7 @@ npm run dev-electron
 npm run electron-build
 ```
 *   **檢查重點：**
-    *   建置流程無紅字報錯，且 `dist/` 目錄成功輸出 `Markdown Live Previewer Setup 0.0.0.exe`。
+    *   建置流程無紅字報錯，且 `dist/` 目錄成功輸出 ` Mark It Live Setup 0.0.0.exe`。
     *   手動點擊安裝生成的綠色免安裝/安裝檔，測試是否能離線順利打開並正常著色。
 
 ---

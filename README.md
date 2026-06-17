@@ -1,6 +1,6 @@
 <h1 align="left">
   <img src="public/image/livelogo_v1.svg" alt="Logo" width="50" style="vertical-align: middle;">
-  <span style="vertical-align: middle; margin-left: 10px;">Markdown Live Previewer</span>
+  <span style="vertical-align: middle; margin-left: 10px;"> Mark It Live</span>
 </h1>
 
 [![React 19](https://img.shields.io/badge/React-19.2.3-61DAFB?logo=react&logoColor=white)](https://react.dev/)
@@ -12,7 +12,7 @@
 
 **專業、實時、隱私優先的 Mermaid 圖表與 Markdown 編輯器**
 
-Markdown Live Previewer 是一款功能強大且著重隱私的網頁版 Markdown 編輯器與即時預覽工具。所有運算與渲染皆在瀏覽器端（客戶端）完成，不向任何伺服器傳送用戶文件內容，保障絕對的安全與隱私。專案基於 **Vite + React 19 + TypeScript + TailwindCSS v4** 構建，核心由 CodeMirror 編輯器與動態 React Markdown 預覽管線組成，提供毫秒級反應、同步滾動以及無縫的科學圖表展示。
+ Mark It Live 是一款功能強大且著重隱私的網頁版 Markdown 編輯器與即時預覽工具。所有運算與渲染皆在瀏覽器端（客戶端）完成，不向任何伺服器傳送用戶文件內容，保障絕對的安全與隱私。專案基於 **Vite + React 19 + TypeScript + TailwindCSS v4** 構建，核心由 CodeMirror 編輯器與動態 React Markdown 預覽管線組成，提供毫秒級反應、同步滾動以及無縫的科學圖表展示。
 
 ---
 

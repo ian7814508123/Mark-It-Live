@@ -1,9 +1,9 @@
 @echo off
-REM Markdown Live Previewer - Electron Development Launcher
+REM  Mark It Live - Electron Development Launcher
 
 echo.
 echo ========================================
-echo Markdown Live Previewer - Electron Dev
+echo  Mark It Live - Electron Dev
 echo ========================================
 echo.
 

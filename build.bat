@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 chcp 65001 >nul
 
 echo ========================================
-echo   Markdown Live Previewer Build Tool
+echo    Mark It Live Build Tool
 echo ========================================
 echo.
 
