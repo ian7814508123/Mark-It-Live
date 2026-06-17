@@ -88,8 +88,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.markdownlivepreviewer.app",
-    "productName": "Markdown Live Previewer",
+    "appId": "com.markitlive.app",
+    "productName": "Mark It Live",
     "compression": "normal",
     "files": [
       "dist/**/*",
