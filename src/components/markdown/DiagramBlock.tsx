@@ -12,6 +12,8 @@ interface DiagramBlockProps {
     printSessionId?: number;
     /** 渲染函數：由具體圖表類型提供，可選返回清理函數以釋放資源 */
     render: (container: HTMLDivElement, code: string, isDark: boolean) => Promise<(() => void) | void> | ((() => void) | void);
+    /** 渲染完成後附加互動事件的 callback（不觸發重新渲染） */
+    attachInteractivity?: (container: HTMLDivElement) => void;
     /** 錯誤訊息標題 */
     errorTitle?: string;
     /** 容器類名 (可選) */
@@ -28,6 +30,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
     isPrinting,
     printSessionId = 0,
     render,
+    attachInteractivity,
     errorTitle = 'Rendering Error',
     containerClassName = ''
 }) => {
@@ -75,9 +78,11 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
         }));
     }, []);
 
-    // 使用 Ref 儲存 render 函數以避免 callback 參考漂移觸發重繪
+    // 使用 Ref 儲存 render 與 attachInteractivity 函數，避免 callback 參考漂移觸發重繪
     const renderRef = useRef(render);
     renderRef.current = render;
+    const attachInteractivityRef = useRef(attachInteractivity);
+    attachInteractivityRef.current = attachInteractivity;
 
     useEffect(() => {
         if (!renderCode) return;
@@ -100,6 +105,10 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
                 if (isMounted.current) {
                     lastValidHtml.current = containerRef.current.innerHTML;
                     setError(null);
+                    // 渲染完成後，呼叫互動事件附加函數（不受 renderCode 快取影響）
+                    if (containerRef.current) {
+                        attachInteractivityRef.current?.(containerRef.current);
+                    }
                     notifyReady();
                 }
             } catch (err: any) {

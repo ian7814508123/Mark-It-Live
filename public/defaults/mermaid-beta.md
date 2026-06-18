@@ -1,22 +1,26 @@
 ---
-title: 色彩實驗室
+title: Mermaid 進階擴充實驗室
 ---
-<style>
-.prose {
-    --mermaid-actor-bg: #1e1b4b;     
-    --mermaid-actor-text: #c084fc;   
-    --mermaid-actor-border: #6366f1; 
-    --mermaid-note-bg: #064e3b;      
-    --mermaid-note-text: #34d399;    
-    --mermaid-note-border: #059669;  
-    --mermaid-line: #818cf8;          
-}
-</style>
 
-sequenceDiagram
-    actor 使用者 as 👤 使用者
-    participant 預覽器 as 💻 即時預覽器
-    
-    使用者->>預覽器: 1. 在 Markdown 中編寫圖表與 <style>
-    Note right of 預覽器: 此 Note 樣式受 --mermaid-note-* 影響
-    預覽器-->>使用者: 2. 預覽器自動抓取變數並完美套用！
+%% 這份文件展示了 Mark It Live  如何無縫整合最新的 **Mermaid 11** 語法與自訂樣式。
+
+%% 1. 全新形狀擴充語法 (Extensible Shapes)
+
+%% 除了點擊畫面上的節點使用「工具列」切換常見形狀外，你也可以在左側編輯器直接使用官方最新的 `@{ shape: xxx }` 語法，解鎖幾十種專業繪圖符號：
+
+
+flowchart LR
+    %% 先定義節點與文字
+    N1["人工操作"]
+    N2["多重文件"]
+    N3["子程序"]
+    N4["圓柱資料庫"]
+
+    %% 使用 @{ shape } 語法套用特殊外觀
+    N1@{ shape: proc }
+    N2@{ shape: docs }
+    N3@{ shape: subproc }
+    N4@{ shape: cylinder }
+
+    N1 --> N2 --> N3 --> N4
+

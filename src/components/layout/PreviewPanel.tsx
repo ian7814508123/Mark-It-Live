@@ -1,7 +1,10 @@
-import React, { forwardRef, useState, useEffect, useRef, useMemo } from 'react';
-import { AlertCircle, Trash2, RefreshCw, ZoomIn, ZoomOut, Maximize } from '../ui/Icons';
+import React, { forwardRef, useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { AlertCircle, Trash2, RefreshCw } from '../ui/Icons';
 import MarkdownPreview from '../markdown/MarkdownPreview';
 import InteractiveLogo from '../ui/InteractiveLogo';
+import MermaidGlobalToolbar from '../markdown/MermaidGlobalToolbar';
+import MermaidContextToolbar from '../markdown/MermaidContextToolbar';
+import { MermaidAstManipulator } from '../../utils/mermaidAstManipulator';
 
 // ── PrintPaper ──────────────────────────────────────────────────────────────
 // 封裝每份紙張的渲染邏輯
@@ -28,6 +31,7 @@ interface PrintPaperProps {
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
+    onUpdateContent?: (docId: string, content: string) => void;
     activeScale?: number;
 }
 
@@ -54,6 +58,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     isCommentMode,
     setIsCommentMode,
     onUpdateLineComment,
+    onUpdateContent,
     activeScale = 1,
 }) => {
     const paperRef = useRef<HTMLDivElement>(null);
@@ -95,6 +100,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     isCommentMode={isCommentMode}
                     setIsCommentMode={setIsCommentMode}
                     onUpdateLineComment={onUpdateLineComment}
+                    onUpdateContent={onUpdateContent}
                     activeScale={activeScale}
                 />
             </div>
@@ -123,6 +129,7 @@ interface MarkdownPreviewSectionProps {
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
+    onUpdateContent?: (docId: string, content: string) => void;
 }
 
 const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
@@ -143,6 +150,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
     isCommentMode,
     setIsCommentMode,
     onUpdateLineComment,
+    onUpdateContent,
 }) => {
     // 當前文件物件
     const currentDoc = documents?.find((d: any) => d.id === currentDocId);
@@ -253,6 +261,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                                         isCommentMode={isCommentMode}
                                         setIsCommentMode={setIsCommentMode}
                                         onUpdateLineComment={onUpdateLineComment}
+                                        onUpdateContent={onUpdateContent}
                                         activeScale={1}
                                     />
                                 );
@@ -300,6 +309,11 @@ interface PreviewPanelProps {
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
+    onUpdateContent?: (docId: string, content: string) => void;
+    onUndo?: () => void;
+    onRedo?: () => void;
+    onGoToLine?: (line: number) => void;
+    activeScale?: number;
 }
 
 const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
@@ -334,30 +348,192 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     isCommentMode,
     setIsCommentMode,
     onUpdateLineComment,
+    onUpdateContent,
+    onUndo,
+    onRedo,
+    onGoToLine,
+    activeScale = 1,
 }, ref) => {
-    const [isHUDExpanded, setIsHUDExpanded] = useState(false);
-    const hudRef = useRef<HTMLDivElement>(null);
+    // 編輯器狀態
+    const [isPanMode, setIsPanMode] = useState(false);
+    const isPanModeRef = useRef(isPanMode);
+    isPanModeRef.current = isPanMode;
+
+    // 節點選取與連線狀態
+    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    const [selectedNodePos, setSelectedNodePos] = useState<{ x: number, y: number, isNearTop?: boolean } | null>(null);
+    const [connectingFromNodeId, setConnectingFromNodeId] = useState<string | null>(null);
+    const connectingRef = useRef(connectingFromNodeId);
+    connectingRef.current = connectingFromNodeId;
+
+    const svgContainerRef = useRef<HTMLDivElement>(null);
 
     // 判斷當前編輯器是否為空狀態（無文字內容）
     const isTextEmpty = !code || code.trim() === '';
 
-    // 當編輯器內容變為空時，自動收合 HUD 膠囊工具列
-    useEffect(() => {
-        if (isTextEmpty) {
-            setIsHUDExpanded(false);
-        }
-    }, [isTextEmpty]);
+    // 取消選取
+    const clearSelection = useCallback(() => {
+        setSelectedNodeId(null);
+        setSelectedNodePos(null);
+        setConnectingFromNodeId(null);
+    }, []);
 
-    // 處理點擊外部收合
+    // 當模式改變或內容為空時，清除選取
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (hudRef.current && !hudRef.current.contains(event.target as Node)) {
-                setIsHUDExpanded(false);
+        if (isTextEmpty || isPanMode) {
+            clearSelection();
+        }
+    }, [isTextEmpty, isPanMode, clearSelection]);
+
+    // 判斷目前 Mermaid 內容是否為流程圖 (flowchart / graph)
+    const isFlowchart = useMemo(() => {
+        if (!code) return false;
+        const lines = code.split('\n').map(l => l.trim());
+        
+        let i = 0;
+        // 略過 YAML frontmatter (由 --- 包著的區塊)
+        if (lines[i] === '---') {
+            i++;
+            while (i < lines.length && lines[i] !== '---') {
+                i++;
+            }
+            i++; // 跳過結尾的 '---'
+        }
+
+        // 尋找第一行非空白、非註解的程式碼
+        while (i < lines.length) {
+            const line = lines[i];
+            if (line && !line.startsWith('%%')) {
+                return line.startsWith('flowchart') || line.startsWith('graph');
+            }
+            i++;
+        }
+        
+        return true; // 空白檔案當作 flowchart 處理
+    }, [code]);
+
+    const currentDirection = useMemo(() => MermaidAstManipulator.getDirection(code), [code]);
+
+    // 用 ref 確保事件代理中永遠能讀取到最新的屬性，避免 stale closures
+    const mermaidContextRef = useRef({ code, currentDocId, onUpdateContent, zoom, position, isFlowchart });
+    useEffect(() => {
+        mermaidContextRef.current = { code, currentDocId, onUpdateContent, zoom, position, isFlowchart };
+    }, [code, currentDocId, onUpdateContent, zoom, position, isFlowchart]);
+
+    // ─── Mermaid 模式：事件代理 ──────────────────────────────────────────────────
+    // 綁定在 svgContainerRef 上，避免因 Mermaid 重新渲染而遺失綁定的事件，也解決 stale closures
+    useEffect(() => {
+        const container = svgContainerRef.current;
+        if (!container || mode !== 'mermaid') return;
+
+        const getTargetNode = (e: MouseEvent) => (e.target as Element).closest('g.node') as HTMLElement | null;
+        
+        const extractNodeId = (rawId: string) => {
+            const match = rawId.match(/^flowchart-([^-]+)-/);
+            if (match) return match[1];
+            if (rawId.startsWith('flowchart-')) return rawId.split('-')[1];
+            return rawId;
+        };
+
+        const handleMouseOver = (e: MouseEvent) => {
+            const nodeEl = getTargetNode(e);
+            if (nodeEl) {
+                if (connectingRef.current) {
+                    // 連線模式：目標高亮為綠色
+                    nodeEl.style.opacity = '0.9';
+                    nodeEl.style.filter = 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.9))';
+                } else {
+                    nodeEl.style.opacity = '0.75';
+                    nodeEl.style.filter = 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.9))';
+                }
+                nodeEl.style.transition = 'opacity 0.2s ease, filter 0.2s ease';
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+
+        const handleMouseOut = (e: MouseEvent) => {
+            const nodeEl = getTargetNode(e);
+            if (nodeEl) {
+                nodeEl.style.opacity = '1';
+                nodeEl.style.filter = 'none';
+            }
+        };
+
+        const handleMouseDown = (e: MouseEvent) => {
+            const nodeEl = getTargetNode(e);
+            // 只在 Edit 模式下攔截（Pan 模式保留拖曳行為）
+            if (nodeEl && !isPanModeRef.current) {
+                e.stopPropagation();
+            }
+        };
+
+        const handleClick = (e: MouseEvent) => {
+            // Pan 模式下或非流程圖模式下，不執行編輯邏輯
+            const { isFlowchart: currentIsFlowchart } = mermaidContextRef.current;
+            if (isPanModeRef.current || !currentIsFlowchart) return;
+            const nodeEl = getTargetNode(e);
+            
+            const { code: currentCode, currentDocId: docId, onUpdateContent: updateContent, zoom: currentZoom } = mermaidContextRef.current;
+            
+            // 點擊畫布空白處
+            if (!nodeEl) {
+                clearSelection();
+                return;
+            }
+
+            e.stopPropagation();
+            e.preventDefault();
+
+            let nodeId = extractNodeId(nodeEl.id);
+            if (!nodeId) return;
+
+            if (!updateContent || !docId || !currentCode) return;
+
+            // 如果正在連線模式
+            if (connectingRef.current) {
+                if (nodeId !== connectingRef.current) {
+                    const newCode = MermaidAstManipulator.addLink(currentCode, connectingRef.current, nodeId);
+                    updateContent(docId, newCode);
+                }
+                clearSelection();
+                return;
+            }
+
+            // 一般選取節點
+            setSelectedNodeId(nodeId);
+
+            // 計算節點位置，用於顯示 Context Toolbar
+            const rect = nodeEl.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            // 判斷是否太靠近畫布頂部（包含全局工具列的高度與間距，約 100px）
+            // 我們以整個編輯區塊 viewportRect 為基準
+            const viewportEl = container.closest('.relative.flex-1') as HTMLElement;
+            const viewportRect = viewportEl ? viewportEl.getBoundingClientRect() : containerRect;
+            const isNearTop = (rect.top - viewportRect.top) < 100;
+            
+            // 由於外層有 zoom (transform: scale)，需要還原成相對於 SVG 容器的真實座標
+            const scale = currentZoom / 100;
+            setSelectedNodePos({
+                x: (rect.left - containerRect.left + rect.width / 2) / scale,
+                y: isNearTop 
+                    ? (rect.bottom - containerRect.top) / scale // 靠近頂部，放在節點下方
+                    : (rect.top - containerRect.top) / scale,   // 正常，放在節點上方
+                isNearTop
+            });
+        };
+
+        container.addEventListener('mouseover', handleMouseOver);
+        container.addEventListener('mouseout', handleMouseOut);
+        container.addEventListener('mousedown', handleMouseDown);
+        container.addEventListener('click', handleClick);
+
+        return () => {
+            container.removeEventListener('mouseover', handleMouseOver);
+            container.removeEventListener('mouseout', handleMouseOut);
+            container.removeEventListener('mousedown', handleMouseDown);
+            container.removeEventListener('click', handleClick);
+        };
+    }, [mode, !!svgContent, clearSelection]); // 當 svgContent 首次出現時 (從 null 變有值) 需要重新綁定
 
     // DIFFERENT LAYOUT STRATEGY BASED ON MODE
     // 只有在「列印中」時，才允許 Mermaid 模式進入合併文件佈局
@@ -389,6 +565,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 isCommentMode={isCommentMode}
                 setIsCommentMode={setIsCommentMode}
                 onUpdateLineComment={onUpdateLineComment}
+                onUpdateContent={onUpdateContent}
             />
         );
     }
@@ -400,6 +577,32 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
+            {/* Mermaid Global Toolbar */}
+            {mode === 'mermaid' && (
+                <MermaidGlobalToolbar
+                    isTextEmpty={isTextEmpty}
+                    isPanMode={isPanMode}
+                    setIsPanMode={setIsPanMode}
+                    zoom={zoom}
+                    onZoom={onZoom}
+                    onSetZoom={onSetZoom}
+                    onResetNav={onResetNav}
+                    onUndo={onUndo}
+                    onRedo={onRedo}
+                    onAddIsolatedNode={() => {
+                        if (!onUpdateContent || !currentDocId) return;
+                        const newCode = MermaidAstManipulator.addIsolatedNode(code);
+                        onUpdateContent(currentDocId, newCode);
+                    }}
+                    onChangeDirection={(dir) => {
+                        if (!onUpdateContent || !currentDocId) return;
+                        const newCode = MermaidAstManipulator.changeDirection(code, dir);
+                        onUpdateContent(currentDocId, newCode);
+                    }}
+                    isFlowchart={isFlowchart}
+                    currentDirection={currentDirection}
+                />
+            )}
             {error && (
                 <div className="absolute top-6 left-6 right-6 z-40 flex flex-col gap-3 p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-red-800 dark:text-red-200 shadow-2xl animate-in slide-in-from-top-4 duration-300">
                     <div className="flex items-start gap-4">
@@ -417,118 +620,17 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 </div>
             )}
 
-            {/* Smart HUD Control Hub (精緻優化版 - 固定高度與品牌化深色模式) */}
-            <div
-                ref={hudRef}
-                className={`
-                    absolute bottom-10 right-8 z-30 flex items-center h-12 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
-                    ${isHUDExpanded
-                        ? 'bg-white/95 dark:bg-slate-900/95 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_0_30px_rgba(14,165,233,0.1)] px-3 rounded-full border border-slate-300 dark:border-white/20'
-                        : 'bg-white/60 dark:bg-slate-950/40 shadow-xl p-1.5 rounded-full border border-white/30 dark:border-white/10'
-                    }
-                    ${isTextEmpty
-                        ? 'opacity-40 pointer-events-none select-none shadow-none border-slate-200/50 dark:border-white/5 bg-slate-100/50 dark:bg-slate-950/20'
-                        : 'backdrop-blur-3xl'
-                    }
-                    group/hud-container
-                `}
-            >
-                {/* 1. 呼吸燈 (觸發源) */}
-                <button
-                    onClick={() => !isTextEmpty && setIsHUDExpanded(!isHUDExpanded)}
-                    disabled={isTextEmpty}
-                    className={`
-                        relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300
-                        ${isHUDExpanded ? 'bg-slate-100/80 dark:bg-slate-800/80' : 'hover:bg-white/80 dark:hover:bg-slate-700/50'}
-                        ${isTextEmpty ? 'cursor-not-allowed' : ''}
-                    `}
-                    title={isTextEmpty ? "無編輯內容" : (isHUDExpanded ? "收合資訊" : "顯示詳情")}
-                >
-                    <div className={`
-                        w-2.5 h-2.5 rounded-full transition-all duration-500
-                        ${isTextEmpty
-                            ? 'bg-slate-400 dark:bg-slate-650 shadow-none'
-                            : error
-                                ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.7)] animate-pulse'
-                                : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.7)] animate-pulse'
-                        }
-                    `} />
-                </button>
-
-                {/* 按鈕組 (放大/縮小/重置) - 始終顯示，排列穩定 */}
-                <div className={`flex items-center gap-0.5 ${isHUDExpanded ? 'ml-1 pr-3 border-r border-slate-200 dark:border-white/10' : 'ml-0.5'}`}>
-                    <button
-                        onClick={() => !isTextEmpty && onZoom(25)}
-                        disabled={isTextEmpty}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-current"
-                        title="放大"
-                    >
-                        <ZoomIn size={18} />
-                    </button>
-                    <button
-                        onClick={() => !isTextEmpty && onZoom(-25)}
-                        disabled={isTextEmpty}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-current"
-                        title="縮小"
-                    >
-                        <ZoomOut size={18} />
-                    </button>
-                    <button
-                        onClick={() => !isTextEmpty && onResetNav()}
-                        disabled={isTextEmpty}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-700 dark:text-slate-100 hover:text-brand-primary dark:hover:text-brand-primary transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-current"
-                        title="跳轉至中心"
-                    >
-                        <Maximize size={18} />
-                    </button>
-                </div>
-
-                {/* 2. 展開區域 (純水平展開，維持高度穩定) */}
-                <div className={`
-                    flex items-center gap-5 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
-                    ${isHUDExpanded ? 'max-w-md opacity-100 ml-4 mr-2' : 'max-w-0 opacity-0'}
-                `}>
-                    {/* Zoom Input */}
-                    <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">Zoom</span>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                title='Zoom Input Group'
-                                disabled={isTextEmpty}
-                                value={`${Math.round(zoom)}%`}
-                                onChange={(e) => {
-                                    if (isTextEmpty) return;
-                                    const val = e.target.value.replace(/[^0-9]/g, '');
-                                    if (val) onSetZoom(Math.min(Math.max(parseInt(val), 5), 1000));
-                                }}
-                                className="w-16 bg-slate-100 dark:bg-white/10 text-brand-primary font-bold text-[11px] px-2 py-1.5 rounded-lg border-none focus:ring-1 focus:ring-brand-primary/30 text-center transition-all tabular-nums placeholder:opacity-30 disabled:opacity-50"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Position Display */}
-                    <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">Cursor</span>
-                        <div className="flex items-center gap-2 font-mono text-[11px] text-slate-700 dark:text-slate-50 tabular-nums bg-slate-100 dark:bg-white/10 px-2.5 py-1.5 rounded-lg">
-                            <span className="opacity-30">X</span>
-                            <span className="min-w-[2.2rem] text-right font-bold">{Math.round(position.x)}</span>
-                            <span className="w-px h-2 bg-slate-400 dark:bg-white/20 mx-1"></span>
-                            <span className="opacity-30">Y</span>
-                            <span className="min-w-[2.2rem] text-right font-bold">{Math.round(position.y)}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
 
             {/* Main Viewport */}
             <div
-                className={`relative flex-1 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} print:static print:block print:overflow-visible print:h-auto ${isPrinting ? '' : 'overflow-hidden'}`}
-                onMouseDown={onMouseDown}
-                onMouseMove={onMouseMove}
-                onMouseUp={onMouseUp}
-                onMouseLeave={onMouseUp}
+                className={`relative flex-1 ${!isPanMode
+                    ? 'cursor-default'
+                    : isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                    } print:static print:block print:overflow-visible print:h-auto ${isPrinting ? '' : 'overflow-hidden'}`}
+                onMouseDown={isPanMode ? onMouseDown : undefined}
+                onMouseMove={isPanMode ? onMouseMove : undefined}
+                onMouseUp={isPanMode ? onMouseUp : undefined}
+                onMouseLeave={isPanMode ? onMouseUp : undefined}
                 style={{
                     backgroundColor: isDarkMode ? 'var(--brand-surface)' : '#ffffff',
                     backgroundImage: isDarkMode
@@ -549,11 +651,53 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 >
                     {/* Mermaid Preview */}
                     {svgContent ? (
-                        <div
-                            className={`prose max-w-none bg-white dark:bg-slate-900/95 p-6 rounded-[16px] shadow-2xl dark:shadow-[0_0_100px_rgba(56,189,248,0.15),0_0_1px_rgba(56,189,248,0.2)] border border-slate-200/50 dark:border-white/5 transition-all duration-300 ease-out pointer-events-auto print:p-0 print:rounded-none print:shadow-none print:border-none print:bg-transparent print:dark:bg-transparent print:static print:transform-none print:block print:max-w-full print:h-auto print:overflow-visible ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''}`}
-                            style={{ transform: isPrinting ? 'none' : `scale(${zoom / 100})` }}
-                            dangerouslySetInnerHTML={{ __html: svgContent }}
-                        />
+                        <div className="relative pointer-events-auto">
+                            {mode === 'mermaid' && isFlowchart && (
+                                <MermaidContextToolbar
+                                    nodeId={selectedNodeId}
+                                    position={selectedNodePos}
+                                    zoom={zoom}
+                                    onClose={() => clearSelection()}
+                                    onDelete={() => {
+                                        if (!onUpdateContent || !currentDocId || !selectedNodeId) return;
+                                        const newCode = MermaidAstManipulator.deleteNode(code, selectedNodeId);
+                                        onUpdateContent(currentDocId, newCode);
+                                        clearSelection();
+                                    }}
+                                    onChangeShape={(shape) => {
+                                        if (!onUpdateContent || !currentDocId || !selectedNodeId) return;
+                                        const newCode = MermaidAstManipulator.changeNodeShape(code, selectedNodeId, shape);
+                                        onUpdateContent(currentDocId, newCode);
+                                    }}
+                                    onChangeColor={(color) => {
+                                        if (!onUpdateContent || !currentDocId || !selectedNodeId) return;
+                                        const newCode = MermaidAstManipulator.changeNodeStyle(code, selectedNodeId, { fill: color });
+                                        onUpdateContent(currentDocId, newCode);
+                                    }}
+                                    onStartConnect={() => {
+                                        setConnectingFromNodeId(selectedNodeId);
+                                    }}
+                                    onGoToCode={() => {
+                                        if (!onGoToLine || !code || !selectedNodeId) return;
+                                        const lines = code.split('\n');
+                                        // Regex 尋找該節點第一次被宣告的行數
+                                        const regex = new RegExp(`(^|\\s)${selectedNodeId}(\\s|$|@|\\[|\\(|\\{|\\>|\\/|\\|)`, 'm');
+                                        const idx = lines.findIndex(l => regex.test(l));
+                                        if (idx !== -1) {
+                                            // CodeMirror 的行號是從 1 開始計算
+                                            onGoToLine(idx + 1);
+                                        }
+                                    }}
+                                />
+                            )}
+                            <div
+                                ref={svgContainerRef}
+                                className={`prose max-w-none transition-all duration-300 ease-out print:static print:transform-none print:block print:max-w-full print:h-auto print:overflow-visible ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${!isPanMode ? 'mermaid-edit-mode' : ''} ${connectingFromNodeId ? 'mermaid-connecting-mode cursor-crosshair' : ''}`}
+                                style={{ transform: isPrinting ? 'none' : `scale(${zoom / 100})` }}
+                                dangerouslySetInnerHTML={{ __html: svgContent }}
+                            />
+                        </div>
+
                     ) : !error && (
                         <div className="text-slate-400 text-center flex flex-col items-center">
                             {/* 保持相對定位，並用 grid 或 flex 讓子元件重疊 */}

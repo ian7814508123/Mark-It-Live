@@ -31,6 +31,7 @@ interface MarkdownPreviewProps {
     isCommentMode?: boolean;
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
+    onUpdateContent?: (docId: string, content: string) => void;
     activeScale?: number;
 }
 
@@ -55,7 +56,13 @@ const MermaidBlock: React.FC<{
     isPrinting?: boolean;
     printSessionId?: number;
     previewTheme?: string;
-}> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0, previewTheme = 'default' }) => {
+    onUpdateContent?: (docId: string, content: string) => void;
+    globalContent?: string;
+    startLine?: number;
+    endLine?: number;
+    currentDocId?: string | null;
+    docMode?: string;
+}> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0, previewTheme = 'default', onUpdateContent, globalContent, startLine, endLine, currentDocId, docMode }) => {
     const render = useCallback(async (container: HTMLDivElement, renderCode: string, isDark: boolean) => {
         // 動態載入 Mermaid（首次渲染時才下載，後續使用已快取實例）
         const mermaid = (await import('mermaid')).default;
@@ -129,6 +136,89 @@ const MermaidBlock: React.FC<{
         container.innerHTML = cleanMermaidSvg(renderedSvg);
     }, [previewTheme]);
 
+    const contextRef = useRef({ onUpdateContent, globalContent, currentDocId, startLine, endLine, docMode });
+    useEffect(() => {
+        contextRef.current = { onUpdateContent, globalContent, currentDocId, startLine, endLine, docMode };
+    }, [onUpdateContent, globalContent, currentDocId, startLine, endLine, docMode]);
+
+    // attachInteractivity 由 DiagramBlock 在每次渲染完成後透過 ref 呼叫，
+    // 由於我們把事件直接綁在會被覆寫的 g.node 上，必須透過 ref 讀取最新的 globalContent 避免 stale closure
+    const attachInteractivity = useCallback((container: HTMLDivElement) => {
+        const { onUpdateContent: updateContent, globalContent: currentGlobalContent, currentDocId: docId, startLine: sLine, endLine: eLine, docMode: dMode } = contextRef.current;
+        if (!updateContent || !currentGlobalContent || !docId) return;
+
+        const lines = currentGlobalContent.split('\n');
+        let actualEndLine = eLine;
+
+        // 如果沒有 endLine，嘗試從 startLine 往下尋找 ``` 結尾
+        if (!actualEndLine && sLine) {
+            for (let i = sLine; i < lines.length; i++) {
+                if (lines[i].trim() === '```') {
+                    actualEndLine = i + 1;
+                    break;
+                }
+            }
+        }
+        if (!actualEndLine) actualEndLine = lines.length;
+
+        const nodes = container.querySelectorAll('g.node');
+        nodes.forEach(node => {
+            const nodeElement = node as HTMLElement;
+            // 用 setAttribute 強制覆蓋父層 cursor-grab 的繼承
+            nodeElement.setAttribute('style',
+                (nodeElement.getAttribute('style') || '') + '; cursor: pointer !important;'
+            );
+
+            // Hover 視覺效果（SVG g 元素 transform-origin 預設為(0,0)，移除 scale 避免節點飛到左上角）
+            // 勿用 transition: all！all 包含 transform，會和 SVG 的 transform 屬性衝突
+            nodeElement.addEventListener('mouseenter', () => {
+                nodeElement.style.opacity = '0.7';
+                nodeElement.style.filter = 'drop-shadow(0 0 6px rgba(14, 165, 233, 0.8))';
+                nodeElement.style.transition = 'opacity 0.2s ease, filter 0.2s ease';
+            });
+            nodeElement.addEventListener('mouseleave', () => {
+                nodeElement.style.opacity = '1';
+                nodeElement.style.filter = 'none';
+            });
+
+            // mousedown 攔截：阻止冒泡到父層 pan/zoom 的 onMouseDown handler
+            nodeElement.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+
+            nodeElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+
+                let nodeId = nodeElement.id;
+                const match = nodeId.match(/^flowchart-([^-]+)-/);
+                if (match) {
+                    nodeId = match[1];
+                } else if (nodeId.startsWith('flowchart-')) {
+                    nodeId = nodeId.split('-')[1];
+                }
+                if (!nodeId) return;
+
+                const { onUpdateContent: freshUpdateContent, globalContent: freshGlobalContent, currentDocId: freshDocId, docMode: freshDocMode } = contextRef.current;
+                if (!freshUpdateContent || !freshGlobalContent || !freshDocId) return;
+
+                const newId = `node_${Date.now().toString().slice(-4)}`;
+                // 每次點擊都重新 split，並從 ref 讀取最新的 globalContent 避免 stale closure
+                const freshLines = freshGlobalContent.split('\n');
+                // endLine 是 ` ``` ` 的那一行，我們在它前面插入
+                freshLines.splice(actualEndLine - 1, 0, `  ${nodeId} --> ${newId}[新分支]`);
+
+                let newContent = freshLines.join('\n');
+                if (freshDocMode === 'mermaid') {
+                    // mermaid 模式：globalContent 是被包裝過的，存檔前需移除首尾行
+                    newContent = freshLines.slice(1, -1).join('\n');
+                }
+
+                freshUpdateContent(freshDocId, newContent);
+            });
+        });
+    }, []);
+
     return (
         <DiagramBlock
             type="mermaid"
@@ -137,10 +227,12 @@ const MermaidBlock: React.FC<{
             isPrinting={isPrinting}
             printSessionId={printSessionId}
             render={render}
+            attachInteractivity={attachInteractivity}
             errorTitle="Mermaid Syntax Error"
         />
     );
 });
+
 
 const VegaBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: boolean; printSessionId?: number }> = React.memo(({ code, isDarkMode, isPrinting, printSessionId = 0 }) => {
     const { getDataFileByName } = useImageStorage();
@@ -690,6 +782,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     previewTheme,
     isCommentMode = false,
     setIsCommentMode,
+    onUpdateContent,
     onUpdateLineComment,
     activeScale = 1,
 }) => {
@@ -848,7 +941,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         printSessionId,
         isMergedPrint,
         previewTheme,
-        getImage
+        getImage,
+        onUpdateContent,
+        content
     };
 
     // ─── URI 轉換：允許自定義協定通過 react-markdown 的過濾 ───────────────────────────
@@ -907,6 +1002,12 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                                 isDarkMode={ctx.shouldShowDark}
                                 isPrinting={ctx.isPrinting}
                                 previewTheme={ctx.previewTheme}
+                                onUpdateContent={ctx.onUpdateContent}
+                                globalContent={ctx.content}
+                                startLine={node?.position?.start?.line}
+                                endLine={node?.position?.end?.line}
+                                currentDocId={ctx.currentDocId}
+                                docMode={ctx.documents?.find((d: any) => d.id === ctx.currentDocId)?.mode}
                             />
                         </div>
                     );
@@ -950,7 +1051,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             if (alertType) {
                 const config = alertConfig[alertType] || alertConfig.note;
                 const titleToDisplay = alertTitle || config.label;
-                
+
                 // 過濾掉不該直接傳遞到 blockquote DOM 上的自訂屬性，防止 React 在 Console 報 Custom Property Warning
                 const { dataAlertType, dataAlertTitle, ...domProps } = props;
 

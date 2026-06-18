@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, Suspense } from 'react';
 import { flushSync } from 'react-dom';
+import { undo, redo } from '@codemirror/commands';
 const LazyMathJaxProvider = React.lazy(() => import('./src/components/markdown/LazyMathJaxProvider'));
 
 import Header from './src/components/layout/Header';
@@ -202,6 +203,7 @@ const App: React.FC = () => {
     currentDocument,
     createDocument,
     updateCurrentDocument,
+    updateDocument,
     switchDocument,
     deleteDocument,
     renameDocument,
@@ -246,7 +248,7 @@ const App: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const printTimeoutRef = useRef<any>(null);
 
-  const { settings, updateMacros, updatePrintSettings, toggleFavoriteTheme, restoreDefaults } = useAppSettings();
+  const { settings, updateMacros, updatePrintSettings, toggleFavoriteTheme, updateCustomTheme, restoreDefaults } = useAppSettings();
 
   // 監聽當前預覽主題並動態/懶載入樣式表
   useEffect(() => {
@@ -1442,6 +1444,29 @@ const App: React.FC = () => {
     handleCodeChange('');
   };
 
+  const handleUndo = useCallback(() => {
+    if (editorRef.current?.view) undo(editorRef.current.view);
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    if (editorRef.current?.view) redo(editorRef.current.view);
+  }, []);
+
+  const handleGoToLine = useCallback((lineNum: number) => {
+    if (editorRef.current?.view) {
+      const view = editorRef.current.view;
+      const doc = view.state.doc;
+      if (lineNum >= 1 && lineNum <= doc.lines) {
+        const pos = doc.line(lineNum).from;
+        view.dispatch({
+          selection: { anchor: pos, head: pos },
+          scrollIntoView: true
+        });
+        view.focus();
+      }
+    }
+  }, []);
+
   /**
    * 將文字插入編輯器游標位置。
    * 若無游標位置資訊（例如 Modal 開啟後 focus 已移走），則附加至文件末尾。
@@ -1754,6 +1779,10 @@ const App: React.FC = () => {
                   isCommentMode={isCommentMode}
                   setIsCommentMode={setIsCommentMode}
                   onUpdateLineComment={updateLineComment}
+                  onUpdateContent={updateDocument}
+                  onUndo={handleUndo}
+                  onRedo={handleRedo}
+                  onGoToLine={handleGoToLine}
                 />
               </div>
             </div>
@@ -1767,7 +1796,6 @@ const App: React.FC = () => {
           {/* SEO Content - Hidden from visual display but visible to search engines */}
           <SEOContent />
 
-          {/* Settings Modal */}
           <SettingsModal
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
@@ -1781,7 +1809,17 @@ const App: React.FC = () => {
             onOpenIntro={() => setIsIntroModalOpen(true)}
             favoriteThemes={settings.favoriteThemes || []}
             onToggleFavoriteTheme={toggleFavoriteTheme}
+            customTheme={settings.customTheme}
+            onSaveCustomTheme={updateCustomTheme}
           />
+
+          {settings.customTheme && Object.keys(settings.customTheme).length > 0 && (
+             <style>{`
+               .prose, .dark .prose {
+                  ${Object.entries(settings.customTheme).map(([key, value]) => value ? `${key}: ${value} !important;` : '').join('\n                  ')}
+               }
+             `}</style>
+          )}
         </div>
       </LazyMathJaxProvider>
     </Suspense>
