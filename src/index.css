@@ -819,6 +819,162 @@
         stroke: var(--mermaid-line) !important;
     }
 
+    /* ── Mermaid 編輯模式：節點互動樣式 (Hover & Selected) ── */
+    
+    /* 1. 流程圖 (Flowchart) 節點 */
+    .mermaid-edit-mode g.node {
+        cursor: pointer;
+    }
+
+    .mermaid-edit-mode g.node rect,
+    .mermaid-edit-mode g.node circle,
+    .mermaid-edit-mode g.node ellipse,
+    .mermaid-edit-mode g.node polygon,
+    .mermaid-edit-mode g.node path {
+        transition: fill 0.2s ease, stroke 0.2s ease, stroke-width 0.2s cubic-bezier(0.2, 0, 0, 1), filter 0.2s ease !important;
+    }
+
+    /* 懸停樣式：使用品牌輔助色背景、強調色邊框並略微加粗 */
+    .mermaid-edit-mode g.node:hover rect,
+    .mermaid-edit-mode g.node:hover circle,
+    .mermaid-edit-mode g.node:hover ellipse,
+    .mermaid-edit-mode g.node:hover polygon,
+    .mermaid-edit-mode g.node:hover path {
+        fill: var(--brand-secondary) !important;
+        stroke: var(--brand-accent) !important;
+        stroke-width: 2px !important;
+        filter: drop-shadow(0 4px 8px rgba(0, 91, 148, 0.12)) !important;
+    }
+
+    /* 深色模式懸停樣式 */
+    .dark .mermaid-edit-mode g.node:hover rect,
+    .dark .mermaid-edit-mode g.node:hover circle,
+    .dark .mermaid-edit-mode g.node:hover ellipse,
+    .dark .mermaid-edit-mode g.node:hover polygon,
+    .dark .mermaid-edit-mode g.node:hover path {
+        fill: rgba(56, 189, 248, 0.08) !important;
+        stroke: var(--brand-primary) !important;
+        filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.2)) !important;
+    }
+
+    /* 選取狀態 (Selected)：更明顯的邊框與陰影 */
+    .mermaid-edit-mode g.node.selected-node rect,
+    .mermaid-edit-mode g.node.selected-node circle,
+    .mermaid-edit-mode g.node.selected-node ellipse,
+    .mermaid-edit-mode g.node.selected-node polygon,
+    .mermaid-edit-mode g.node.selected-node path {
+        fill: var(--brand-secondary) !important;
+        stroke: var(--brand-primary) !important;
+        stroke-width: 2.5px !important;
+        filter: drop-shadow(0 4px 12px rgba(0, 91, 148, 0.2)) !important;
+    }
+
+    .dark .mermaid-edit-mode g.node.selected-node rect,
+    .dark .mermaid-edit-mode g.node.selected-node circle,
+    .dark .mermaid-edit-mode g.node.selected-node ellipse,
+    .dark .mermaid-edit-mode g.node.selected-node polygon,
+    .dark .mermaid-edit-mode g.node.selected-node path {
+        fill: rgba(56, 189, 248, 0.15) !important;
+        stroke: var(--brand-primary) !important;
+        filter: drop-shadow(0 4px 15px rgba(56, 189, 248, 0.3)) !important;
+    }
+
+    /* 2. 序列圖 (Sequence Diagram) 參與者與訊息 */
+    .mermaid-edit-mode g.actor {
+        cursor: pointer;
+    }
+
+    .mermaid-edit-mode g.actor rect,
+    .mermaid-edit-mode g.actor polygon,
+    .mermaid-edit-mode g.actor circle,
+    .mermaid-edit-mode g.actor ellipse,
+    .mermaid-edit-mode g.actor path {
+        transition: fill 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease !important;
+    }
+
+    .mermaid-edit-mode g.actor:hover rect,
+    .mermaid-edit-mode g.actor:hover polygon,
+    .mermaid-edit-mode g.actor:hover circle,
+    .mermaid-edit-mode g.actor:hover ellipse,
+    .mermaid-edit-mode g.actor:hover path {
+        fill: var(--brand-secondary) !important;
+        stroke: var(--brand-accent) !important;
+        stroke-width: 2px !important;
+        filter: drop-shadow(0 4px 8px rgba(0, 91, 148, 0.12)) !important;
+    }
+
+    .dark .mermaid-edit-mode g.actor:hover rect,
+    .dark .mermaid-edit-mode g.actor:hover polygon,
+    .dark .mermaid-edit-mode g.actor:hover circle,
+    .dark .mermaid-edit-mode g.actor:hover ellipse,
+    .dark .mermaid-edit-mode g.actor:hover path {
+        fill: rgba(56, 189, 248, 0.08) !important;
+        stroke: var(--brand-primary) !important;
+        filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.2)) !important;
+    }
+
+    .mermaid-edit-mode g.actor.selected-node rect,
+    .mermaid-edit-mode g.actor.selected-node polygon,
+    .mermaid-edit-mode g.actor.selected-node circle,
+    .mermaid-edit-mode g.actor.selected-node ellipse,
+    .mermaid-edit-mode g.actor.selected-node path {
+        fill: var(--brand-secondary) !important;
+        stroke: var(--brand-primary) !important;
+        stroke-width: 2.5px !important;
+        filter: drop-shadow(0 4px 12px rgba(0, 91, 148, 0.2)) !important;
+    }
+
+    .dark .mermaid-edit-mode g.actor.selected-node rect,
+    .dark .mermaid-edit-mode g.actor.selected-node polygon,
+    .dark .mermaid-edit-mode g.actor.selected-node circle,
+    .dark .mermaid-edit-mode g.actor.selected-node ellipse,
+    .dark .mermaid-edit-mode g.actor.selected-node path {
+        fill: rgba(56, 189, 248, 0.15) !important;
+        stroke: var(--brand-primary) !important;
+        filter: drop-shadow(0 4px 15px rgba(56, 189, 248, 0.3)) !important;
+    }
+
+    .mermaid-edit-mode text.messageText {
+        cursor: pointer;
+        transition: fill 0.2s ease, font-weight 0.2s ease !important;
+    }
+
+    .mermaid-edit-mode text.messageText:hover {
+        fill: var(--brand-accent) !important;
+    }
+
+    .dark .mermaid-edit-mode text.messageText:hover {
+        fill: var(--brand-primary) !important;
+    }
+
+    .mermaid-edit-mode text.messageText.selected-node {
+        fill: var(--brand-primary) !important;
+        font-weight: 800 !important;
+    }
+
+    /* 3. 連線模式 (Connecting Mode) */
+    .mermaid-connecting-mode g.node:hover rect,
+    .mermaid-connecting-mode g.node:hover circle,
+    .mermaid-connecting-mode g.node:hover ellipse,
+    .mermaid-connecting-mode g.node:hover polygon,
+    .mermaid-connecting-mode g.node:hover path {
+        fill: #ecfdf5 !important;
+        stroke: #10b981 !important;
+        stroke-width: 2.5px !important;
+        filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.2)) !important;
+    }
+
+    .dark .mermaid-connecting-mode g.node:hover rect,
+    .dark .mermaid-connecting-mode g.node:hover circle,
+    .dark .mermaid-connecting-mode g.node:hover ellipse,
+    .dark .mermaid-connecting-mode g.node:hover polygon,
+    .dark .mermaid-connecting-mode g.node:hover path {
+        fill: rgba(16, 185, 129, 0.15) !important;
+        stroke: #10b981 !important;
+        filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.35)) !important;
+    }
+
+
 
 
     /* ── 自訂 abcjs 樂譜樣式：深淺色與列印適應 ── */

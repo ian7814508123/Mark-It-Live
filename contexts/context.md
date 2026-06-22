@@ -85,3 +85,84 @@ graph TD
 3. **代碼風格與語系**：
    * 新撰寫的程式碼註解、工作流文件、技術文件等，除專門針對機器讀取的配置外，一律使用**繁體中文 (ch-tw)**。
    * 程式碼保持高可讀性，避免 Magic Numbers 與過度巢狀。
+
+---
+
+## 🎨 Mermaid 互動式工具列系統 (Interactive Toolbar System)
+
+### 設計理念
+
+Mermaid 圖表編輯器的工具列分為兩個層次，類比 Word 編輯器的操作邏輯：
+
+- **Global Toolbar**（畫布底部浮動工具列）：作用於整張圖，負責「建立圖形結構」，例如新增節點、切換排版方向、Undo/Redo、縮放。
+- **Context Toolbar**（節點浮動工具列）：作用於「當前選中節點」，負責節點層級的編輯，例如更改形狀、連線、刪除、跳至原始碼。
+
+### 圖類型識別系統
+
+`MermaidAstManipulator.detectDiagramType(code)` 透過解析第一行有效宣告，將 Mermaid 圖分類為以下型別（`MermaidDiagramType`）：
+
+```typescript
+type MermaidDiagramType =
+  | 'flowchart' | 'sequence' | 'class' | 'er'
+  | 'gantt' | 'pie' | 'gitgraph' | 'mindmap'
+  | 'timeline' | 'quadrant' | 'architecture'
+  | 'xychart' | 'unknown';
+```
+
+**重要架構原則**：`PreviewPanel.tsx` 中以 `diagramType` 取代原本的 `isFlowchart: boolean`，並以 `const isFlowchart = diagramType === 'flowchart'` 作為向下相容的衍生值。
+
+### SVG 節點選取器對應表
+
+各圖類型的可點擊 SVG 元素不同，實作 Context Toolbar 的 click handler 時需對應正確的 CSS selector：
+
+| 圖類型 | SVG 節點 Selector | 備註 |
+|--------|-----------------|------|
+| `flowchart` | `g.node` | 已實作 |
+| `sequence` | `g.actor`, `text.messageText` | 參與者框 / 訊息文字 |
+| `class` | `g.classGroup` | Class 方塊 |
+| `er` | `g.er.entityBox` | Entity 框 |
+| `mindmap` | `g.mindmap-node` | 心智圖節點 |
+
+### 各圖類型工具設計規劃
+
+#### Flowchart（已實作）
+- **Global**：新增節點、排版方向切換（TD / LR / BT / RL）
+- **Context**：形狀選單（8種）、連線至其他節點、自訂顏色、刪除、跳至原始碼
+
+#### Sequence Diagram（規劃中）
+- **Global**：
+  - ➕ 新增 Participant（在底部插入 `participant 新角色`）
+  - 🔢 自動編號 toggle（切換 `autonumber` on/off）
+  - 💬 新增訊息（插入 `A->>B: 訊息`，依已存在的 participants 列表選擇）
+- **Context**：
+  - 選中 Participant：重新命名、切換類型（participant ↔ actor）、刪除、跳至原始碼
+  - 選中 Message：切換箭頭類型（`->>`/`-->>`/`-x`/`-)`）、刪除、跳至原始碼
+
+#### Class Diagram（待規劃）
+- **Context**：跳至原始碼（第一優先）
+
+#### ER Diagram（待規劃）
+- **Context**：跳至原始碼（第一優先）
+
+#### Gantt（待規劃）
+- **Global**：時間軸單位切換（日 / 週 / 月）
+
+### 未來可持續優化方向
+
+1. **Sequence Diagram 全功能實作**
+   - 實作 `g.actor` selector 的 click handler
+   - `MermaidAstManipulator` 新增 `addParticipant()`、`addMessage()`、`toggleAutonumber()`、`deleteParticipant()`、`changeMessageArrow()` 等方法
+
+2. **Class Diagram 工具列**
+   - Global：新增 Class、新增關係（繼承 / 實現 / 組合 / 依賴）
+   - Context：複製 class 名稱、跳至原始碼
+
+3. **跨圖類型的「跳至原始碼」通用化**
+   - 目前 flowchart 以 regex 尋找節點 ID 對應行
+   - 應抽取成通用的 `findNodeLine(code, nodeId, diagramType)` 函式，依圖類型使用不同的搜尋策略
+
+4. **Undo/Redo 系統獨立化**
+   - 目前 Undo/Redo 綁定在 Toolbar Props 層，未來應考慮用 Context 或 Zustand 管理歷史堆疊，避免 prop drilling
+
+5. **Mermaid 節點 ID 正規化**
+   - `extractNodeId()` 函式目前以 `flowchart-{id}-{suffix}` 格式解析，不同圖類型的 ID 格式不同，需擴充對應規則

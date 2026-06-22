@@ -1,8 +1,33 @@
+// Mermaid 圖表類型的枚舉，用於驅動對應的工具列內容
+export type MermaidDiagramType =
+    | 'flowchart'     // flowchart / graph
+    | 'sequence'      // sequenceDiagram
+    | 'class'         // classDiagram
+    | 'er'            // erDiagram
+    | 'gantt'         // gantt
+    | 'pie'           // pie chart
+    | 'gitgraph'      // gitGraph
+    | 'mindmap'       // mindmap
+    | 'timeline'      // timeline
+    | 'quadrant'      // quadrantChart
+    | 'architecture'  // architecture (v11+)
+    | 'xychart'       // xychart-beta
+    | 'unknown';
+
 export interface MermaidNodeStyle {
     fill?: string;
     stroke?: string;
     strokeWidth?: string;
     color?: string;
+}
+
+/** Sequence Diagram 中被選取的元素資訊 */
+export interface SequenceElement {
+    type: 'actor' | 'message';
+    /** actor 顯示名稱 / 訊息標籤文字 */
+    name: string;
+    /** 僅用於 message：目前箭頭語法（如 '->>'） */
+    arrowType?: string;
 }
 
 export class MermaidAstManipulator {
@@ -19,6 +44,43 @@ export class MermaidAstManipulator {
         return code; // Fallback if no direction found
     }
 
+    /**
+     * 偵測 Mermaid 程式碼的圖表類型
+     * 透過解析第一行有效宣告（略過 YAML frontmatter 與注解）來判斷
+     */
+    static detectDiagramType(code: string): MermaidDiagramType {
+        if (!code || !code.trim()) return 'flowchart'; // 空白預設 flowchart
+        const lines = code.split('\n').map(l => l.trim());
+
+        // 略過 YAML frontmatter（由 --- 包著的區塊）
+        let i = 0;
+        if (lines[i] === '---') {
+            i++;
+            while (i < lines.length && lines[i] !== '---') i++;
+            i++; // 跳過結尾的 '---'
+        }
+
+        // 尋找第一行非空白、非注解的圖表宣告
+        while (i < lines.length) {
+            const line = lines[i];
+            if (!line || line.startsWith('%%')) { i++; continue; }
+            if (/^(flowchart|graph)\s/i.test(line))   return 'flowchart';
+            if (/^sequenceDiagram/i.test(line))         return 'sequence';
+            if (/^classDiagram/i.test(line))            return 'class';
+            if (/^erDiagram/i.test(line))               return 'er';
+            if (/^gantt/i.test(line))                   return 'gantt';
+            if (/^pie/i.test(line))                     return 'pie';
+            if (/^gitGraph/i.test(line))                return 'gitgraph';
+            if (/^mindmap/i.test(line))                 return 'mindmap';
+            if (/^timeline/i.test(line))                return 'timeline';
+            if (/^quadrantChart/i.test(line))           return 'quadrant';
+            if (/^architecture/i.test(line))            return 'architecture';
+            if (/^xychart-beta/i.test(line))            return 'xychart';
+            return 'unknown';
+        }
+        return 'flowchart';
+    }
+
     static getDirection(code: string): 'TD' | 'LR' | 'BT' | 'RL' | 'TB' | null {
         if (!code) return null;
         const lines = code.split('\n');
@@ -31,7 +93,184 @@ export class MermaidAstManipulator {
         return null;
     }
 
+    /**
+     * 新增 Sequence Diagram 參與者
+     * 在最後一行有效內容後插入 `participant 新角色`
+     */
+    static addParticipant(code: string): string {
+        const lines = code.split('\n');
+        const newName = `Actor${Date.now().toString().slice(-3)}`;
+        const newLine = `    participant ${newName}`;
+
+        const lastContentIdx = lines.reduceRight(
+            (found, line, idx) => found === -1 && line.trim() !== '' ? idx : found,
+            -1
+        );
+        // 找到 sequenceDiagram 宣告行之後插入，但優先放在最後一行有效內容後
+        const insertAt = lastContentIdx === -1 ? lines.length : lastContentIdx + 1;
+        lines.splice(insertAt, 0, newLine);
+        return lines.join('\n');
+    }
+
+    /**
+     * 切換 Sequence Diagram 的自動編號（autonumber）
+     * 若已存在則刪除，否則在 sequenceDiagram 宣告行後插入
+     */
+    static toggleAutonumber(code: string): string {
+        const lines = code.split('\n');
+
+        // 已有 autonumber → 移除
+        const autoIdx = lines.findIndex(l => l.trim() === 'autonumber');
+        if (autoIdx !== -1) {
+            lines.splice(autoIdx, 1);
+            return lines.join('\n');
+        }
+
+        // 尋找 sequenceDiagram 宣告行，在其後插入
+        const declIdx = lines.findIndex(l => /^sequenceDiagram/i.test(l.trim()));
+        const insertAt = declIdx !== -1 ? declIdx + 1 : 1;
+        lines.splice(insertAt, 0, 'autonumber');
+        return lines.join('\n');
+    }
+
+    /**
+     * 取得 Sequence Diagram 某訊息的箭頭類型（透過標籤文字比對）
+     * 回傳如 '->>' / '-->' 等，找不到则回傳 null
+     */
+    static findMessageArrow(code: string, label: string): string | null {
+        const lines = code.split('\n');
+        for (const line of lines) {
+            const colonIdx = line.indexOf(':');
+            if (colonIdx !== -1 && line.substring(colonIdx + 1).trim() === label) {
+                const match = line.substring(0, colonIdx).match(/(-[-]*[>x)]+)/);
+                return match ? match[0] : null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 尋找 Sequence Diagram actor/participant 的宣告行號（1-indexed）
+     * 支援直接名稱與 alias（participant X as Name）
+     */
+    static findActorLine(code: string, name: string): number | null {
+        const lines = code.split('\n');
+        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        for (let i = 0; i < lines.length; i++) {
+            const trimmed = lines[i].trim();
+            if (trimmed === `participant ${name}` || trimmed === `actor ${name}` ||
+                new RegExp(`^(participant|actor)\\s+\\S+\\s+as\\s+${escaped}\\s*$`, 'i').test(trimmed)) {
+                return i + 1;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 尋找 Sequence Diagram 訊息的行號（透過標籤文字比對，1-indexed）
+     */
+    static findMessageLine(code: string, label: string): number | null {
+        const lines = code.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const colonIdx = lines[i].indexOf(':');
+            if (colonIdx !== -1 && lines[i].substring(colonIdx + 1).trim() === label) {
+                return i + 1;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 切換 Sequence Diagram 參與者類型：participant ↔ actor
+     */
+    static toggleParticipantType(code: string, name: string): string {
+        const lines = code.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const trimmed = lines[i].trim();
+            if (!/^(participant|actor)\s+/.test(trimmed)) continue;
+            // 取出 ID 與 alias
+            const rest = trimmed.replace(/^(participant|actor)\s+/, '');
+            const parts = rest.split(/\s+as\s+/);
+            const id = parts[0].trim();
+            const alias = parts[1]?.trim();
+            // 匹配 display name（alias 或 id）
+            if (alias === name || id === name) {
+                if (/^participant\s+/.test(trimmed)) {
+                    lines[i] = lines[i].replace(/\bparticipant\b/, 'actor');
+                } else {
+                    lines[i] = lines[i].replace(/\bactor\b/, 'participant');
+                }
+                return lines.join('\n');
+            }
+        }
+        return code;
+    }
+
+    /**
+     * 刪除 Sequence Diagram 的參與者及其所有相關訊息行
+     * NOTE: Phase 1 僅支援簡單名稱（無空格的 ID）
+     */
+    static deleteParticipantAndMessages(code: string, name: string): string {
+        const lines = code.split('\n');
+        // 如果有 alias，找出實際 ID
+        let actorId = name;
+        for (const line of lines) {
+            const aliasMatch = line.trim().match(/^(participant|actor)\s+(\S+)\s+as\s+(.+)$/i);
+            if (aliasMatch && aliasMatch[3].trim() === name) {
+                actorId = aliasMatch[2];
+                break;
+            }
+        }
+        return lines.filter(line => {
+            const trimmed = line.trim();
+            // 移除宣告行
+            if (/^(participant|actor)\s+/.test(trimmed)) {
+                const id = trimmed.replace(/^(participant|actor)\s+/, '').split(/\s+/)[0];
+                if (id === actorId || id === name) return false;
+            }
+            // 移除包含此參與者的訊息行（From 或 To）
+            const msgMatch = trimmed.match(/^([^\s-]+)\s*-[-]*[>x)]+\s*([^:\s]+)/);
+            if (msgMatch) {
+                const from = msgMatch[1].trim();
+                const to   = msgMatch[2].trim();
+                if (from === actorId || to === actorId || from === name || to === name) return false;
+            }
+            return true;
+        }).join('\n');
+    }
+
+    /**
+     * 修改 Sequence Diagram 訊息的箭頭類型（透過標籤文字比對）
+     */
+    static changeMessageArrow(code: string, label: string, newArrow: string): string {
+        const lines = code.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const colonIdx = lines[i].indexOf(':');
+            if (colonIdx !== -1 && lines[i].substring(colonIdx + 1).trim() === label) {
+                const before  = lines[i].substring(0, colonIdx);
+                const updated = before.replace(/(-[-]*[>x)]+)/, newArrow);
+                lines[i] = `${updated}: ${label}`;
+                return lines.join('\n');
+            }
+        }
+        return code;
+    }
+
+    /**
+     * 刪除 Sequence Diagram 訊息行（透過標籤文字比對）
+     */
+    static deleteMessage(code: string, label: string): string {
+        return code.split('\n')
+            .filter(line => {
+                const colonIdx = line.indexOf(':');
+                if (colonIdx !== -1) return line.substring(colonIdx + 1).trim() !== label;
+                return true;
+            })
+            .join('\n');
+    }
+
     static addIsolatedNode(code: string): string {
+
         const lines = code.split('\n');
         const newId = `node_${Date.now().toString().slice(-4)}`;
         const newNode = `  ${newId}[新節點]`;

@@ -133,7 +133,10 @@ export {
   LuChevronRight as ChevronRight2,
   LuAlignJustify as AlignJustify,
   LuBoxes as BoxSelect,
-
+  LuUserPlus as UserPlus,
+  LuHash as Hash,
+  LuToggleLeft as ToggleLeft,
+  LuArrowLeftRight as ArrowRightLeft,
 } from 'react-icons/lu';
 export {
   FiBarChart2 as BarChart2,

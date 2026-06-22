@@ -4,7 +4,7 @@ import MarkdownPreview from '../markdown/MarkdownPreview';
 import InteractiveLogo from '../ui/InteractiveLogo';
 import MermaidGlobalToolbar from '../markdown/MermaidGlobalToolbar';
 import MermaidContextToolbar from '../markdown/MermaidContextToolbar';
-import { MermaidAstManipulator } from '../../utils/mermaidAstManipulator';
+import { MermaidDiagramType, SequenceElement, FlowchartManipulator, SequenceManipulator, detectDiagramType, findNodeLine } from '../../utils/mermaid';
 
 // ── PrintPaper ──────────────────────────────────────────────────────────────
 // 封裝每份紙張的渲染邏輯
@@ -359,10 +359,11 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     const isPanModeRef = useRef(isPanMode);
     isPanModeRef.current = isPanMode;
 
-    // 節點選取與連線狀態
+    // 節點選取、連線、以及 Sequence 元素選取狀態
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [selectedNodePos, setSelectedNodePos] = useState<{ x: number, y: number, isNearTop?: boolean } | null>(null);
     const [connectingFromNodeId, setConnectingFromNodeId] = useState<string | null>(null);
+    const [sequenceElement, setSequenceElement] = useState<SequenceElement | null>(null);
     const connectingRef = useRef(connectingFromNodeId);
     connectingRef.current = connectingFromNodeId;
 
@@ -371,11 +372,12 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     // 判斷當前編輯器是否為空狀態（無文字內容）
     const isTextEmpty = !code || code.trim() === '';
 
-    // 取消選取
+    // 取消選取（清除所有圖類型的選取狀態）
     const clearSelection = useCallback(() => {
         setSelectedNodeId(null);
         setSelectedNodePos(null);
         setConnectingFromNodeId(null);
+        setSequenceElement(null);
     }, []);
 
     // 當模式改變或內容為空時，清除選取
@@ -385,40 +387,21 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
         }
     }, [isTextEmpty, isPanMode, clearSelection]);
 
-    // 判斷目前 Mermaid 內容是否為流程圖 (flowchart / graph)
-    const isFlowchart = useMemo(() => {
-        if (!code) return false;
-        const lines = code.split('\n').map(l => l.trim());
-        
-        let i = 0;
-        // 略過 YAML frontmatter (由 --- 包著的區塊)
-        if (lines[i] === '---') {
-            i++;
-            while (i < lines.length && lines[i] !== '---') {
-                i++;
-            }
-            i++; // 跳過結尾的 '---'
-        }
+    // 偵測目前 Mermaid 圖表類型（驅動對應的工具列內容）
+    const diagramType = useMemo<MermaidDiagramType>(
+        () => detectDiagramType(code),
+        [code]
+    );
+    // 向下相容：click handler 與 Context Toolbar 仍只對 flowchart 啟用節點編輯
+    const isFlowchart = diagramType === 'flowchart';
 
-        // 尋找第一行非空白、非註解的程式碼
-        while (i < lines.length) {
-            const line = lines[i];
-            if (line && !line.startsWith('%%')) {
-                return line.startsWith('flowchart') || line.startsWith('graph');
-            }
-            i++;
-        }
-        
-        return true; // 空白檔案當作 flowchart 處理
-    }, [code]);
-
-    const currentDirection = useMemo(() => MermaidAstManipulator.getDirection(code), [code]);
+    const currentDirection = useMemo(() => FlowchartManipulator.getDirection(code), [code]);
 
     // 用 ref 確保事件代理中永遠能讀取到最新的屬性，避免 stale closures
-    const mermaidContextRef = useRef({ code, currentDocId, onUpdateContent, zoom, position, isFlowchart });
+    const mermaidContextRef = useRef({ code, currentDocId, onUpdateContent, zoom, position, diagramType });
     useEffect(() => {
-        mermaidContextRef.current = { code, currentDocId, onUpdateContent, zoom, position, isFlowchart };
-    }, [code, currentDocId, onUpdateContent, zoom, position, isFlowchart]);
+        mermaidContextRef.current = { code, currentDocId, onUpdateContent, zoom, position, diagramType };
+    }, [code, currentDocId, onUpdateContent, zoom, position, diagramType]);
 
     // ─── Mermaid 模式：事件代理 ──────────────────────────────────────────────────
     // 綁定在 svgContainerRef 上，避免因 Mermaid 重新渲染而遺失綁定的事件，也解決 stale closures
@@ -427,7 +410,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
         if (!container || mode !== 'mermaid') return;
 
         const getTargetNode = (e: MouseEvent) => (e.target as Element).closest('g.node') as HTMLElement | null;
-        
+
         const extractNodeId = (rawId: string) => {
             const match = rawId.match(/^flowchart-([^-]+)-/);
             if (match) return match[1];
@@ -435,105 +418,170 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
             return rawId;
         };
 
-        const handleMouseOver = (e: MouseEvent) => {
-            const nodeEl = getTargetNode(e);
-            if (nodeEl) {
-                if (connectingRef.current) {
-                    // 連線模式：目標高亮為綠色
-                    nodeEl.style.opacity = '0.9';
-                    nodeEl.style.filter = 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.9))';
-                } else {
-                    nodeEl.style.opacity = '0.75';
-                    nodeEl.style.filter = 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.9))';
-                }
-                nodeEl.style.transition = 'opacity 0.2s ease, filter 0.2s ease';
-            }
-        };
-
-        const handleMouseOut = (e: MouseEvent) => {
-            const nodeEl = getTargetNode(e);
-            if (nodeEl) {
-                nodeEl.style.opacity = '1';
-                nodeEl.style.filter = 'none';
-            }
-        };
-
         const handleMouseDown = (e: MouseEvent) => {
-            const nodeEl = getTargetNode(e);
-            // 只在 Edit 模式下攔截（Pan 模式保留拖曳行為）
-            if (nodeEl && !isPanModeRef.current) {
-                e.stopPropagation();
+            if (isPanModeRef.current) return;
+            const { diagramType: dt } = mermaidContextRef.current;
+            if (dt === 'flowchart') {
+                const nodeEl = getTargetNode(e);
+                if (nodeEl) e.stopPropagation();
+            } else if (dt === 'sequence') {
+                const actorEl = (e.target as Element).closest('g.actor');
+                const msgEl = (e.target as Element).closest('text.messageText');
+                if (actorEl || msgEl) e.stopPropagation();
             }
         };
 
         const handleClick = (e: MouseEvent) => {
-            // Pan 模式下或非流程圖模式下，不執行編輯邏輯
-            const { isFlowchart: currentIsFlowchart } = mermaidContextRef.current;
-            if (isPanModeRef.current || !currentIsFlowchart) return;
-            const nodeEl = getTargetNode(e);
-            
-            const { code: currentCode, currentDocId: docId, onUpdateContent: updateContent, zoom: currentZoom } = mermaidContextRef.current;
-            
-            // 點擊畫布空白處
-            if (!nodeEl) {
-                clearSelection();
-                return;
-            }
+            if (isPanModeRef.current) return;
+            const { diagramType: dt } = mermaidContextRef.current;
+            if (dt === 'flowchart') {
+                const nodeEl = getTargetNode(e);
+                if (nodeEl) {
+                    e.stopPropagation();
+                    const rawId = nodeEl.id;
+                    const nodeId = extractNodeId(rawId);
+                    if (connectingRef.current) {
+                        // 連線模式：建立連線
+                        if (onUpdateContent && currentDocId && connectingRef.current !== nodeId) {
+                            const newCode = FlowchartManipulator.addLink(code, connectingRef.current, nodeId);
+                            onUpdateContent(currentDocId, newCode);
+                        }
+                        setConnectingFromNodeId(null);
+                        setSelectedNodeId(null);
+                        setSelectedNodePos(null);
+                    } else {
+                        // 一般點擊：選取節點
+                        setSelectedNodeId(nodeId);
 
-            e.stopPropagation();
-            e.preventDefault();
+                        // 計算節點位置，用於顯示 Context Toolbar
+                        const rect = nodeEl.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
 
-            let nodeId = extractNodeId(nodeEl.id);
-            if (!nodeId) return;
+                        // 判斷是否太靠近畫布頂部（包含全局工具列的高度與間距，約 100px）
+                        // 我們以整個編輯區塊 viewportRect 為基準
+                        const viewportEl = container.closest('.relative.flex-1') as HTMLElement;
+                        const viewportRect = viewportEl ? viewportEl.getBoundingClientRect() : containerRect;
+                        const isNearTop = (rect.top - viewportRect.top) < 100;
 
-            if (!updateContent || !docId || !currentCode) return;
-
-            // 如果正在連線模式
-            if (connectingRef.current) {
-                if (nodeId !== connectingRef.current) {
-                    const newCode = MermaidAstManipulator.addLink(currentCode, connectingRef.current, nodeId);
-                    updateContent(docId, newCode);
+                        // 由於外層有 zoom (transform: scale)，需要還原成相對於 SVG 容器的真實座標
+                        const scale = zoom / 100;
+                        setSelectedNodePos({
+                            x: (rect.left - containerRect.left + rect.width / 2) / scale,
+                            y: isNearTop
+                                ? (rect.bottom - containerRect.top) / scale // 靠近頂部，放在節點下方
+                                : (rect.top - containerRect.top) / scale,   // 正常，放在節點上方
+                            isNearTop
+                        });
+                    }
+                } else {
+                    clearSelection();
                 }
-                clearSelection();
-                return;
+            } else if (dt === 'sequence') {
+                const actorEl = (e.target as Element).closest('g.actor') as HTMLElement | null;
+                const msgEl = (e.target as Element).closest('text.messageText') as SVGElement | null;
+
+                if (actorEl) {
+                    e.stopPropagation();
+                    // 解析 actor 名稱
+                    const textEl = actorEl.querySelector('text.actor');
+                    const actorName = textEl?.textContent?.trim() || '';
+                    if (actorName) {
+                        setSequenceElement({ type: 'actor', name: actorName });
+
+                        // 計算定位
+                        const rect = actorEl.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        const viewportEl = container.closest('.relative.flex-1') as HTMLElement;
+                        const viewportRect = viewportEl ? viewportEl.getBoundingClientRect() : containerRect;
+                        const isNearTop = (rect.top - viewportRect.top) < 100;
+                        const scale = zoom / 100;
+
+                        setSelectedNodePos({
+                            x: (rect.left - containerRect.left + rect.width / 2) / scale,
+                            y: isNearTop
+                                ? (rect.bottom - containerRect.top) / scale
+                                : (rect.top - containerRect.top) / scale,
+                            isNearTop
+                        });
+                    }
+                } else if (msgEl) {
+                    e.stopPropagation();
+                    // 解析 message 內容
+                    const msgText = msgEl.textContent?.trim() || '';
+                    if (msgText) {
+                        // 找到這個 message 在 sequence 中的箭頭類型
+                        const arrowType = SequenceManipulator.findMessageArrow(code, msgText) || undefined;
+                        setSequenceElement({ type: 'message', name: msgText, arrowType });
+
+                        // 計算定位
+                        const rect = msgEl.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        const viewportEl = container.closest('.relative.flex-1') as HTMLElement;
+                        const viewportRect = viewportEl ? viewportEl.getBoundingClientRect() : containerRect;
+                        const isNearTop = (rect.top - viewportRect.top) < 100;
+                        const scale = zoom / 100;
+
+                        setSelectedNodePos({
+                            x: (rect.left - containerRect.left + rect.width / 2) / scale,
+                            y: isNearTop
+                                ? (rect.bottom - containerRect.top) / scale
+                                : (rect.top - containerRect.top) / scale,
+                            isNearTop
+                        });
+                    }
+                } else {
+                    clearSelection();
+                }
             }
-
-            // 一般選取節點
-            setSelectedNodeId(nodeId);
-
-            // 計算節點位置，用於顯示 Context Toolbar
-            const rect = nodeEl.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            
-            // 判斷是否太靠近畫布頂部（包含全局工具列的高度與間距，約 100px）
-            // 我們以整個編輯區塊 viewportRect 為基準
-            const viewportEl = container.closest('.relative.flex-1') as HTMLElement;
-            const viewportRect = viewportEl ? viewportEl.getBoundingClientRect() : containerRect;
-            const isNearTop = (rect.top - viewportRect.top) < 100;
-            
-            // 由於外層有 zoom (transform: scale)，需要還原成相對於 SVG 容器的真實座標
-            const scale = currentZoom / 100;
-            setSelectedNodePos({
-                x: (rect.left - containerRect.left + rect.width / 2) / scale,
-                y: isNearTop 
-                    ? (rect.bottom - containerRect.top) / scale // 靠近頂部，放在節點下方
-                    : (rect.top - containerRect.top) / scale,   // 正常，放在節點上方
-                isNearTop
-            });
         };
 
-        container.addEventListener('mouseover', handleMouseOver);
-        container.addEventListener('mouseout', handleMouseOut);
         container.addEventListener('mousedown', handleMouseDown);
         container.addEventListener('click', handleClick);
 
         return () => {
-            container.removeEventListener('mouseover', handleMouseOver);
-            container.removeEventListener('mouseout', handleMouseOut);
             container.removeEventListener('mousedown', handleMouseDown);
             container.removeEventListener('click', handleClick);
         };
     }, [mode, !!svgContent, clearSelection]); // 當 svgContent 首次出現時 (從 null 變有值) 需要重新綁定
+
+    // ─── 選中狀態 DOM 類別同步 ──────────────────────────────────────────────────
+    useEffect(() => {
+        const container = svgContainerRef.current;
+        if (!container || mode !== 'mermaid') return;
+
+        // 清除所有舊的選中狀態
+        container.querySelectorAll('.node, .actor, text.messageText').forEach(el => {
+            el.classList.remove('selected-node');
+        });
+
+        if (selectedNodeId && diagramType === 'flowchart') {
+            container.querySelectorAll('g.node').forEach(el => {
+                const rawId = el.id;
+                const match = rawId.match(/^flowchart-([^-]+)-/);
+                const id = match ? match[1] : (rawId.startsWith('flowchart-') ? rawId.split('-')[1] : rawId);
+                if (id === selectedNodeId) {
+                    el.classList.add('selected-node');
+                }
+            });
+        } else if (sequenceElement && diagramType === 'sequence') {
+            if (sequenceElement.type === 'actor') {
+                container.querySelectorAll('g.actor').forEach(el => {
+                    const textEl = el.querySelector('text.actor');
+                    const actorName = textEl?.textContent?.trim() || '';
+                    if (actorName === sequenceElement.name) {
+                        el.classList.add('selected-node');
+                    }
+                });
+            } else if (sequenceElement.type === 'message') {
+                container.querySelectorAll('text.messageText').forEach(el => {
+                    const msgText = el.textContent?.trim() || '';
+                    if (msgText === sequenceElement.name) {
+                        el.classList.add('selected-node');
+                    }
+                });
+            }
+        }
+    }, [selectedNodeId, sequenceElement, diagramType, svgContent, mode]);
 
     // DIFFERENT LAYOUT STRATEGY BASED ON MODE
     // 只有在「列印中」時，才允許 Mermaid 模式進入合併文件佈局
@@ -589,17 +637,13 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                     onResetNav={onResetNav}
                     onUndo={onUndo}
                     onRedo={onRedo}
-                    onAddIsolatedNode={() => {
-                        if (!onUpdateContent || !currentDocId) return;
-                        const newCode = MermaidAstManipulator.addIsolatedNode(code);
-                        onUpdateContent(currentDocId, newCode);
+                    diagramType={diagramType}
+                    rawCode={code}
+                    onUpdateCode={(newCode) => {
+                        if (onUpdateContent && currentDocId) {
+                            onUpdateContent(currentDocId, newCode);
+                        }
                     }}
-                    onChangeDirection={(dir) => {
-                        if (!onUpdateContent || !currentDocId) return;
-                        const newCode = MermaidAstManipulator.changeDirection(code, dir);
-                        onUpdateContent(currentDocId, newCode);
-                    }}
-                    isFlowchart={isFlowchart}
                     currentDirection={currentDirection}
                 />
             )}
@@ -631,6 +675,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 onMouseMove={isPanMode ? onMouseMove : undefined}
                 onMouseUp={isPanMode ? onMouseUp : undefined}
                 onMouseLeave={isPanMode ? onMouseUp : undefined}
+                onClick={clearSelection}
                 style={{
                     backgroundColor: isDarkMode ? 'var(--brand-surface)' : '#ffffff',
                     backgroundImage: isDarkMode
@@ -652,41 +697,35 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                     {/* Mermaid Preview */}
                     {svgContent ? (
                         <div className="relative pointer-events-auto">
-                            {mode === 'mermaid' && isFlowchart && (
+                            {mode === 'mermaid' && (isFlowchart || diagramType === 'sequence') && (
                                 <MermaidContextToolbar
+                                    diagramType={diagramType}
                                     nodeId={selectedNodeId}
+                                    sequenceElement={sequenceElement}
                                     position={selectedNodePos}
                                     zoom={zoom}
                                     onClose={() => clearSelection()}
-                                    onDelete={() => {
-                                        if (!onUpdateContent || !currentDocId || !selectedNodeId) return;
-                                        const newCode = MermaidAstManipulator.deleteNode(code, selectedNodeId);
-                                        onUpdateContent(currentDocId, newCode);
-                                        clearSelection();
-                                    }}
-                                    onChangeShape={(shape) => {
-                                        if (!onUpdateContent || !currentDocId || !selectedNodeId) return;
-                                        const newCode = MermaidAstManipulator.changeNodeShape(code, selectedNodeId, shape);
-                                        onUpdateContent(currentDocId, newCode);
-                                    }}
-                                    onChangeColor={(color) => {
-                                        if (!onUpdateContent || !currentDocId || !selectedNodeId) return;
-                                        const newCode = MermaidAstManipulator.changeNodeStyle(code, selectedNodeId, { fill: color });
-                                        onUpdateContent(currentDocId, newCode);
+                                    rawCode={code}
+                                    onUpdateCode={(newCode) => {
+                                        if (onUpdateContent && currentDocId) {
+                                            onUpdateContent(currentDocId, newCode);
+                                        }
                                     }}
                                     onStartConnect={() => {
                                         setConnectingFromNodeId(selectedNodeId);
                                     }}
                                     onGoToCode={() => {
-                                        if (!onGoToLine || !code || !selectedNodeId) return;
-                                        const lines = code.split('\n');
-                                        // Regex 尋找該節點第一次被宣告的行數
-                                        const regex = new RegExp(`(^|\\s)${selectedNodeId}(\\s|$|@|\\[|\\(|\\{|\\>|\\/|\\|)`, 'm');
-                                        const idx = lines.findIndex(l => regex.test(l));
-                                        if (idx !== -1) {
-                                            // CodeMirror 的行號是從 1 開始計算
-                                            onGoToLine(idx + 1);
+                                        if (!onGoToLine || !code) return;
+                                        const target = diagramType === 'sequence'
+                                            ? sequenceElement?.name
+                                            : selectedNodeId;
+                                        if (target) {
+                                            const lineNum = findNodeLine(code, target, diagramType);
+                                            if (lineNum) onGoToLine(lineNum);
                                         }
+                                    }}
+                                    onUpdateSequenceElement={(elem) => {
+                                        setSequenceElement(elem);
                                     }}
                                 />
                             )}
