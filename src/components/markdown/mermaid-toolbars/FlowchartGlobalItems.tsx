@@ -58,7 +58,7 @@ const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
             {/* 新增節點 */}
             <button
                 onClick={handleAddNode}
-                className={`flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-700 dark:text-slate-200 hover:text-emerald-500 transition-all active:scale-90 text-xs font-semibold ${orientation === 'vertical' ? 'p-2 justify-center' : 'px-3 py-1.5'}`}
+                className={`flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-700 dark:text-slate-200 hover:text-brand-primary transition-all active:scale-90 text-xs font-semibold ${orientation === 'vertical' ? 'p-2 justify-center' : 'px-3 py-1.5'}`}
                 title="新增節點"
             >
                 <Plus size={14} /> {orientation === 'horizontal' && 'Node'}
@@ -68,9 +68,9 @@ const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
             <div className="relative flex items-center gap-1 p-1 rounded-full" ref={dropdownRef}>
                 <button
                     onClick={() => setIsDirectionMenuOpen(!isDirectionMenuOpen)}
-                    className={`p-1 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-all shadow-sm ${isDirectionMenuOpen
-                            ? 'bg-white dark:bg-slate-700 text-brand-primary'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-brand-primary'
+                    className={`p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-700 dark:text-slate-200 hover:text-brand-primary transition-all active:scale-90 ${isDirectionMenuOpen
+                        ? 'bg-white dark:bg-slate-700 text-brand-primary'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-brand-primary'
                         }`}
                     title="變更排版方向 (Change Direction)"
                 >
