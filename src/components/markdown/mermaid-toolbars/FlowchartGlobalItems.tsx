@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, MoveDown, MoveUp, MoveRight, MoveLeft } from '../../ui/Icons';
 import { FlowchartManipulator } from '../../../utils/mermaid';
+import { useDynamicMenuPosition } from '../../../hooks/useDynamicMenuPosition';
 
 interface FlowchartGlobalItemsProps {
     rawCode: string;
@@ -17,6 +18,7 @@ const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
 }) => {
     const [isDirectionMenuOpen, setIsDirectionMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { menuRef, positionClass } = useDynamicMenuPosition(isDirectionMenuOpen, orientation);
 
     // 點擊外部時關閉下拉選單
     useEffect(() => {
@@ -76,10 +78,7 @@ const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
                 </button>
 
                 {isDirectionMenuOpen && (
-                    <div className={`absolute py-1.5 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700/50 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200 ${orientation === 'vertical'
-                            ? 'left-full top-1/2 -translate-y-1/2 ml-2 slide-in-from-left-2'
-                            : 'bottom-full left-1/2 -translate-x-1/2 mb-2 slide-in-from-bottom-2'
-                        }`}>
+                    <div ref={menuRef} className={`absolute py-1.5 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700/50 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200 ${positionClass}`}>
                         <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 mb-1">
                             排版方向
                         </div>

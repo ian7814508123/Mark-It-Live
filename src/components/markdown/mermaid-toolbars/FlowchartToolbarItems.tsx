@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Trash2, Network, BoxSelect, ChevronRight2, Palette, Square, RectangleHorizontal, Capsule, Cylinder, Circle, Diamond, Hexagon, Flag } from '../../ui/Icons';
 import { FlowchartManipulator } from '../../../utils/mermaid';
+import { useDynamicMenuPosition } from '../../../hooks/useDynamicMenuPosition';
 
 interface FlowchartToolbarItemsProps {
     nodeId: string;
@@ -22,6 +23,9 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
     
     const shapeMenuRef = useRef<HTMLDivElement>(null);
     const colorMenuRef = useRef<HTMLDivElement>(null);
+
+    const { menuRef: shapeDropdownRef, positionClass: shapePositionClass } = useDynamicMenuPosition(isShapeMenuOpen, 'horizontal');
+    const { menuRef: colorDropdownRef, positionClass: colorPositionClass } = useDynamicMenuPosition(isColorMenuOpen, 'horizontal');
 
     // 點擊選單外部時自動關閉
     useEffect(() => {
@@ -63,7 +67,8 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
 
                 {isShapeMenuOpen && (
                     <div
-                        className="absolute left-0 w-[140px] bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 grid grid-cols-4 gap-1 z-50 animate-in fade-in zoom-in-95 top-full mt-2"
+                        ref={shapeDropdownRef}
+                        className={`absolute w-[140px] bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 grid grid-cols-4 gap-1 z-50 animate-in fade-in zoom-in-95 ${shapePositionClass}`}
                     >
                         {[
                             { id: 'rect', icon: Square, title: '方形' },
@@ -121,7 +126,8 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
 
                 {isColorMenuOpen && (
                     <div
-                        className="absolute left-0 w-[170px] bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 flex flex-col gap-2 z-50 animate-in fade-in zoom-in-95 top-full mt-2"
+                        ref={colorDropdownRef}
+                        className={`absolute w-[170px] bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 flex flex-col gap-2 z-50 animate-in fade-in zoom-in-95 ${colorPositionClass}`}
                     >
                         <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">
                             節點樣式設定

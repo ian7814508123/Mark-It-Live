@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, ToggleLeft, ArrowRightLeft, ChevronRight2 } from '../../ui/Icons';
 import { SequenceManipulator, SequenceElement } from '../../../utils/mermaid';
+import { useDynamicMenuPosition } from '../../../hooks/useDynamicMenuPosition';
 
 interface SequenceToolbarItemsProps {
     sequenceElement: SequenceElement;
@@ -18,6 +19,7 @@ const SequenceToolbarItems: React.FC<SequenceToolbarItemsProps> = ({
     onClose
 }) => {
     const [isArrowMenuOpen, setIsArrowMenuOpen] = useState(false);
+    const { menuRef, positionClass } = useDynamicMenuPosition(isArrowMenuOpen, 'horizontal');
 
     return (
         <>
@@ -65,7 +67,8 @@ const SequenceToolbarItems: React.FC<SequenceToolbarItemsProps> = ({
 
                         {isArrowMenuOpen && (
                             <div
-                                className="absolute left-0 w-[140px] bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 top-full mt-2"
+                                ref={menuRef}
+                                className={`absolute w-[140px] bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 ${positionClass}`}
                             >
                                 {[
                                     { id: '->', label: '實線 (->)' },
