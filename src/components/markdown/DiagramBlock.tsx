@@ -139,7 +139,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
     if (isActuallyPrinting) {
         return (
             <div
-                className={`chart-wrapper align-${align} ${containerClassName} relative`}
+                className={`chart-wrapper align-${align} ${containerClassName} relative ${error ? 'print:hidden' : ''}`}
             >
                 <div
                     className="chart-content"
@@ -147,7 +147,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
                 >
                     <div
                         data-diagram-id={storageKey}
-                        className="diagram-block-container flex p-6 rounded-2xl border border-slate-200 relative"
+                        className="diagram-block-container flex p-6 rounded-2xl border border-slate-200 relative flex-col gap-4"
                         style={{
                             backgroundColor: 'var(--code-bg)',
                             justifyContent: 'center',
@@ -155,7 +155,18 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
                             WebkitPrintColorAdjust: 'exact'
                         } as any}
                     >
-                        <div ref={containerRef} className="w-full h-full flex justify-center" />
+                        <div ref={containerRef} className={`w-full h-full flex justify-center ${error ? 'hidden' : ''}`} />
+                        {error && (
+                            <div className="p-3 bg-red-50/95 dark:bg-red-900/60 rounded-xl border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-[11px] font-mono shadow-sm w-full">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="flex-shrink-0 w-2 h-2 rounded-full bg-red-500" />
+                                    <span className="font-bold uppercase tracking-wider">{errorTitle}</span>
+                                </div>
+                                <div className="opacity-90 whitespace-pre-wrap">
+                                    {error}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -164,7 +175,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
 
 
     return (
-        <div className="group/diagram-wrapper w-full">
+        <div className={`group/diagram-wrapper w-full ${error ? 'print:hidden' : ''}`}>
             <ResizableWrapper
                 width={width}
                 align={align}
@@ -184,7 +195,7 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
                         alignItems: 'center'
                     }}
                 >
-                    <div ref={containerRef} className="w-full h-full flex justify-center" />
+                    <div ref={containerRef} className={`w-full h-full flex justify-center ${error ? 'hidden' : ''}`} />
                 </div>
                 {isPending && (
                     <div className="absolute top-2 right-2">
@@ -193,13 +204,13 @@ const DiagramBlock: React.FC<DiagramBlockProps> = React.memo(({
                 )}
             </ResizableWrapper>
 
-            {error && !isActuallyPrinting && (
+            {error && (
                 <div className="-mt-4 mx-4 mb-2 p-3 bg-red-50/95 dark:bg-red-900/60 backdrop-blur-md rounded-xl border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-[11px] font-mono shadow-xl animate-in fade-in slide-in-from-top-1 duration-300">
                     <div className="flex items-center gap-2 mb-1">
                         <span className="flex-shrink-0 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                         <span className="font-bold uppercase tracking-wider">{errorTitle}</span>
                     </div>
-                    <div className="opacity-90 line-clamp-3 hover:line-clamp-none transition-all cursor-default">
+                    <div className="opacity-90 line-clamp-3 hover:line-clamp-none transition-all cursor-default whitespace-pre-wrap">
                         {error}
                     </div>
                 </div>

@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  markdown-previewer:
+  mark-it-live:
     build:
       context: .
       dockerfile: Dockerfile
-    image: markdown-previewer:latest
-    container_name: markdown-previewer
+    image: mark-it-live:latest
+    container_name: mark-it-live
     ports:
       - "8080:80"
     restart: unless-stopped
