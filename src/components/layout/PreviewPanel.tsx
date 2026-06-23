@@ -368,6 +368,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     connectingRef.current = connectingFromNodeId;
 
     const svgContainerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // 判斷當前編輯器是否為空狀態（無文字內容）
     const isTextEmpty = !code || code.trim() === '';
@@ -620,6 +621,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
 
     return (
         <section
+            ref={containerRef}
             className={`min-w-[300px] flex flex-col flex-1 ${isDarkMode ? 'bg-black' : 'bg-white'} relative group/preview transition-colors duration-500 preview-panel print:block print:overflow-visible print:bg-white print:static print:h-auto ${isPrinting ? '' : 'overflow-hidden'}`}
             onWheel={onWheel}
             onMouseEnter={onMouseEnter}
@@ -628,6 +630,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
             {/* Mermaid Global Toolbar */}
             {mode === 'mermaid' && (
                 <MermaidGlobalToolbar
+                    constraintsRef={containerRef}
                     isTextEmpty={isTextEmpty}
                     isPanMode={isPanMode}
                     setIsPanMode={setIsPanMode}

@@ -137,6 +137,7 @@ export {
   LuHash as Hash,
   LuToggleLeft as ToggleLeft,
   LuArrowLeftRight as ArrowRightLeft,
+  LuGripHorizontal as GripHorizontal
 } from 'react-icons/lu';
 export {
   FiBarChart2 as BarChart2,

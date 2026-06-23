@@ -6,12 +6,14 @@ interface FlowchartGlobalItemsProps {
     rawCode: string;
     onUpdateCode: (newCode: string) => void;
     currentDirection: 'TD' | 'LR' | 'BT' | 'RL' | 'TB' | null;
+    orientation?: 'horizontal' | 'vertical';
 }
 
 const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
     rawCode,
     onUpdateCode,
-    currentDirection
+    currentDirection,
+    orientation = 'horizontal'
 }) => {
     const [isDirectionMenuOpen, setIsDirectionMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -50,32 +52,34 @@ const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
     };
 
     return (
-        <div className="flex items-center gap-1 px-2 border-r border-slate-200 dark:border-white/10">
+        <div className={`flex items-center gap-1 border-slate-200 dark:border-white/10 ${orientation === 'vertical' ? 'flex-col border-b py-2' : 'border-r px-2'}`}>
             {/* 新增節點 */}
             <button
                 onClick={handleAddNode}
-                className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-700 dark:text-slate-200 hover:text-emerald-500 transition-all active:scale-90 text-xs font-semibold"
+                className={`flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-700 dark:text-slate-200 hover:text-emerald-500 transition-all active:scale-90 text-xs font-semibold ${orientation === 'vertical' ? 'p-2 justify-center' : 'px-3 py-1.5'}`}
                 title="新增節點"
             >
-                <Plus size={14} /> Node
+                <Plus size={14} /> {orientation === 'horizontal' && 'Node'}
             </button>
 
             {/* 方向切換選單 */}
             <div className="relative flex items-center gap-1 p-1 rounded-full" ref={dropdownRef}>
                 <button
                     onClick={() => setIsDirectionMenuOpen(!isDirectionMenuOpen)}
-                    className={`p-1 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-all shadow-sm ${
-                        isDirectionMenuOpen
-                        ? 'bg-white dark:bg-slate-700 text-brand-primary'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-brand-primary'
-                    }`}
+                    className={`p-1 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-all shadow-sm ${isDirectionMenuOpen
+                            ? 'bg-white dark:bg-slate-700 text-brand-primary'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-brand-primary'
+                        }`}
                     title="變更排版方向 (Change Direction)"
                 >
                     {getCurrentDirectionIcon()}
                 </button>
 
                 {isDirectionMenuOpen && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 py-1.5 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700/50 flex flex-col z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-200">
+                    <div className={`absolute py-1.5 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700/50 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200 ${orientation === 'vertical'
+                            ? 'left-full top-1/2 -translate-y-1/2 ml-2 slide-in-from-left-2'
+                            : 'bottom-full left-1/2 -translate-x-1/2 mb-2 slide-in-from-bottom-2'
+                        }`}>
                         <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 mb-1">
                             排版方向
                         </div>

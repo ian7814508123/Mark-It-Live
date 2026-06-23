@@ -53,7 +53,7 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
               <div className="flex flex-col gap-2 min-w-[100px]">
                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">關於</span>
                 <div className="flex flex-col gap-1.5">
-                  <a href="https://github.com/ian7814508123/Markdown-live-previewer" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">GitHub Repo <ExternalLink size={10} /></a>
+                  <a href="https://github.com/ian7814508123/Mark-It-Live" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">GitHub Repo <ExternalLink size={10} /></a>
                   <a href={`${import.meta.env.BASE_URL}about.html`} className="text-xs text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors flex items-center gap-1">關於本站<ExternalLink size={10} /></a>
                 </div>
               </div>
