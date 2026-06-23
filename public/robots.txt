@@ -15,4 +15,4 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-Sitemap: https://markdown-live-previewer-a6dx.onrender.com/sitemap.xml
+Sitemap: https://mark-it-live.onrender.com/sitemap.xml

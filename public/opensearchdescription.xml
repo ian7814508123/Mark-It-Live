@@ -3,9 +3,9 @@
   <ShortName> Mark It Live</ShortName>
   <Description>專業在線 Markdown 編輯器 - 支持即時預覽、Mermaid 圖表、LaTeX 公式、PDF 導出</Description>
   <Url type="text/html" 
-       template="https://markdown-live-previewer-a6dx.onrender.com/"/>
+       template="https://mark-it-live.onrender.com"/>
   <Image height="16" width="16" type="image/x-icon">
-    https://markdown-live-previewer-a6dx.onrender.com/favicon.svg
+    https://mark-it-live.onrender.com/favicon.svg
   </Image>
   <Contact>ian7814508123@gmail.com</Contact>
   <Tags>markdown editor preview mermaid latex export</Tags>

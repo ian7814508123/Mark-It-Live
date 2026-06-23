@@ -3,32 +3,32 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <!-- 首頁 -->
   <url>
-    <loc>https://markdown-live-previewer-a6dx.onrender.com/</loc>
+    <loc>https://mark-it-live.onrender.com</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>never</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://markdown-live-previewer-a6dx.onrender.com/favicon.svg</image:loc>
+      <image:loc>https://mark-it-live.onrender.com/favicon.svg</image:loc>
       <image:title> Mark It Live — Markdown Live Previewer - Professional Markdown Editor</image:title>
     </image:image>
   </url>
   <!-- 隱私政策 -->
   <url>
-    <loc>https://markdown-live-previewer-a6dx.onrender.com/privacy.html</loc>
+    <loc>https://mark-it-live.onrender.com/privacy.html</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>never</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 服務條款 -->
   <url>
-    <loc>https://markdown-live-previewer-a6dx.onrender.com/terms.html</loc>
+    <loc>https://mark-it-live.onrender.com/terms.html</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>never</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 關於我們 -->
   <url>
-    <loc>https://markdown-live-previewer-a6dx.onrender.com/about.html</loc>
+    <loc>https://mark-it-live.onrender.com/about.html</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>never</changefreq>
     <priority>0.8</priority>

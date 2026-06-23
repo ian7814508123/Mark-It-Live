@@ -84,6 +84,33 @@ export default defineConfig(({ mode }) => {
             next();
           });
         }
+      },
+      {
+        name: 'generate-google-verify',
+        closeBundle() {
+          // loadEnv 讀取本地 .env 檔；process.env 對應 CI 注入的環境變數
+          // 兩者都支援，確保本地開發與 GitHub Actions 皆可正常生成驗證檔
+          const fromLoadEnv = env.VITE_GOOGLE_VERIFY_ID;
+          const fromProcessEnv = process.env.VITE_GOOGLE_VERIFY_ID;
+          const verifyId = fromLoadEnv || fromProcessEnv;
+
+          // Debug：確認環境變數注入狀況
+          console.log('[google-verify] env.VITE_GOOGLE_VERIFY_ID     =', fromLoadEnv ? `"${fromLoadEnv}"` : '(empty)');
+          console.log('[google-verify] process.env.VITE_GOOGLE_VERIFY_ID =', fromProcessEnv ? `"${fromProcessEnv}"` : '(empty)');
+
+          if (verifyId) {
+            const outDir = path.resolve(__dirname, 'dist');
+            const filePath = path.resolve(outDir, `${verifyId}.html`);
+            if (fs.existsSync(outDir)) {
+              fs.writeFileSync(filePath, `google-site-verification: ${verifyId}.html`);
+              console.log(`\nGenerated Google verification file: ${verifyId}.html`);
+            } else {
+              console.warn('[google-verify] dist/ 目錄不存在，跳過生成');
+            }
+          } else {
+            console.warn('[google-verify] VITE_GOOGLE_VERIFY_ID 未設置，跳過生成驗證檔');
+          }
+        }
       }
     ],
     define: {
