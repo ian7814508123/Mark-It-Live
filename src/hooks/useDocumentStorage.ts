@@ -200,6 +200,27 @@ export function useDocumentStorage() {
         });
     }, []);
 
+    // ─── 更新指定文檔內容 ─────────────────────────────────────────────────────
+    const updateDocument = useCallback((docId: string, content: string) => {
+        setState(prev => {
+            const updatedDoc = prev.documents.find(d => d.id === docId);
+            if (!updatedDoc) return prev;
+
+            const newDoc = { ...updatedDoc, content, updatedAt: Date.now() };
+
+            idbPutDocument(newDoc).catch(err =>
+                console.error('[useDocumentStorage] updateDocument 持久化失敗:', err)
+            );
+
+            return {
+                ...prev,
+                documents: prev.documents.map(doc =>
+                    doc.id === docId ? newDoc : doc
+                ),
+            };
+        });
+    }, []);
+
     // ─── 更新行號註解 ──────────────────────────────────────────────────────────
     const updateLineComment = useCallback((docId: string, line: number, comment: string) => {
         setState(prev => {
@@ -441,6 +462,7 @@ export function useDocumentStorage() {
         isLoading,
         createDocument,
         updateCurrentDocument,
+        updateDocument,
         switchDocument,
         deleteDocument,
         renameDocument,

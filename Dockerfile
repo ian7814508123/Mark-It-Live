@@ -30,6 +30,10 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # 從構建階段複製靜態檔案到 nginx 目錄
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# 複製並設定 Nginx 啟動腳本 (動態生成 Google 驗證檔)
+COPY generate-verify.sh /docker-entrypoint.d/99-generate-verify.sh
+RUN chmod +x /docker-entrypoint.d/99-generate-verify.sh
+
 # 暴露 80 端口
 EXPOSE 80
 

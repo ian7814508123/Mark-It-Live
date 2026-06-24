@@ -120,7 +120,25 @@ export {
   LuMaximize as Maximize,
   LuHand as Hand,
   LuActivity as Activity,
-  LuLink as Link
+  LuUndo2 as Undo2,
+  LuRedo2 as Redo2,
+  LuNetwork as Network,
+  LuMousePointerClick as MousePointerClick,
+  LuRectangleHorizontal as RectangleHorizontal,
+  LuMoveRight as MoveRight,
+  LuMoveDown as MoveDown,
+  LuMoveLeft as MoveLeft,
+  LuMoveUp as MoveUp,
+  LuDatabase as DatabaseIcon,
+  LuChevronRight as ChevronRight2,
+  LuAlignJustify as AlignJustify,
+  LuBoxes as BoxSelect,
+  LuUserPlus as UserPlus,
+  LuHash as Hash,
+  LuToggleLeft as ToggleLeft,
+  LuArrowLeftRight as ArrowRightLeft,
+  LuGripHorizontal as GripHorizontal,
+  LuPen as Pen
 } from 'react-icons/lu';
 export {
   FiBarChart2 as BarChart2,
@@ -147,3 +165,81 @@ export {
   MdOutlineViewInAr as View,
   MdStars as Stars
 } from 'react-icons/md';
+
+export {
+  TbSquare as Square,
+  TbLinkPlus as Link,
+  TbCircle as Circle,
+  TbDiamonds as Diamond,
+  TbTriangle as Triangle,
+  TbCylinder as Cylinder,
+  TbHexagon as Hexagon,
+  TbCapsuleHorizontal as Capsule,
+} from 'react-icons/tb';
+
+// ─── 自訂 SVG Icons 區塊 ────────────────────────────────────────────────────────
+import React from 'react';
+
+// 1. 定義共用的 SVG 外框，這樣就不需要每次都寫一大複的 stroke 屬性
+interface CustomIconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number | string;
+}
+
+const SvgBase: React.FC<CustomIconProps & { children: React.ReactNode }> = ({
+  size = 24,
+  className = '',
+  children,
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor" // 讓它跟隨外層文字顏色
+    strokeWidth="2"       // 統一線條粗細
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {children}
+  </svg>
+);
+
+// 2. 在這裡個別命名與匯出你的自訂 Icons！
+// 只要把 SVG 裡面的 <path> 或 <rect> 放進 SvgBase 裡面就好
+
+export const Parallelogram = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M4.5 6L7.5 18H19.5L16.5 6H4.5Z" />
+  </SvgBase>
+);
+
+export const RParallelogram = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M19.5 6L16.5 18H4.5L7.5 6H19.5Z" />
+  </SvgBase>
+);
+
+export const Flag = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M4 4v16M4 4h14l-4 6 4 6H4" />
+  </SvgBase>
+);
+
+export const Trapezoid = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M7.5 6L4.5 18H19.5L16.5 6H7.5Z" />
+  </SvgBase>
+);
+
+export const RTrapezoid = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M4.5 6L7.5 18H16.5L19.5 6H4.5Z" />
+  </SvgBase>
+);
+
+// 未來如果有新的，就繼續往下加...
+// export const CustomXXX = (props: CustomIconProps) => ( ... );

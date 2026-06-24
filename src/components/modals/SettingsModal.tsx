@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, PackagePlus, ChevronLeft, Palette, MessageSquare, Zap, BookOpen, Feather, Code, ClipboardList, CircleX, GraduationCap, Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake } from '../ui/Icons';
+import { X, Save, RotateCcw, AlertCircle, Check, FileText, Printer, Box, ChevronLeft, ChevronRight, ChevronDown, Palette, Zap, CircleX } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import DraggableSwitch from '../ui/DraggableSwitch';
@@ -12,6 +12,7 @@ import ThemeGridSelector, { ThemeOption } from '../ui/ThemeGridSelector';
 import { CHANGELOG_CARDS } from '../../data/changelogData';
 import { PREVIEW_THEMES } from '../../config/previewThemes';
 import { CREDITS_DATA } from '../../data/creditsData';
+import CustomThemeEditor from './CustomThemeEditor';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -27,6 +28,8 @@ interface SettingsModalProps {
     onOpenIntro?: () => void;
     favoriteThemes: string[];
     onToggleFavoriteTheme: (themeValue: string) => void;
+    customTheme?: Record<string, string>;
+    onSaveCustomTheme?: (patch: Record<string, string>) => void;
 }
 
 // ── PDF 設定面板 ────────────────────────────────────────────────────────────
@@ -36,109 +39,163 @@ const PdfSettingsPanel: React.FC<{
     isStandalone?: boolean;
     favoriteThemes: string[];
     onToggleFavoriteTheme: (themeValue: string) => void;
-}> = ({ settings, onChange, isStandalone, favoriteThemes, onToggleFavoriteTheme }) => {
+    customTheme?: Record<string, string>;
+    onSaveCustomTheme?: (patch: Record<string, string>) => void;
+}> = ({ settings, onChange, isStandalone, favoriteThemes, onToggleFavoriteTheme, customTheme, onSaveCustomTheme }) => {
     const [customScale, setCustomScale] = useState<number>(
         typeof settings.scale === 'number' ? settings.scale : 100
     );
+    const [isThemeExpanded, setIsThemeExpanded] = useState(false);
+    const [isPageLayoutExpanded, setIsPageLayoutExpanded] = useState(true);
     // 將 settings.scale 映射為字串鍵供 GlassRailSelector 使用
     const scaleKey = typeof settings.scale === 'number' ? 'custom' : settings.scale;
+
+    // Find current theme info for badge
+    const currentThemeInfo = PREVIEW_THEMES.find(t => t.value === settings.previewTheme);
+    const themeLabel = currentThemeInfo ? currentThemeInfo.label : settings.previewTheme;
+    const isThemeFav = favoriteThemes.includes(settings.previewTheme);
 
     return (
         <div className="px-8 pb-8 space-y-6 min-h-full">
             {/* 分組 A：視覺化預覽 */}
-            <div className="relative z-0 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
-                <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary"><Palette size={16} /></div>
-                    <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">預覽風格 (Theme)</p>
-                </div>
+            <div className="relative z-0 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <button
+                    onClick={() => setIsThemeExpanded(!isThemeExpanded)}
+                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                    <div className="flex items-center gap-2">
+                        {isThemeExpanded ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
+                        <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary">
+                            <Palette size={16} />
+                        </div>
+                        <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">預覽風格 (Theme)</p>
+                    </div>
+                    {!isThemeExpanded && (
+                        <div className="flex items-center gap-2">
+                            {isThemeFav && <span className="text-amber-400 text-xs">⭐</span>}
+                            <span className="text-[10px] bg-brand-primary/10 text-brand-primary px-3 py-1 rounded-xl font-bold border border-brand-primary/20">
+                                {themeLabel}
+                            </span>
+                        </div>
+                    )}
+                </button>
 
-                {/* Markdown 主題選擇 */}
-                <div className="space-y-3">
-                    <ThemeGridSelector
-                        options={PREVIEW_THEMES}
-                        value={settings.previewTheme}
-                        onChange={(v) => onChange({ previewTheme: v as any })}
-                        favoriteValues={favoriteThemes}
-                        onToggleFavorite={onToggleFavoriteTheme}
-                    />
-                </div>
+                {isThemeExpanded && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4">
+                        {/* Markdown 主題選擇 */}
+                        <ThemeGridSelector
+                            options={PREVIEW_THEMES}
+                            value={settings.previewTheme}
+                            onChange={(v) => onChange({ previewTheme: v as any })}
+                            favoriteValues={favoriteThemes}
+                            onToggleFavorite={onToggleFavoriteTheme}
+                        />
+                    </div>
+                )}
             </div>
+
+            {/* 分組 B：進階自訂變數 (Custom Theme) */}
+            <CustomThemeEditor
+                customTheme={customTheme || {}}
+                onChange={(patch) => onSaveCustomTheme?.(patch)}
+                onClear={() => onSaveCustomTheme?.(
+                    // Clear all keys by sending an empty string for each existing key
+                    Object.keys(customTheme || {}).reduce((acc, key) => ({ ...acc, [key]: '' }), {})
+                )}
+            />
 
 
             {/* 分組 C：頁面配置 */}
-            <div className="relative z-10 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
-                <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1.5 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-500"><Printer size={16} /></div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">頁面佈局參數</p>
-                </div>
-
-                {/* GlassRailSelector: 紙張尺寸 */}
-                <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">紙張尺寸</p>
-                    <GlassRailSelector
-                        options={[
-                            { label: 'A4', value: 'A4', hint: '預設' },
-                            { label: 'A3', value: 'A3', hint: '大圖' },
-                            { label: 'Letter', value: 'Letter', hint: '美制' },
-                        ]}
-                        value={settings.paperSize}
-                        onChange={(v) => onChange({ paperSize: v as PrintSettings['paperSize'] })}
-                    />
-                </div>
-
-                {/* GlassRailSelector: 方向 */}
-                <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">方向</p>
-                    <GlassRailSelector
-                        options={[
-                            { label: '橫向 ↔', value: 'landscape', hint: 'Landscape' },
-                            { label: '直向 ↕', value: 'portrait', hint: 'Portrait' },
-                        ]}
-                        value={settings.orientation}
-                        onChange={(v) => onChange({ orientation: v as PrintSettings['orientation'] })}
-                    />
-                </div>
-
-                {/* GlassRailSelector: 比例縮放 */}
-                <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">比例縮放</p>
-                    <GlassRailSelector
-                        options={[
-                            { label: '符合', value: 'fit', hint: 'Fit' },
-                            { label: '100%', value: 'actual', hint: 'Actual' },
-                            { label: '自訂', value: 'custom', hint: `${customScale}%` },
-                        ]}
-                        value={scaleKey}
-                        onChange={(v) => {
-                            if (v === 'custom') onChange({ scale: customScale });
-                            else onChange({ scale: v as 'fit' | 'actual' });
-                        }}
-                    />
-                    {/* 自訂比例時顯示滑桿 */}
-                    {scaleKey === 'custom' && (
-                        <div className="flex items-center gap-4 pt-1 px-1">
-                            <input type="range" min={10} max={200} step={5} value={customScale}
-                                onChange={(e) => { const v = Number(e.target.value); setCustomScale(v); onChange({ scale: v }); }}
-                                className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-primary"
-                            />
-                            <span className="text-xs font-mono font-bold w-12 text-brand-primary">{customScale}%</span>
+            <div className="relative z-10 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <button
+                    onClick={() => setIsPageLayoutExpanded(!isPageLayoutExpanded)}
+                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                    <div className="flex items-center gap-2">
+                        {isPageLayoutExpanded ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
+                        <div className="p-1.5 bg-brand-secondary/60 dark:bg-brand-primary/30 rounded-lg text-brand-primary">
+                            <Printer size={16} />
+                        </div>
+                        <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">頁面佈局參數 (Page Layout)</p>
+                    </div>
+                    {!isPageLayoutExpanded && (
+                        <div className="text-[10px] bg-brand-primary/10 text-brand-primary px-3 py-1 rounded-xl font-bold border border-brand-primary/20">
+                            {settings.paperSize} / {settings.orientation === 'portrait' ? '直向' : '橫向'} / {settings.scale} / {settings.margin === 'none' ? '無邊距' : (settings.margin === 'narrow' ? '緊湊' : '標準')}
                         </div>
                     )}
-                </div>
+                </button>
 
-                {/* GlassRailSelector: 邊距 */}
-                <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">邊距 (Margins)</p>
-                    <GlassRailSelector
-                        options={[
-                            { label: '標準', value: 'normal', hint: '1.5cm' },
-                            { label: '緊湊', value: 'narrow', hint: '0.5cm' },
-                            { label: '無', value: 'none', hint: '0' },
-                        ]}
-                        value={settings.margin}
-                        onChange={(v) => onChange({ margin: v as PrintSettings['margin'] })}
-                    />
-                </div>
+                {isPageLayoutExpanded && (
+                    <div className="px-4 pb-4 space-y-5 border-t border-slate-100 dark:border-slate-700 pt-4">
+                        {/* GlassRailSelector: 紙張尺寸 */}
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">紙張尺寸</p>
+                            <GlassRailSelector
+                                options={[
+                                    { label: 'A4', value: 'A4', hint: '預設' },
+                                    { label: 'A3', value: 'A3', hint: '大圖' },
+                                    { label: 'Letter', value: 'Letter', hint: '美制' },
+                                ]}
+                                value={settings.paperSize}
+                                onChange={(v) => onChange({ paperSize: v as PrintSettings['paperSize'] })}
+                            />
+                        </div>
+
+                        {/* GlassRailSelector: 方向 */}
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">方向</p>
+                            <GlassRailSelector
+                                options={[
+                                    { label: '橫向 ↔', value: 'landscape', hint: 'Landscape' },
+                                    { label: '直向 ↕', value: 'portrait', hint: 'Portrait' },
+                                ]}
+                                value={settings.orientation}
+                                onChange={(v) => onChange({ orientation: v as PrintSettings['orientation'] })}
+                            />
+                        </div>
+
+                        {/* GlassRailSelector: 比例縮放 */}
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">比例縮放</p>
+                            <GlassRailSelector
+                                options={[
+                                    { label: '符合', value: 'fit', hint: 'Fit' },
+                                    { label: '100%', value: 'actual', hint: 'Actual' },
+                                    { label: '自訂', value: 'custom', hint: `${customScale}%` },
+                                ]}
+                                value={scaleKey}
+                                onChange={(v) => {
+                                    if (v === 'custom') onChange({ scale: customScale });
+                                    else onChange({ scale: v as 'fit' | 'actual' });
+                                }}
+                            />
+                            {/* 自訂比例時顯示滑桿 */}
+                            {scaleKey === 'custom' && (
+                                <div className="flex items-center gap-4 pt-1 px-1">
+                                    <input type="range" min={10} max={200} step={5} value={customScale}
+                                        onChange={(e) => { const v = Number(e.target.value); setCustomScale(v); onChange({ scale: v }); }}
+                                        className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-primary"
+                                    />
+                                    <span className="text-xs font-mono font-bold w-12 text-brand-primary">{customScale}%</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* GlassRailSelector: 邊距 */}
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">邊距 (Margins)</p>
+                            <GlassRailSelector
+                                options={[
+                                    { label: '標準', value: 'normal', hint: '1.5cm' },
+                                    { label: '緊湊', value: 'narrow', hint: '0.5cm' },
+                                    { label: '無', value: 'none', hint: '0' },
+                                ]}
+                                value={settings.margin}
+                                onChange={(v) => onChange({ margin: v as PrintSettings['margin'] })}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="rounded-2xl bg-brand-secondary/30 dark:bg-brand-primary/10 px-5 py-4 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed border border-brand-primary/15 dark:border-brand-primary/30">
@@ -162,6 +219,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     onOpenIntro,
     favoriteThemes,
     onToggleFavoriteTheme,
+    customTheme,
+    onSaveCustomTheme,
 }) => {
     const [activeTab, setActiveTab] = useState<'editor' | 'print' | 'about'>('editor');
     const [jsonInput, setJsonInput] = useState('');
@@ -409,6 +468,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             isStandalone={isStandalone}
                             favoriteThemes={favoriteThemes}
                             onToggleFavoriteTheme={onToggleFavoriteTheme}
+                            customTheme={customTheme}
+                            onSaveCustomTheme={onSaveCustomTheme}
                         />
                     ) : (
                         <div key="editor" className="flex flex-col min-h-full">

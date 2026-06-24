@@ -18,10 +18,15 @@ export interface PrintSettings {
     previewTheme: import('../config/previewThemes').PreviewTheme;
 }
 
+export type CustomThemeSettings = Record<string, string>;
+
 export interface AppSettings {
     customMacros: Record<string, string | [string, number]>;
     printSettings: PrintSettings;
     favoriteThemes?: string[];
+    customTheme?: CustomThemeSettings;
+    /** @deprecated Use customTheme instead */
+    mermaidTheme?: any;
 }
 
 const DEFAULT_PRINT_SETTINGS: PrintSettings = {
@@ -38,6 +43,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     customMacros: DEFAULT_MACROS,
     printSettings: DEFAULT_PRINT_SETTINGS,
     favoriteThemes: [],
+    customTheme: {},
 };
 
 
@@ -70,7 +76,14 @@ export function useAppSettings() {
                             ...DEFAULT_PRINT_SETTINGS,
                             ...(parsed.printSettings ?? {})
                         },
-                        favoriteThemes: parsed.favoriteThemes ?? []
+                        favoriteThemes: parsed.favoriteThemes ?? [],
+                        customTheme: parsed.customTheme ?? (parsed.mermaidTheme ? {
+                            '--mermaid-node-bg': parsed.mermaidTheme.nodeBg,
+                            '--mermaid-node-text': parsed.mermaidTheme.nodeText,
+                            '--mermaid-node-border': parsed.mermaidTheme.nodeBorder,
+                            '--mermaid-line': parsed.mermaidTheme.lineColor,
+                            '--mermaid-edge-bg': parsed.mermaidTheme.edgeBg,
+                        } : {})
                     };
                 }
                 // stored 存在但沒有 customMacros，補上預設後回傳
@@ -78,7 +91,14 @@ export function useAppSettings() {
                     ...DEFAULT_SETTINGS,
                     ...parsed,
                     printSettings: parsed.printSettings ?? DEFAULT_PRINT_SETTINGS,
-                    favoriteThemes: parsed.favoriteThemes ?? []
+                    favoriteThemes: parsed.favoriteThemes ?? [],
+                    customTheme: parsed.customTheme ?? (parsed.mermaidTheme ? {
+                        '--mermaid-node-bg': parsed.mermaidTheme.nodeBg,
+                        '--mermaid-node-text': parsed.mermaidTheme.nodeText,
+                        '--mermaid-node-border': parsed.mermaidTheme.nodeBorder,
+                        '--mermaid-line': parsed.mermaidTheme.lineColor,
+                        '--mermaid-edge-bg': parsed.mermaidTheme.edgeBg,
+                    } : {})
                 };
             }
             return DEFAULT_SETTINGS;
@@ -114,6 +134,20 @@ export function useAppSettings() {
         });
     };
 
+    const updateCustomTheme = (patch: CustomThemeSettings) => {
+        setSettings(prev => {
+            // Remove empty values
+            const newTheme = { ...(prev.customTheme || {}), ...patch };
+            Object.keys(newTheme).forEach(k => {
+                if (!newTheme[k]) delete newTheme[k];
+            });
+            return {
+                ...prev,
+                customTheme: newTheme
+            };
+        });
+    };
+
     const restoreDefaults = () => {
         setSettings(DEFAULT_SETTINGS);
     };
@@ -123,6 +157,7 @@ export function useAppSettings() {
         updateMacros,
         updatePrintSettings,
         toggleFavoriteTheme,
+        updateCustomTheme,
         restoreDefaults
     };
 }
