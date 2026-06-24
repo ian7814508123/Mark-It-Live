@@ -19,6 +19,24 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v5.1.0 (2026/06/24) - 全新功能',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: PackagePlus,
+        title: '新功能 (New Features)',
+        details: [
+          <>
+            <strong>Mermaid 雙向編輯:</strong> 部份圖表類型，可以直接透過節點操作，即時修改圖表內容與結構。<br />
+            <strong>Mermaid 工具列:</strong> 全新的工具列，提供快速新增、修改、刪除節點的功能。
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v5.0.1 (2026/06/17) - 修正預覽主題',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',

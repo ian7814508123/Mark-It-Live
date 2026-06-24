@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import { motion, PanInfo, useMotionValue, animate, useDragControls } from 'framer-motion';
-import { MousePointer2, Hand, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, Wrench } from '../ui/Icons';
+import { MousePointer2, Hand, ZoomIn, ZoomOut, Maximize, Undo2, Redo2, Pen } from '../ui/Icons';
 import { MermaidDiagramType } from '../../utils/mermaid';
 import FlowchartGlobalItems from './mermaid-toolbars/FlowchartGlobalItems';
 import SequenceGlobalItems from './mermaid-toolbars/SequenceGlobalItems';
+import { useMagneticEffect } from '../../hooks/useMagneticEffect';
 
 interface MermaidGlobalToolbarProps {
     isTextEmpty: boolean;
@@ -62,11 +63,11 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
     const dragControls = useDragControls();
     const [dockPosition, setDockPosition] = useState<ToolbarPosition>('BC');
     const [dragState, setDragState] = useState<'idle' | 'dragging' | 'docking'>('idle');
-    const [isCornerExpanded, setIsCornerExpanded] = useState(false);
     const [layoutEnabled, setLayoutEnabled] = useState(false);
     const layoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pointerDownPosRef = useRef({ x: 0, y: 0 });
-    const wasExpandedRef = useRef(false);
+
+    const { x: magX, y: magY, handlers: magHandlers } = useMagneticEffect({ maxOffset: 8, radius: 50 });
 
     const enableLayoutForAnimation = (durationMs: number = 600) => {
         setLayoutEnabled(true);
@@ -74,6 +75,36 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
         layoutTimeoutRef.current = setTimeout(() => {
             setLayoutEnabled(false);
         }, durationMs);
+    };
+
+    const orientation = ['LC', 'RC'].includes(dockPosition) ? 'vertical' : 'horizontal';
+
+    const getTargetCorner = (side: 'start' | 'end'): ToolbarPosition => {
+        if (orientation === 'horizontal') {
+            const isTop = ['TL', 'TC', 'TR'].includes(dockPosition);
+            if (side === 'start') return isTop ? 'TL' : 'BL';
+            if (side === 'end') return isTop ? 'TR' : 'BR';
+        } else {
+            const isLeft = ['TL', 'LC', 'BL'].includes(dockPosition);
+            if (side === 'start') return isLeft ? 'TL' : 'TR';
+            if (side === 'end') return isLeft ? 'BL' : 'BR';
+        }
+        return 'TL';
+    };
+
+    const collapseTo = (corner: ToolbarPosition, e: React.MouseEvent | React.PointerEvent) => {
+        e.stopPropagation();
+        setDockPosition(corner);
+        setDragState('docking');
+        enableLayoutForAnimation(1200);
+
+        const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.5 };
+        animate(x, 0, springConfig);
+        animate(y, 0, springConfig);
+
+        setTimeout(() => {
+            setDragState('idle');
+        }, 500);
     };
 
     // 監聽 isTextEmpty 造成的收合改變，給予展開/收合動畫
@@ -89,104 +120,31 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    // 當處於四個角落時收合，除非手動點擊展開；或是正在拖曳、停靠飛行中時也保持收合
+    // 當處於四個角落時收合；或是正在拖曳、停靠飛行中時也保持收合
     const isCorner = ['TL', 'TR', 'BL', 'BR'].includes(dockPosition);
-    const isCollapsed = dragState !== 'idle' || (isCorner && !isCornerExpanded) || isTextEmpty;
-    const orientation = ['LC', 'RC'].includes(dockPosition) ? 'vertical' : 'horizontal';
-
-    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        // 如果點擊的是內部按鈕或輸入框，不要觸發拖曳
-        if ((e.target as HTMLElement).closest('button, input')) return;
-
-        // 記錄最原始的游標座標，不受任何 Framer Motion 元素位移影響
-        pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
-        wasExpandedRef.current = !isCollapsed;
-
-        // 只有在展開狀態下，才需要瞬間縮小並啟用 snapToCursor
-        const shouldSnap = !isCollapsed;
-
-        // 【注意】這裡不開啟 layoutEnabled，確保元件瞬間縮小成圓點，讓 snapToCursor 能精準抓取真正的中心點
-        if (!isCollapsed) {
-            flushSync(() => {
-                setDragState('dragging');
-                setIsCornerExpanded(false); // 拖曳時重置角落展開狀態
-            });
-        } else {
-            setDragState('dragging');
-            setIsCornerExpanded(false);
-        }
-
-        dragControls.start(e, { snapToCursor: shouldSnap });
-    };
+    const isCollapsed = dragState !== 'idle' || isCorner || isTextEmpty;
 
     const handleDragEnd = (e: any, info: PanInfo) => {
 
         if (!constraintsRef?.current) return;
 
-        // 透過游標的絕對位移來判斷點擊，不受 snapToCursor 產生的元素位移影響
-        const dx = info.point.x - pointerDownPosRef.current.x;
-        const dy = info.point.y - pointerDownPosRef.current.y;
-        const isTap = Math.hypot(dx, dy) < 5;
-        const containerRect = constraintsRef.current.getBoundingClientRect();
+        let clientX = info.point.x;
+        let clientY = info.point.y;
 
-        if (isTap) {
-            if (wasExpandedRef.current) {
-                // 如果點擊的是「展開狀態」的工具列，執行「點擊收合」
-                // 找出距離點擊位置最近的「角落」並飛過去
-                const px = info.point.x - containerRect.left;
-                const py = info.point.y - containerRect.top;
-                const W = containerRect.width;
-                const H = containerRect.height;
-                const marginX = 8;
-                const marginY = 8;
-
-                const corners: Record<ToolbarPosition, { x: number, y: number }> = {
-                    TL: { x: marginX, y: marginY },
-                    TR: { x: W - marginX, y: marginY },
-                    BL: { x: marginX, y: H - marginY },
-                    BR: { x: W - marginX, y: H - marginY },
-                } as any;
-
-                let minDist = Infinity;
-                let closestCorner: ToolbarPosition = 'TL';
-                for (const [pos, pt] of Object.entries(corners)) {
-                    const dist = Math.hypot(px - pt.x, py - pt.y);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        closestCorner = pos as ToolbarPosition;
-                    }
-                }
-
-                setDockPosition(closestCorner);
-                setIsCornerExpanded(false);
-                setDragState('docking');
-                enableLayoutForAnimation(1200);
-
-                const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.5 };
-                animate(x, 0, springConfig);
-                animate(y, 0, springConfig);
-
-                setTimeout(() => {
-                    setDragState('idle');
-                }, 500);
-            } else {
-                // 如果點擊的是「已收合」的圓點，直接展開
-                if (isCorner) {
-                    setIsCornerExpanded(true);
-                }
-                enableLayoutForAnimation(600);
-                setDragState('idle');
-
-                const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.3 };
-                animate(x, 0, springConfig);
-                animate(y, 0, springConfig);
-            }
-            return;
+        // Framer Motion 在某些 tap 的情況下 info.point 可能會是 (0,0)
+        // 所以優先從 native event 取得座標
+        if (e && 'clientX' in e) {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        } else if (e && 'changedTouches' in e && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+            clientY = e.changedTouches[0].clientY;
         }
 
-        // 取得游標在容器內的相對座標
-        const px = info.point.x - containerRect.left;
-        const py = info.point.y - containerRect.top;
+        const containerRect = constraintsRef.current.getBoundingClientRect();
+
+        const px = clientX - containerRect.left;
+        const py = clientY - containerRect.top;
         const W = containerRect.width;
         const H = containerRect.height;
 
@@ -237,10 +195,8 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
         <motion.div
             layout={layoutEnabled}
             transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
-            drag
-            dragControls={dragControls}
-            dragListener={false}
-            onPointerDown={handlePointerDown}
+            drag={isCollapsed}
+            onDragStart={() => setDragState('dragging')}
             style={{ x, y }}
             dragConstraints={constraintsRef}
             dragElastic={0.1}
@@ -248,7 +204,7 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
             onDragEnd={handleDragEnd}
             whileDrag={{ scale: 1.05 }}
             className={`
-            absolute z-30 flex transition-colors duration-200 cursor-grab active:cursor-grabbing
+            absolute z-30 flex transition-colors duration-200 ${isCollapsed ? 'cursor-grab active:cursor-grabbing' : ''}
             ${positionClasses[dockPosition]}
             ${orientation === 'horizontal' ? 'items-center flex-row' : 'flex-col items-center'}
             ${isCollapsed
@@ -262,25 +218,51 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
                     layoutId="toolbar-container"
                     layout={layoutEnabled}
                     transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
-                    className={`flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md w-12 h-12 rounded-full shadow-lg border border-slate-300/20 dark:border-white/10 pointer-events-auto ${isCorner && dragState === 'idle' ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-brand-primary' : ''}`}
+                    style={{ x: magX, y: magY }}
+                    {...magHandlers}
+                    onTap={() => {
+                        if (['TL', 'TR'].includes(dockPosition)) {
+                            setDockPosition('TC');
+                        } else if (['BL', 'BR'].includes(dockPosition)) {
+                            setDockPosition('BC');
+                        }
+                        enableLayoutForAnimation(600);
+                        setDragState('idle');
+                        const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.3 };
+                        animate(x, 0, springConfig);
+                        animate(y, 0, springConfig);
+                    }}
+                    className={`flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md w-12 h-12 rounded-full border border-slate-300/20 dark:border-white/10 pointer-events-auto ${isCorner && dragState === 'idle' ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-brand-primary' : ''}`}
                     title={isCorner && dragState === 'idle' ? "展開工具列" : ""}
                 >
-                    <Wrench size={20} />
+                    <MousePointer2 size={20} className='rotate-45' />
                 </motion.div>
             ) : (
                 <motion.div layoutId="toolbar-container" layout={layoutEnabled} transition={{ type: 'spring', bounce: 0, duration: 0.5 }} className={`flex items-center justify-center w-full h-full pointer-events-auto ${orientation === 'vertical' ? 'flex-col gap-0' : 'flex-row gap-0'}`}>
+
+                    {/* 收合桿 (Start Handle) */}
+                    <div
+                        className={`group flex items-center justify-center cursor-pointer transition-colors
+                            ${orientation === 'horizontal' ? 'w-4 h-full rounded-l-full' : 'h-4 w-full rounded-t-full'}`}
+                        onClick={(e) => collapseTo(getTargetCorner('start'), e)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        title={orientation === 'horizontal' ? "收合至左側" : "收合至上方"}
+                    >
+                        <div className={`${orientation === 'horizontal' ? 'w-[3px] h-5' : 'h-[3px] w-5'} bg-slate-400 dark:bg-slate-500 group-hover:bg-brand-primary rounded-full transition-colors`} />
+                    </div>
+
                     {/* Pan / Edit 切換 - 全域皆可使用 (非對稱設計) */}
-                    <div className={`flex items-center ${orientation === 'vertical' ? 'pb-2 border-b flex-col' : 'pr-2 pl-1 border-r flex-row'} border-slate-200 dark:border-white/10`}>
+                    <div className={`flex items-center ${orientation === 'vertical' ? 'pb-2 border-b flex-col mt-1' : 'pr-2 pl-1 border-r flex-row ml-1'} border-slate-200 dark:border-white/10`}>
                         <button
                             onClick={() => setIsPanMode(!isPanMode)}
                             className={`flex items-center justify-center transition-all text-xs font-bold active:scale-95 ${!isPanMode
-                                ? 'bg-brand-primary text-white shadow-[0_0_12px_rgba(14,165,233,0.5)]'
-                                : 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900 shadow-md'
+                                ? 'bg-brand-primary text-white shadow-[0_0_5px_rgba(14,165,233,0.5)]'
+                                : 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900 shadow-xs'
                                 } ${orientation === 'horizontal' ? 'gap-2 w-[72px] py-1.5 rounded-full' : 'w-8 h-8 rounded-full'}`}
                             title={isPanMode ? "切換至選取模式" : "切換至拖曳模式"}
                         >
                             {!isPanMode ? (
-                                <><MousePointer2 size={14} /> {orientation === 'horizontal' && (diagramType === 'flowchart' ? 'Edit' : 'Select')}</>
+                                <><Pen size={14} /> {orientation === 'horizontal' && (diagramType === 'flowchart' ? 'Edit' : 'Select')}</>
                             ) : (
                                 <><Hand size={14} /> {orientation === 'horizontal' && 'Pan'}</>
                             )}
@@ -363,6 +345,17 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
                         >
                             <Maximize size={16} />
                         </button>
+                    </div>
+
+                    {/* 收合桿 (End Handle) */}
+                    <div
+                        className={`group flex items-center justify-center cursor-pointer transition-colors
+                            ${orientation === 'horizontal' ? 'w-4 h-full rounded-r-full ml-1' : 'h-4 w-full rounded-b-full mt-1'}`}
+                        onClick={(e) => collapseTo(getTargetCorner('end'), e)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        title={orientation === 'horizontal' ? "收合至右側" : "收合至下方"}
+                    >
+                        <div className={`${orientation === 'horizontal' ? 'w-[3px] h-5' : 'h-[3px] w-5'} bg-slate-400 dark:bg-slate-500 group-hover:bg-brand-primary rounded-full transition-colors`} />
                     </div>
                 </motion.div>
             )}

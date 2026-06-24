@@ -20,7 +20,7 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
 }) => {
     const [isShapeMenuOpen, setIsShapeMenuOpen] = useState(false);
     const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
-    
+
     const shapeMenuRef = useRef<HTMLDivElement>(null);
     const colorMenuRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +105,7 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
             {/* 連線按鈕 */}
             <button
                 onClick={onStartConnect}
-                className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-sky-50 dark:hover:bg-sky-900/30 rounded-lg text-sky-600 dark:text-sky-400 transition-all font-semibold text-xs"
+                className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-all font-semibold text-xs"
                 title="連線至其他節點"
             >
                 <Network size={14} />
@@ -136,8 +136,8 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
                         {/* 1. 背景顏色 */}
                         <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
                             <span>背景 (Fill)</span>
-                            <div 
-                                className="relative w-6 h-6 rounded-md border border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm active:scale-95 transition-transform" 
+                            <div
+                                className="relative w-6 h-6 rounded-md border border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm active:scale-95 transition-transform"
                                 style={{ backgroundColor: nodeStyles.fill || '#ececff' }}
                             >
                                 <input
@@ -152,8 +152,8 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
                         {/* 2. 邊框顏色 */}
                         <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
                             <span>邊框 (Stroke)</span>
-                            <div 
-                                className="relative w-6 h-6 rounded-md border border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm active:scale-95 transition-transform" 
+                            <div
+                                className="relative w-6 h-6 rounded-md border border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm active:scale-95 transition-transform"
                                 style={{ backgroundColor: nodeStyles.stroke || '#9370db' }}
                             >
                                 <input
@@ -168,8 +168,8 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
                         {/* 3. 字體顏色 */}
                         <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
                             <span>字體 (Color)</span>
-                            <div 
-                                className="relative w-6 h-6 rounded-md border border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm active:scale-95 transition-transform" 
+                            <div
+                                className="relative w-6 h-6 rounded-md border border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm active:scale-95 transition-transform"
                                 style={{ backgroundColor: nodeStyles.color || '#333333' }}
                             >
                                 <input
@@ -198,7 +198,7 @@ const FlowchartToolbarItems: React.FC<FlowchartToolbarItemsProps> = ({
             >
                 <Trash2 size={14} />
             </button>
-            
+
             <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
         </>
     );

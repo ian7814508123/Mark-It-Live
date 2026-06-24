@@ -70,7 +70,7 @@ const FlowchartGlobalItems: React.FC<FlowchartGlobalItemsProps> = ({
                     onClick={() => setIsDirectionMenuOpen(!isDirectionMenuOpen)}
                     className={`p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-700 dark:text-slate-200 hover:text-brand-primary transition-all active:scale-90 ${isDirectionMenuOpen
                         ? 'bg-white dark:bg-slate-700 text-brand-primary'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-brand-primary'
+                        : 'text-slate-700 dark:text-slate-200 hover:text-brand-primary'
                         }`}
                     title="變更排版方向 (Change Direction)"
                 >
