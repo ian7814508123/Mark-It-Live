@@ -138,49 +138,32 @@ export {
   LuToggleLeft as ToggleLeft,
   LuArrowLeftRight as ArrowRightLeft,
   LuGripHorizontal as GripHorizontal,
-  LuPen as Pen
+  LuPen as Pen,
+
+  // 從 Feather (fi) 遷移過來的圖標
+  LuChartColumnIncreasing as BarChart2,
+  LuEllipsis as MoreHorizontal,
+  LuLayoutDashboard as Layout,
+  LuChartColumn as BarChart3,
+  LuCircleHelp as HelpCircle,
+  LuCircleAlert as AlertCircle,
+  LuTriangleAlert as AlertTriangle,
+  LuHouse as Home,
+  LuInfo as Info,
+  LuOctagonAlert as AlertOctagon,
+  LuLoaderCircle as Loader2,
+  LuPenLine as Edit3,
+  LuDatabase as Database,
+  LuBox as Box,
+  LuChevronLeft as ChevronLeft,
+  LuChevronRight as ChevronRight,
+  LuEye as Eye
 } from 'react-icons/lu';
-export {
-  FiBarChart2 as BarChart2,
-  FiMoreHorizontal as MoreHorizontal,
-  FiLayout as Layout,
-  FiBarChart as BarChart3,
-  FiHelpCircle as HelpCircle,
-  FiAlertCircle as AlertCircle,
-  FiAlertTriangle as AlertTriangle,
-  FiHome as Home,
-  FiInfo as Info,
-  FiAlertOctagon as AlertOctagon,
-  FiLoader as Loader2,
-  FiEdit3 as Edit3,
-  FiDatabase as Database,
-  FiBox as Box,
-  FiChevronLeft as ChevronLeft,
-  FiChevronRight as ChevronRight,
-  FiEye as Eye
-} from 'react-icons/fi';
-
-export {
-  MdCheckCircle as CheckCircle,
-  MdOutlineViewInAr as View,
-  MdStars as Stars
-} from 'react-icons/md';
-
-export {
-  TbSquare as Square,
-  TbLinkPlus as Link,
-  TbCircle as Circle,
-  TbDiamonds as Diamond,
-  TbTriangle as Triangle,
-  TbCylinder as Cylinder,
-  TbHexagon as Hexagon,
-  TbCapsuleHorizontal as Capsule,
-} from 'react-icons/tb';
+// 移除了 react-icons/fi, react-icons/md, react-icons/tb，改用 SVG 或 Lucide 替代
 
 // ─── 自訂 SVG Icons 區塊 ────────────────────────────────────────────────────────
 import React from 'react';
 
-// 1. 定義共用的 SVG 外框，這樣就不需要每次都寫一大複的 stroke 屬性
 interface CustomIconProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string;
 }
@@ -241,5 +224,91 @@ export const RTrapezoid = (props: CustomIconProps) => (
   </SvgBase>
 );
 
+// ─── 自從 md 與 tb 移植過來的 SVG Icons ────────────────────────────────────────────────────────
+// MdCheckCircle
+export const CheckCircle = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <path d="M22 4L12 14.01l-3-3" />
+  </SvgBase>
+);
+
+// MdOutlineViewInAr (Cube/3D View)
+export const View = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    <path d="M3.27 6.96L12 12.01l8.73-5.05" />
+    <path d="M12 22.08V12" />
+  </SvgBase>
+);
+
+// MdStars (Sparkles/Stars)
+export const Stars = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M12 3l1.91 5.8a2 2 0 0 0 1.9 1.38H22l-5 3.64a2 2 0 0 0-.73 2.24L18.18 21 12 17.27a2 2 0 0 0-2.36 0L5.82 21l1.9-4.94a2 2 0 0 0-.72-2.24L2 10.18h6.19a2 2 0 0 0 1.9-1.38L12 3z" />
+  </SvgBase>
+);
+
+// TbSquare
+export const Square = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+  </SvgBase>
+);
+
+// TbLinkPlus (Link)
+export const Link = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    <line x1="12" y1="2" x2="12" y2="8" />
+    <line x1="9" y1="5" x2="15" y2="5" />
+  </SvgBase>
+);
+
+// TbCircle
+export const Circle = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <circle cx="12" cy="12" r="10" />
+  </SvgBase>
+);
+
+// TbDiamonds
+export const Diamond = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M12 3l9 9-9 9-9-9 9-9z" />
+  </SvgBase>
+);
+
+// TbTriangle
+export const Triangle = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M12 2L2 20h20L12 2z" />
+  </SvgBase>
+);
+
+// TbCylinder
+export const Cylinder = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <ellipse cx="12" cy="5" rx="9" ry="3" />
+    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
+  </SvgBase>
+);
+
+// TbHexagon
+export const Hexagon = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+  </SvgBase>
+);
+
+// TbCapsuleHorizontal
+export const Capsule = (props: CustomIconProps) => (
+  <SvgBase {...props}>
+    <rect x="2" y="6" width="20" height="12" rx="6" />
+  </SvgBase>
+);
+
 // 未來如果有新的，就繼續往下加...
 // export const CustomXXX = (props: CustomIconProps) => ( ... );
+
