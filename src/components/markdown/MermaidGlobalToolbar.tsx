@@ -101,6 +101,7 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
         const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.5 };
         animate(x, 0, springConfig);
         animate(y, 0, springConfig);
+        animate(pointerRotate, 45, springConfig);
 
         setTimeout(() => {
             setDragState('idle');
@@ -119,6 +120,7 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
     // 用於手動控制拖曳位移，以避免 dragSnapToOrigin 與 layout 產生動畫衝突
     const x = useMotionValue(0);
     const y = useMotionValue(0);
+    const pointerRotate = useMotionValue(45);
 
     // 當處於四個角落時收合；或是正在拖曳、停靠飛行中時也保持收合
     const isCorner = ['TL', 'TR', 'BL', 'BR'].includes(dockPosition);
@@ -184,6 +186,7 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
         const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.5 };
         animate(x, 0, springConfig);
         animate(y, 0, springConfig);
+        animate(pointerRotate, 45, springConfig);
 
         // 等待飛行結束後，才解除 docking 狀態讓元件原地展開
         setTimeout(() => {
@@ -201,6 +204,14 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
             dragConstraints={constraintsRef}
             dragElastic={0.1}
             dragMomentum={false}
+            onDrag={(e, info) => {
+                const vx = info.velocity.x;
+                const vy = info.velocity.y;
+                if (Math.abs(vx) > 5 || Math.abs(vy) > 5) {
+                    const angle = Math.atan2(vy, vx) * (180 / Math.PI);
+                    pointerRotate.set(angle + 135);
+                }
+            }}
             onDragEnd={handleDragEnd}
             whileDrag={{ scale: 1.05 }}
             className={`
@@ -209,7 +220,7 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
             ${orientation === 'horizontal' ? 'items-center flex-row' : 'flex-col items-center'}
             ${isCollapsed
                     ? 'bg-transparent border-transparent'
-                    : `${orientation === 'horizontal' ? 'h-12 px-2' : 'w-12 py-2'} bg-white/10 dark:bg-slate-900/10 rounded-full border border-slate-300/20 dark:border-white/20 ${isTextEmpty ? 'opacity-40 pointer-events-none select-none border-slate-200/50 dark:border-white/5 bg-slate-100/50 dark:bg-slate-950/20' : 'backdrop-blur-3xl shadow-2xl'}`
+                    : `${orientation === 'horizontal' ? 'h-12 px-2' : 'w-12 py-2'} bg-white/5 dark:bg-slate-900/5 rounded-full border border-slate-300/20 dark:border-white/20 ${isTextEmpty ? 'opacity-40 pointer-events-none select-none border-slate-200/50 dark:border-white/5 bg-slate-100/50 dark:bg-slate-950/20' : 'backdrop-blur-3xl shadow-2xl'}`
                 }
             ${isCollapsed && isTextEmpty ? 'opacity-40 pointer-events-none select-none' : ''}
         `}>
@@ -231,11 +242,14 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
                         const springConfig = { type: 'spring' as const, bounce: 0, duration: 0.3 };
                         animate(x, 0, springConfig);
                         animate(y, 0, springConfig);
+                        animate(pointerRotate, 45, springConfig);
                     }}
-                    className={`flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md w-12 h-12 rounded-full border border-slate-300/20 dark:border-white/10 pointer-events-auto ${isCorner && dragState === 'idle' ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-brand-primary' : ''}`}
+                    className={`flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-2px w-12 h-12 rounded-full border border-slate-300/20 dark:border-white/10 pointer-events-auto ${isCorner && dragState === 'idle' ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-brand-primary' : ''}`}
                     title={isCorner && dragState === 'idle' ? "展開工具列" : ""}
                 >
-                    <MousePointer2 size={20} className='rotate-45' />
+                    <motion.div style={{ rotate: pointerRotate, display: 'flex' }}>
+                        <MousePointer2 size={20} />
+                    </motion.div>
                 </motion.div>
             ) : (
                 <motion.div layoutId="toolbar-container" layout={layoutEnabled} transition={{ type: 'spring', bounce: 0, duration: 0.5 }} className={`flex items-center justify-center w-full h-full pointer-events-auto ${orientation === 'vertical' ? 'flex-col gap-0' : 'flex-row gap-0'}`}>
@@ -258,13 +272,13 @@ const MermaidGlobalToolbar: React.FC<MermaidGlobalToolbarProps> = ({
                             className={`flex items-center justify-center transition-all text-xs font-bold active:scale-95 ${!isPanMode
                                 ? 'bg-brand-primary text-white shadow-[0_0_5px_rgba(14,165,233,0.5)]'
                                 : 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900 shadow-xs'
-                                } ${orientation === 'horizontal' ? 'gap-2 w-[72px] py-1.5 rounded-full' : 'w-8 h-8 rounded-full'}`}
+                                } ${orientation === 'horizontal' ? 'gap-2 w-8 h-8 py-1.5 rounded-full' : 'w-8 h-8 rounded-full'}`}
                             title={isPanMode ? "切換至選取模式" : "切換至拖曳模式"}
                         >
                             {!isPanMode ? (
-                                <><Pen size={14} /> {orientation === 'horizontal' && (diagramType === 'flowchart' ? 'Edit' : 'Select')}</>
+                                <><Pen size={14} /> {orientation === 'horizontal'}</>
                             ) : (
-                                <><Hand size={14} /> {orientation === 'horizontal' && 'Pan'}</>
+                                <><Hand size={14} /> {orientation === 'horizontal'}</>
                             )}
                         </button>
                     </div>
