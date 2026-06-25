@@ -60,7 +60,13 @@ export default defineConfig(({ mode }) => {
                 outputText += `- **License:** ${pkg.license}\n`;
                 outputText += `- **Repository:** ${repo}\n\n`;
                 outputText += '```text\n';
-                outputText += `${pkg.licenseText || 'No license text provided.'}\n`;
+                if (pkg.licenseText) {
+                  outputText += `${pkg.licenseText.trim()}\n`;
+                } else {
+                  outputText += `This package is licensed under the ${pkg.license} License.\n`;
+                  outputText += `(The author did not include the full license text in the published npm package.\n`;
+                  outputText += ` Please refer to the repository link above for more details.)\n`;
+                }
                 outputText += '```\n\n';
               });
 

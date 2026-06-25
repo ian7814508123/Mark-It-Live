@@ -7,7 +7,7 @@
 [![TypeScript-5.8](https://img.shields.io/badge/TypeScript-5.8.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite 6.2.0](https://img.shields.io/badge/Vite-6.2.0-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
 [![TailwindCSS v4.0](https://img.shields.io/badge/TailwindCSS-v4.0-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![License MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![License Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **專業、實時、隱私優先的 Mermaid 圖表與 Markdown 編輯器**
 
@@ -117,8 +117,15 @@ Mark-It-Live/
 
 ## ⚖️ 授權與版權 (License)
 
-本專案底層開源採用 [MIT License](LICENSE) 授權。
-**Mark It Live™** 品牌名稱、Logo 設計及官方站點資產保留所有權利。
+本專案的原始碼基於 [Apache License 2.0](LICENSE) 釋出，您可以自由使用、修改與分發程式碼。
+
+> ** 品牌保留權利 (Exception)**
+> 
+> 以下品牌資產**不**包含在 Apache 2.0 授權範圍內，保留所有權利 (All Rights Reserved)：
+> * "Mark It Live" 的名稱與商標。
+> * 專案中的 Logo 圖檔與相關品牌圖標。
+> 
+> 如果您要 Fork 或二次開發並公開發佈本專案，請替換掉所有的品牌 Logo，請勿使用 "Mark It Live" 之名義，以避免造成使用者的混淆或暗示原作者的背書。
 
 ---
 

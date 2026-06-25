@@ -11,18 +11,8 @@ import {
   FaJava,
   FaDocker
 } from 'react-icons/fa6';
-import {
-  TbDatabase,
-  TbTerminal,
-  TbFileCode,
-  TbBraces,
-  TbFileText,
-  TbBrandPowershell,
-  TbBrandCSharp,
-  TbBrandCpp
-} from 'react-icons/tb';
-import { BsTypescript, BsFiletypeJsx, BsFiletypeTsx } from "react-icons/bs";
-import { SiYaml, SiGnubash, SiZsh, SiArduino, SiVite, SiVitest, SiDotenv } from "react-icons/si";
+import { SiYaml, SiGnubash, SiZsh, SiArduino, SiVite, SiVitest, SiDotenv, SiTypescript, SiReact, SiCplusplus, SiSharp } from "react-icons/si";
+import { LuDatabase, LuTerminal, LuFileCode, LuBraces, LuFileText } from "react-icons/lu";
 
 // 定義 CodeHeaderProps 介面
 interface CodeHeaderProps {
@@ -42,17 +32,17 @@ const getLanguageIconData = (lang: string): { Icon: React.ComponentType<any>; co
 
     java: { Icon: FaJava, colorClass: 'text-amber-500' },
 
-    ts: { Icon: BsTypescript, colorClass: 'text-blue-500' },
-    typescript: { Icon: BsTypescript, colorClass: 'text-blue-500' },
-    jsx: { Icon: BsFiletypeJsx, colorClass: 'text-cyan-500' },
-    tsx: { Icon: BsFiletypeTsx, colorClass: 'text-cyan-500' },
+    ts: { Icon: SiTypescript, colorClass: 'text-blue-500' },
+    typescript: { Icon: SiTypescript, colorClass: 'text-blue-500' },
+    jsx: { Icon: SiReact, colorClass: 'text-cyan-500' },
+    tsx: { Icon: SiReact, colorClass: 'text-cyan-500' },
 
     python: { Icon: FaPython, colorClass: 'text-sky-600 dark:text-sky-400' },
     py: { Icon: FaPython, colorClass: 'text-sky-600 dark:text-sky-400' },
 
-    csharp: { Icon: TbBrandCSharp, colorClass: 'text-amber-500' },
-    c: { Icon: TbBrandCpp, colorClass: 'text-blue-600 dark:text-blue-400' },
-    cpp: { Icon: TbBrandCpp, colorClass: 'text-blue-600 dark:text-blue-400' },
+    csharp: { Icon: SiSharp, colorClass: 'text-amber-500' },
+    c: { Icon: SiCplusplus, colorClass: 'text-blue-600 dark:text-blue-400' },
+    cpp: { Icon: SiCplusplus, colorClass: 'text-blue-600 dark:text-blue-400' },
     arduino: { Icon: SiArduino, colorClass: 'text-[#3186a0] dark:text-[#4fccf3]' },
 
     rust: { Icon: FaRust, colorClass: 'text-orange-600 dark:text-orange-500' },
@@ -64,19 +54,19 @@ const getLanguageIconData = (lang: string): { Icon: React.ComponentType<any>; co
     html: { Icon: FaHtml5, colorClass: 'text-orange-500' },
     css: { Icon: FaCss3, colorClass: 'text-blue-600 dark:text-blue-400' },
 
-    json: { Icon: TbBraces, colorClass: 'text-yellow-600 dark:text-yellow-500' },
+    json: { Icon: LuBraces, colorClass: 'text-yellow-600 dark:text-yellow-500' },
     yaml: { Icon: SiYaml, colorClass: 'text-emerald-500' },
     yml: { Icon: SiYaml, colorClass: 'text-emerald-500' },
-    toml: { Icon: TbBraces, colorClass: 'text-gray-500' },
+    toml: { Icon: LuBraces, colorClass: 'text-gray-500' },
 
     markdown: { Icon: FaMarkdown, colorClass: 'text-indigo-500' },
     md: { Icon: FaMarkdown, colorClass: 'text-indigo-500' },
 
-    sql: { Icon: TbDatabase, colorClass: 'text-pink-500' },
+    sql: { Icon: LuDatabase, colorClass: 'text-pink-500' },
     docker: { Icon: FaDocker, colorClass: 'text-blue-500' },
     dockerfile: { Icon: FaDocker, colorClass: 'text-blue-500' },
 
-    makefile: { Icon: TbFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' },
+    makefile: { Icon: LuFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' },
     dotenv: { Icon: SiDotenv, colorClass: 'text-emerald-500' },
     env: { Icon: SiDotenv, colorClass: 'text-emerald-500' },
 
@@ -84,14 +74,14 @@ const getLanguageIconData = (lang: string): { Icon: React.ComponentType<any>; co
     vitest: { Icon: SiVitest, colorClass: 'text-orange-500' },
 
     bash: { Icon: SiGnubash, colorClass: 'text-emerald-500' },
-    sh: { Icon: TbTerminal, colorClass: 'text-emerald-500' },
-    shell: { Icon: TbBrandPowershell, colorClass: 'text-emerald-500' },
-    console: { Icon: TbTerminal, colorClass: 'text-neutral-500' },
+    sh: { Icon: LuTerminal, colorClass: 'text-emerald-500' },
+    shell: { Icon: LuTerminal, colorClass: 'text-emerald-500' },
+    console: { Icon: LuTerminal, colorClass: 'text-neutral-500' },
     zsh: { Icon: SiZsh, colorClass: 'text-emerald-500' },
-    log: { Icon: TbFileText, colorClass: 'text-ember-500' },
+    log: { Icon: LuFileText, colorClass: 'text-amber-500' },
   };
 
-  return mapping[langKey] || { Icon: TbFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' };
+  return mapping[langKey] || { Icon: LuFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' };
 };
 
 // 根據語言標籤取得顯示的標籤文字

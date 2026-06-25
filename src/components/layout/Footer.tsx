@@ -80,12 +80,17 @@ const Footer: React.FC<FooterProps> = ({ showIntroTrigger = true, onOpenIntro })
         {/* 底部導覽條 */}
         <div className={`flex flex-col sm:flex-row justify-between items-center gap-3 ${!isCollapsed ? 'border-t border-slate-100 dark:border-slate-800/50 pt-6' : ''}`}>
           <div className="flex items-center gap-5">
-            <p className="text-[10px] text-slate-600 dark:text-slate-300 font-medium">
-              © 2026 Mark It Live. All rights reserved.
-              <span className="hidden sm:inline-block">
-                {!isCollapsed && "　Maintained by Huang Jyun Ying."}
-              </span>
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+              <p className="text-[10px] text-slate-600 dark:text-slate-300 font-medium">
+                © 2026 Mark It Live.
+                <span className="hidden sm:inline-block">
+                  {!isCollapsed && "　Maintained by Huang Jyun Ying."}
+                </span>
+              </p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                Released under the <a href="https://github.com/ian7814508123/Mark-It-Live/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary underline decoration-slate-300 dark:decoration-slate-600 underline-offset-2 transition-colors">Apache-2.0 License</a>.
+              </p>
+            </div>
             {isCollapsed && (
               <nav className="sm:flex items-center gap-5 hidden border-l border-slate-200 dark:border-slate-700 pl-4 animate-in fade-in duration-300">
                 <a href={`${import.meta.env.BASE_URL}privacy.html`} className="text-[10px] text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors font-bold">隱私政策</a>
