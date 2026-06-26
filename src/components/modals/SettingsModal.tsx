@@ -411,21 +411,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                                 </div>
 
-                                <div className="space-y-6">
-                                    <div className="relative z-10 flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                                        <FileText size={24} className="text-brand-primary/50 mb-3" />
-                                        <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">想了解更多功能細節？</h5>
-                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4 text-center max-w-[250px]">前往功能導覽，學習如何使用快捷鍵、資料夾管理及更多高階與隱藏技巧。</p>
-                                        <MagneticButton
-                                            variant="outlined"
-                                            className="px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-brand-primary"
-                                            onClick={() => {
-                                                if (onOpenIntro) onOpenIntro();
-                                                onClose();
-                                            }}
-                                        >
-                                            打開完整使用手冊
-                                        </MagneticButton>
+                                <div className="space-y-3">
+                                    <div className="relative z-10 flex flex-col items-center justify-center p-1 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative z-10 text-brand-primary">
+                                                <FileText size={20} />
+                                            </div>
+                                            <div className="flex items-center">
+                                                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">想了解更多功能細節？</h3>
+                                            </div>
+                                            <MagneticButton
+                                                variant="outlined"
+                                                className="px-3 py-1 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-brand-primary"
+                                                onClick={() => {
+                                                    if (onOpenIntro) onOpenIntro();
+                                                    onClose();
+                                                }}
+                                                title="打開使用手冊"
+                                                aria-label="打開使用手冊"
+                                            >
+                                                打開使用手冊
+                                            </MagneticButton>
+                                        </div>
+
                                     </div>
                                 </div>
 
@@ -455,7 +463,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                                 <div className="rounded-2xl bg-brand-secondary/30 dark:bg-brand-primary/10 px-5 py-4 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed border border-brand-primary/15 dark:border-brand-primary/30 text-center">
                                     © 2026 Mark It Live. All rights reserved. <br />
-                                    授權：MIT 開源協議。使用本軟體即代表您同意其<a href={`${import.meta.env.BASE_URL}privacy.html`} className="mx-1 underline">隱私政策</a>與<a href={`${import.meta.env.BASE_URL}terms.html`} className="mx-1 underline">服務條款</a>。
+                                    授權：Apache-2.0協議。使用本軟體即代表您同意其<a href={`${import.meta.env.BASE_URL}privacy.html`} className="mx-1 underline">隱私政策</a>與<a href={`${import.meta.env.BASE_URL}terms.html`} className="mx-1 underline">服務條款</a>。
                                 </div>
 
                             </div>
