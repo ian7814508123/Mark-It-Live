@@ -33,6 +33,7 @@ interface PrintPaperProps {
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     onUpdateContent?: (docId: string, content: string) => void;
     activeScale?: number;
+    isSlideMode?: boolean;
 }
 
 const PrintPaper: React.FC<PrintPaperProps> = ({
@@ -60,6 +61,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
     onUpdateLineComment,
     onUpdateContent,
     activeScale = 1,
+    isSlideMode = false,
 }) => {
     const paperRef = useRef<HTMLDivElement>(null);
 
@@ -78,14 +80,14 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
             className={`
                 ${isPrinting
                     ? `print-paper bg-white shadow-2xl mx-auto paper-${paperSize.toLowerCase()} paper-${orientation} margin-${margin} relative`
-                    : `flex-1 w-full h-full overflow-auto print:overflow-visible custom-scrollbar bg-white dark:bg-slate-900 transition-colors duration-200`}
+                    : `flex-1 w-full h-full ${isSlideMode ? 'overflow-hidden bg-slate-100 dark:bg-slate-950' : 'overflow-auto bg-white dark:bg-slate-900'} print:overflow-visible custom-scrollbar transition-colors duration-200`}
                 ${isVisibleOnScreen ? 'block' : 'hidden'} 
                 ${!isVisibleOnScreen && isVisibleInPrint ? 'print:block' : 'print:hidden'} 
                 ${!isActive && !isVisibleInPrint ? 'tab-inactive' : ''} 
                 print:static print:p-0 print:shadow-none print:ring-0
             `}
         >
-            <div className={isPrinting ? 'prose-container relative h-auto' : 'max-w-5xl mx-auto px-4 pb-2 lg:pt-1 lg:px-1 lg:pb-2 min-h-full print:p-0'}>
+            <div className={isPrinting ? 'prose-container relative h-auto' : (isSlideMode ? 'w-full h-full' : 'max-w-5xl mx-auto px-4 pb-2 lg:pt-1 lg:px-1 lg:pb-2 min-h-full print:p-0')}>
                 <MarkdownPreview
                     content={doc?.mode === 'mermaid' ? `\`\`\`mermaid\n${doc.content}\n\`\`\`` : (doc?.content ?? '')}
                     previewTheme={previewTheme}
@@ -102,6 +104,7 @@ const PrintPaper: React.FC<PrintPaperProps> = ({
                     onUpdateLineComment={onUpdateLineComment}
                     onUpdateContent={onUpdateContent}
                     activeScale={activeScale}
+                    isSlideMode={isSlideMode}
                 />
             </div>
         </div>
@@ -130,6 +133,7 @@ interface MarkdownPreviewSectionProps {
     setIsCommentMode?: (isMode: boolean) => void;
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     onUpdateContent?: (docId: string, content: string) => void;
+    isSlideMode?: boolean;
 }
 
 const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
@@ -151,6 +155,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
     setIsCommentMode,
     onUpdateLineComment,
     onUpdateContent,
+    isSlideMode,
 }) => {
     // 當前文件物件
     const currentDoc = documents?.find((d: any) => d.id === currentDocId);
@@ -263,6 +268,7 @@ const MarkdownPreviewSection: React.FC<MarkdownPreviewSectionProps> = ({
                                         onUpdateLineComment={onUpdateLineComment}
                                         onUpdateContent={onUpdateContent}
                                         activeScale={1}
+                                        isSlideMode={isSlideMode}
                                     />
                                 );
                             })}
@@ -314,6 +320,7 @@ interface PreviewPanelProps {
     onRedo?: () => void;
     onGoToLine?: (line: number) => void;
     activeScale?: number;
+    isSlideMode?: boolean;
 }
 
 const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
@@ -353,6 +360,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
     onRedo,
     onGoToLine,
     activeScale = 1,
+    isSlideMode = false,
 }, ref) => {
     // 編輯器狀態
     const [isPanMode, setIsPanMode] = useState(false);
@@ -615,6 +623,7 @@ const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(({
                 setIsCommentMode={setIsCommentMode}
                 onUpdateLineComment={onUpdateLineComment}
                 onUpdateContent={onUpdateContent}
+                isSlideMode={isSlideMode}
             />
         );
     }

@@ -7,6 +7,9 @@ import ExternalMediaShield, { extractDomain } from './ExternalMediaShield';
 import { remarkGithubAlerts } from './remarkGithubAlerts';
 import { remarkWikiLink } from './remarkWikiLink';
 import { remarkPageBreak } from './remarkPageBreak';
+import remarkDirective from 'remark-directive';
+import remarkGridDirective from './remarkGridDirective';
+import rehypeSlideGenerator from './rehypeSlideGenerator';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
@@ -33,6 +36,7 @@ interface MarkdownPreviewProps {
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     onUpdateContent?: (docId: string, content: string) => void;
     activeScale?: number;
+    isSlideMode?: boolean;
 }
 
 // 原有的輔助 Hook 與組件已抽離至 DiagramBlock.tsx 與 ResizableWrapper.tsx 處理
@@ -785,6 +789,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     onUpdateContent,
     onUpdateLineComment,
     activeScale = 1,
+    isSlideMode = false,
 }) => {
     const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
@@ -965,6 +970,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
 
     const remarkRehypeOptions = useMemo(() => ({
+        allowDangerousHtml: true,
         handlers: {
             math: (h: any, node: any) => ({
                 type: 'element' as const,
@@ -1364,14 +1370,64 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         });
     }, [content, isActuallyPrinting]);
 
+    // ─── 4：簡報模式鍵盤切換 ────────────────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+
+            const container = document.querySelector('.slide-mode-container');
+            if (!container) return;
+
+            const slides = Array.from(container.querySelectorAll('.marp-slide'));
+            if (slides.length === 0) return;
+
+            const containerScrollTop = container.scrollTop;
+            const containerHeight = container.clientHeight;
+            const centerLine = containerScrollTop + containerHeight / 2;
+
+            let currentIndex = 0;
+            let minDistance = Infinity;
+
+            slides.forEach((slide, index) => {
+                const slideTop = (slide as HTMLElement).offsetTop;
+                const slideHeight = (slide as HTMLElement).offsetHeight;
+                const slideCenter = slideTop + slideHeight / 2;
+                const distance = Math.abs(slideCenter - centerLine);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    currentIndex = index;
+                }
+            });
+
+            let nextIndex = currentIndex;
+
+            if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) {
+                e.preventDefault();
+                nextIndex = Math.min(currentIndex + 1, slides.length - 1);
+            } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+                e.preventDefault();
+                nextIndex = Math.max(currentIndex - 1, 0);
+            }
+
+            if (nextIndex !== currentIndex) {
+                slides[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isSlideMode]);
+
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
         <CommentProvider>
-            <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0`}>
+            <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isSlideMode ? 'slide-mode-container' : 'document-mode-container'}`}>
                 <div className={`prose max-w-none px-8 pb-4  ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak]}
-                        rehypePlugins={[rehypeRaw]}
+                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective]}
+                        rehypePlugins={[rehypeRaw, [rehypeSlideGenerator, { isSlideMode }]]}
                         remarkRehypeOptions={remarkRehypeOptions}
                         components={components}
                         urlTransform={urlTransform}

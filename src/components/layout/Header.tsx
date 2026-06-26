@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare } from '../ui/Icons';
+import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare, Presentation } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
@@ -26,6 +26,8 @@ interface HeaderProps {
     setIsCommentMode?: (isMode: boolean) => void;
     /** 是否有任何文件被打開 */
     hasOpenDocuments?: boolean;
+    isSlideMode?: boolean;
+    setIsSlideMode?: (isMode: boolean) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -45,6 +47,8 @@ const Header: React.FC<HeaderProps> = ({
     isCommentMode,
     setIsCommentMode,
     hasOpenDocuments = false,
+    isSlideMode = false,
+    setIsSlideMode,
 }) => {
     const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
     const downloadMenuRef = useRef<HTMLDivElement>(null);
@@ -320,6 +324,24 @@ const Header: React.FC<HeaderProps> = ({
                             }`}>
                         <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? '' : ''} />
                         <span>註解模式</span>
+                    </MagneticButton>
+
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
+
+                    {/* 簡報模式開關 */}
+                    <MagneticButton
+                        onClick={() => hasOpenDocuments && setIsSlideMode?.(!isSlideMode)}
+                        title={!hasOpenDocuments ? '請先開啟文件以使用簡報模式' : '開啟/關閉簡報預覽模式'}
+                        disabled={!hasOpenDocuments}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none
+                            ${!hasOpenDocuments
+                                ? 'opacity-35 text-slate-400 dark:text-slate-600'
+                                : isSlideMode
+                                    ? 'animate-status-glow text-brand-primary shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
+                            }`}>
+                        <Presentation size={14} />
+                        <span>簡報模式</span>
                     </MagneticButton>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />

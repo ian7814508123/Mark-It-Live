@@ -1418,3 +1418,78 @@
         }
     }
 }
+
+/* ── 簡報模式 (Slide Mode) 樣式 ─────────────────────────────────────── */
+.slide-mode-container {
+    background-color: #f1f5f9; /* slate-100 */
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    scroll-snap-type: y mandatory;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4rem;
+    padding: 2rem 0;
+    container-type: size; /* 讓內部 slide 可以參考這個預覽容器的大小 */
+    container-name: slide-container;
+}
+.slide-mode-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
+}
+
+/* Markdown Grid Directives */
+.markdown-row {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem; /* gap-8 */
+    width: 100%;
+    align-items: flex-start;
+}
+.markdown-col {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+:root.dark .slide-mode-container {
+    background-color: #0f172a; /* slate-950 */
+}
+
+/* 將 MarkdownPreview 內層 prose 的間距與佈局修正，以適應 Slide 的卡片排列 */
+.slide-mode-container .prose {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4rem;
+    padding: 0 !important;
+}
+
+.marp-slide {
+    flex-shrink: 0;
+    aspect-ratio: 16 / 9;
+    /* 取預覽容器寬高 95% 作為最大範圍，並強制鎖定 16:9，確保無論容器比例為何都能放到最大而不變形 */
+    width: min(95cqi, calc(95cqb * 16 / 9));
+    max-height: 95cqb;
+    background-color: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    scroll-snap-align: center;
+    padding: 3rem 4rem;
+    position: relative;
+    /* 取消卡片內元素預設的 margin-top，避免頂部留白過多 */
+}
+
+.marp-slide > *:first-child {
+    margin-top: 0 !important;
+}
+
+:root.dark .marp-slide {
+    background-color: #1e293b; /* slate-800 */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* 簡報模式下隱藏分隔線實體，避免影響視覺 */
+.slide-mode-container .page-break {
+    display: none !important;
+}

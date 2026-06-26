@@ -143,6 +143,8 @@ graph LR
     B --> H[abc notaion]
 ```
 
+::::row
+:::col
 ### 2. MathJax 數學公式
 支援 LaTeX 語法。
 
@@ -151,12 +153,16 @@ graph LR
 $$
 I = \int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
 $$
+:::
 
+:::col
 ### 3. mhchem 化學式
 使用 `\ce{...}` 語法。
 
 - 硫酸：$\ce{H2SO4}$
 - 反應式：$\ce{CH4 + 2O2 -> CO2 + 2H2O}$
+:::
+::::
 
 ### 4. Vega-Lite 數據視覺化
 使用 JSON 定義圖表。

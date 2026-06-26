@@ -40,6 +40,7 @@ export {
   LuFolderOpen as FolderOpen,
   LuChevronDown as ChevronDown,
   LuRefreshCw as RefreshCw,
+  LuPresentation as Presentation,
 
   // 介紹彈窗相關
   LuSparkles as Sparkles,
