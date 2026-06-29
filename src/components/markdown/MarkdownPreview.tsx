@@ -647,45 +647,100 @@ interface ResizableImageProps {
 }
 
 const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode, isActuallyPrinting }) => {
+    // ─── 語法解析 (Syntax Parsing) ─────────────────────────────────────────────
+    let fixedWidth: string | null = null;
+    let fixedAlign: string | null = null;
+    let displayAlt = alt || '';
+    let parsedSrc = src;
+
+    // 解析 alt 中的語法，例如 ![說明|300|center](url) 或 ![說明|50%](url)
+    if (displayAlt.includes('|')) {
+        const parts = displayAlt.split('|');
+        const altText = parts[0];
+        
+        for (let i = 1; i < parts.length; i++) {
+            const part = parts[i].trim();
+            if (/^\d+(px|%)?$/.test(part)) {
+                fixedWidth = part.includes('px') || part.includes('%') ? part : `${part}px`;
+            } else if (['left', 'center', 'right'].includes(part.toLowerCase())) {
+                fixedAlign = part.toLowerCase();
+            }
+        }
+        displayAlt = altText;
+    }
+
+    // 支援另一種常見語法 =300x 或 =300x400
+    if (displayAlt.includes('=')) {
+        const match = displayAlt.match(/=([\d]+)(px|%)?(x[\d]+)?\s*$/);
+        if (match) {
+            fixedWidth = match[1] + (match[2] || 'px');
+            displayAlt = displayAlt.replace(match[0], '').trim();
+        }
+    }
+
+    // 支援從 src 網址參數解析
+    if (src && src.includes('?')) {
+        try {
+            const [base, query] = src.split('?');
+            const params = new URLSearchParams(query);
+            if (params.has('width') || params.has('w')) {
+                const w = params.get('width') || params.get('w');
+                if (w) {
+                    fixedWidth = w.includes('%') || w.includes('px') ? w : `${w}px`;
+                    parsedSrc = base;
+                }
+            }
+        } catch(e) {}
+    }
+
     // ─── 狀態持久化：加上 currentDocId 和 line 避免同圖打架 ──────────────────────────────
     const storageKey = useMemo(() => {
         const docPrefix = currentDocId ? `doc:${currentDocId}` : 'global';
         const lineSuffix = line !== undefined ? `:line:${line}` : '';
-        return `chart-size-img:${docPrefix}${lineSuffix}:${src}`;
-    }, [src, line, currentDocId]);
+        return `chart-size-img:${docPrefix}${lineSuffix}:${parsedSrc}`;
+    }, [parsedSrc, line, currentDocId]);
+    
     const { width, align, updateWidth, updateAlign, reset } = usePersistentCanvasSettings(storageKey);
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const isLocal = src?.startsWith('img-local://');
-    const imgId = isLocal ? src.replace('img-local://', '') : '';
+    const isLocal = parsedSrc?.startsWith('img-local://');
+    const imgId = isLocal ? parsedSrc.replace('img-local://', '') : '';
 
-    if (isActuallyPrinting) {
+    const finalWidth = fixedWidth || width;
+    const finalAlign = fixedAlign || align;
+
+    if (fixedWidth || fixedAlign || isActuallyPrinting) {
         return (
             <div
-                className={`chart-wrapper align-${align} print:!my-0 flex w-full`}
+                className={`chart-wrapper align-${finalAlign} print:!my-0 flex w-full relative group/fixed-img`}
                 style={{
-                    justifyContent: align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+                    justifyContent: finalAlign === 'left' ? 'flex-start' : finalAlign === 'right' ? 'flex-end' : 'center'
                 }}
             >
                 <div
-                    className="chart-content"
-                    style={{ width }}
+                    className="chart-content relative rounded-xl overflow-hidden"
+                    style={{ width: finalWidth }}
                 >
                     {isLocal ? (
-                        <LocalImage id={imgId} alt={alt} getImage={getImage} className="max-w-full h-auto block" />
+                        <LocalImage id={imgId} alt={displayAlt} getImage={getImage} className="max-w-full h-auto block" />
                     ) : (
-                        <img src={src} alt={alt} className="max-w-full h-auto block" />
+                        <img src={parsedSrc} alt={displayAlt} className="max-w-full h-auto block" />
                     )}
                 </div>
+                {!isActuallyPrinting && (
+                    <div className="absolute bottom-2 right-3 text-[10px] text-slate-400 dark:text-slate-600 font-mono select-none pointer-events-none opacity-0 group-hover/fixed-img:opacity-100 transition-opacity z-10">
+                        {isLocal ? 'LOCAL IMAGE' : 'IMAGE'}
+                    </div>
+                )}
             </div>
         );
     }
 
     return (
         <ResizableWrapper
-            width={width}
-            align={align}
+            width={finalWidth}
+            align={finalAlign}
             onWidthChange={updateWidth}
             onAlignChange={updateAlign}
             onReset={reset}
@@ -693,12 +748,12 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
         >
             <div
                 ref={containerRef}
-                className={`relative rounded-xl overflow-hidden flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
+                className={`relative rounded-xl overflow-hidden flex w-full justify-${finalAlign === 'left' ? 'start' : finalAlign === 'right' ? 'end' : 'center'}`}
             >
                 {isLocal ? (
-                    <LocalImage id={imgId} alt={alt} getImage={getImage} />
+                    <LocalImage id={imgId} alt={displayAlt} getImage={getImage} />
                 ) : (
-                    <img src={src} alt={alt} className="rounded-xl max-w-full h-auto block" />
+                    <img src={parsedSrc} alt={displayAlt} className="rounded-xl max-w-full h-auto block" />
                 )}
             </div>
             <div className="absolute bottom-2 right-3 text-[10px] text-slate-400 dark:text-slate-600 font-mono select-none pointer-events-none opacity-0 group-hover/resizable:opacity-100 transition-opacity z-10">
@@ -1370,31 +1425,71 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         });
     }, [content, isActuallyPrinting]);
 
-    // ─── 4：簡報模式鍵盤切換 ────────────────────────────────
+    // ─── 4：簡報模式 ResizeObserver — 動態計算 scale ────────────────────────────────
+    // 核心邏輯（等同 Canva/Google Slides 縮放機制）：
+    //   S = containerWidth / 1920（設計畫布寬）
+    //   透過 CSS 變數 --slide-scale 導入所有 .marp-slide 的 transform 與 .marp-slide-wrapper 的高度
+    const slideContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const DESIGN_WIDTH = 1920; // 投影片設計畫布寬度（px）
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        let debounceTimer: ReturnType<typeof setTimeout>;
+
+        const updateScale = () => {
+            const containerWidth = container.clientWidth;
+            if (containerWidth === 0) return;
+            // 水平貼合：投影片寬度 = 容器寬度，等比計算縮放比
+            const scale = containerWidth / DESIGN_WIDTH;
+            // 寫入 CSS 變數，子元素的 transform/height 自動跟進
+            container.style.setProperty('--slide-scale', String(scale));
+        };
+
+        // 防抖動：Resize 高頻觸發時，延遲 60ms 再更新避免畫面卡頓
+        const debouncedUpdate = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updateScale, 60);
+        };
+
+        const ro = new ResizeObserver(debouncedUpdate);
+        ro.observe(container);
+        updateScale(); // 初始化立即計算
+
+        return () => {
+            ro.disconnect();
+            clearTimeout(debounceTimer);
+        };
+    }, [isSlideMode]);
+
+    // ─── 5：簡報模式鍵盤切換 ────────────────────────────────────────────────────
     useEffect(() => {
         if (!isSlideMode) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+            const target = e.target as HTMLElement;
+            if (['INPUT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable) return;
 
-            const container = document.querySelector('.slide-mode-container');
+            const container = slideContainerRef.current;
             if (!container) return;
 
-            const slides = Array.from(container.querySelectorAll('.marp-slide'));
-            if (slides.length === 0) return;
+            // 鍵盤導航目標改為 .marp-slide-wrapper（scroll snap 錨點）
+            const wrappers = Array.from(container.querySelectorAll('.marp-slide-wrapper'));
+            if (wrappers.length === 0) return;
 
-            const containerScrollTop = container.scrollTop;
-            const containerHeight = container.clientHeight;
-            const centerLine = containerScrollTop + containerHeight / 2;
+            const containerRect = container.getBoundingClientRect();
+            const centerLine = containerRect.top + containerRect.height / 2;
 
             let currentIndex = 0;
             let minDistance = Infinity;
 
-            slides.forEach((slide, index) => {
-                const slideTop = (slide as HTMLElement).offsetTop;
-                const slideHeight = (slide as HTMLElement).offsetHeight;
-                const slideCenter = slideTop + slideHeight / 2;
-                const distance = Math.abs(slideCenter - centerLine);
+            wrappers.forEach((wrapper, index) => {
+                const rect = wrapper.getBoundingClientRect();
+                const wrapperCenter = rect.top + rect.height / 2;
+                const distance = Math.abs(wrapperCenter - centerLine);
                 if (distance < minDistance) {
                     minDistance = distance;
                     currentIndex = index;
@@ -1405,14 +1500,14 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
             if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) {
                 e.preventDefault();
-                nextIndex = Math.min(currentIndex + 1, slides.length - 1);
+                nextIndex = Math.min(currentIndex + 1, wrappers.length - 1);
             } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
                 e.preventDefault();
                 nextIndex = Math.max(currentIndex - 1, 0);
             }
 
             if (nextIndex !== currentIndex) {
-                slides[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                wrappers[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         };
 
@@ -1423,8 +1518,11 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
         <CommentProvider>
-            <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isSlideMode ? 'slide-mode-container' : 'document-mode-container'}`}>
-                <div className={`prose max-w-none px-8 pb-4  ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
+            <div
+                ref={isSlideMode ? slideContainerRef : undefined}
+                className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isSlideMode ? 'slide-mode-container' : 'document-mode-container'}`}
+            >
+                <div className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective]}
                         rehypePlugins={[rehypeRaw, [rehypeSlideGenerator, { isSlideMode }]]}

@@ -39,11 +39,17 @@ export default function rehypeSlideGenerator(options: SlideGeneratorOptions = {}
             if (isPageBreak) {
                 // 遇到 page break，將目前收集到的內容打包為一張 slide
                 if (currentSlideChildren.length > 0) {
+                    // 外層 wrapper 提供 scroll snap 定位與縮放後的正確版面高度
                     newChildren.push({
                         type: 'element',
-                        tagName: 'section',
-                        properties: { className: ['marp-slide'] },
-                        children: currentSlideChildren,
+                        tagName: 'div',
+                        properties: { className: ['marp-slide-wrapper'] },
+                        children: [{
+                            type: 'element',
+                            tagName: 'section',
+                            properties: { className: ['marp-slide'] },
+                            children: currentSlideChildren,
+                        }],
                     });
                     currentSlideChildren = [];
                 }
@@ -56,9 +62,14 @@ export default function rehypeSlideGenerator(options: SlideGeneratorOptions = {}
         if (currentSlideChildren.length > 0) {
             newChildren.push({
                 type: 'element',
-                tagName: 'section',
-                properties: { className: ['marp-slide'] },
-                children: currentSlideChildren,
+                tagName: 'div',
+                properties: { className: ['marp-slide-wrapper'] },
+                children: [{
+                    type: 'element',
+                    tagName: 'section',
+                    properties: { className: ['marp-slide'] },
+                    children: currentSlideChildren,
+                }],
             });
         }
 

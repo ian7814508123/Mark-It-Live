@@ -1428,11 +1428,13 @@
     scroll-snap-type: y mandatory;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4rem;
-    padding: 2rem 0;
-    container-type: size; /* 讓內部 slide 可以參考這個預覽容器的大小 */
-    container-name: slide-container;
+    align-items: stretch; /* wrapper 占滿全寬 */
+    /*
+     * 不再需要 container-type: size（已改用 JS ResizeObserver 計算 scale）
+     * 移除 container-type 避免與 transform: scale() 的互相干擾
+     */
+    gap: 0;
+    padding: 0;
 }
 .slide-mode-container::-webkit-scrollbar {
     display: none; /* Chrome/Safari/Opera */
@@ -1459,34 +1461,94 @@
 .slide-mode-container .prose {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4rem;
+    align-items: stretch;
+    gap: 0;
     padding: 0 !important;
+    width: 100%;
+}
+
+/*
+ * .marp-slide-wrapper：scroll snap 錢點 + layout 占位元素
+ *
+ * 結構說明：
+ *   - wrapper 的高度 = 設計畫布高度 × scale = 1080 × --slide-scale
+ *   - wrapper 的寬度永遠是 100%，艦點點左右還寬
+ *   - 內層 .marp-slide 絕對定位在 wrapper 內部，以 top-left 為原點縮放
+ *
+ * 這樣 transform: scale() 不會影響外層的 flex 流式排版，
+ * 滾動行為也能正確對準到每一張投影片。
+ */
+.marp-slide-wrapper {
+    position: relative;
+    width: 100%;
+    /* 投影片實際顯示高度：1080px × scale，由 JS 將 --slide-scale 寫入容器 */
+    height: calc(var(--slide-scale, 0.5) * 1080px);
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    /* 裁切超出縮放到正確寬度前的投影片匪溻 */
+    overflow: hidden;
+}
+
+/*
+ * 投影片上下間隔方案：第一張前距 / 最後一張後距
+ * 透過 :first-child / :last-child 控制頁面上下皮，
+ * 中間的間距則直接嵌入在 wrapper 高度計算中
+ */
+.marp-slide-wrapper:first-child {
+    margin-top: 2rem;
+}
+.marp-slide-wrapper:last-child {
+    margin-bottom: 2rem;
+}
+.marp-slide-wrapper + .marp-slide-wrapper {
+    /* 投影片之間的間距：固定視覺分隔 */
+    margin-top: 1.5rem;
 }
 
 .marp-slide {
-    flex-shrink: 0;
-    aspect-ratio: 16 / 9;
-    /* 取預覽容器寬高 95% 作為最大範圍，並強制鎖定 16:9，確保無論容器比例為何都能放到最大而不變形 */
-    width: min(95cqi, calc(95cqb * 16 / 9));
-    max-height: 95cqb;
+    /*
+     * 固定設計畫布尺寸 (1920×1080)：
+     *   - 全部內容都在這個尺寸下撺較，相當於一張固定爽格視窗
+     *   - JS 計算 S = containerWidth / 1920 並將 transform: scale(S) 套入
+     *   - 文字、圖片、間距全部等比縮放，效果类似向量圖
+     */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    transform: scale(var(--slide-scale, 0.5));
+    transform-origin: top left;
+    /*
+     * GPU 層級合成許可證：許布諞器為此層建立独立的合成層，
+     * 避免 resize 多張投影片時觸發主執行緒重排
+     */
+    will-change: transform;
+    /* 文字渲染優化：對抗縮小显示時的鄒齒 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border-radius: 0.5rem;
+    /* 輕量級陰影作為投影片間的視覺分隔 */
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    scroll-snap-align: center;
-    padding: 3rem 4rem;
+    /* 內容內縮：在設計畫布尺寸下的 px 計算，會隨 scale 等比縮放 */
+    padding: 80px 120px;
     position: relative;
-    /* 取消卡片內元素預設的 margin-top，避免頂部留白過多 */
 }
+
 
 .marp-slide > *:first-child {
     margin-top: 0 !important;
 }
 
+:root.dark .slide-mode-container {
+    background-color: #0f172a; /* slate-950 */
+}
+
 :root.dark .marp-slide {
     background-color: #1e293b; /* slate-800 */
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    /* 深色模式：輕微陰影避免與深色背景混淆 */
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 /* 簡報模式下隱藏分隔線實體，避免影響視覺 */
