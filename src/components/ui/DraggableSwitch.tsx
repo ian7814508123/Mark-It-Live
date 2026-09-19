@@ -220,21 +220,23 @@ const DraggableSwitch: React.FC<DraggableSwitchProps> = ({
             ].join(' ')}
         >
             {/* SVG 向量折射濾鏡 */}
-            <svg aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
-                <defs>
-                    <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
-                        <feImage href={lensMapUrl} preserveAspectRatio="none" result="dirMap" />
-                        <feDisplacementMap
-                            ref={displacementRef}
-                            in="SourceGraphic"
-                            in2="dirMap"
-                            scale="0"
-                            xChannelSelector="R"
-                            yChannelSelector="G"
-                        />
-                    </filter>
-                </defs>
-            </svg>
+            {lensMapUrl ? (
+                <svg aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+                    <defs>
+                        <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
+                            <feImage href={lensMapUrl || undefined} preserveAspectRatio="none" result="dirMap" />
+                            <feDisplacementMap
+                                ref={displacementRef}
+                                in="SourceGraphic"
+                                in2="dirMap"
+                                scale="0"
+                                xChannelSelector="R"
+                                yChannelSelector="G"
+                            />
+                        </filter>
+                    </defs>
+                </svg>
+            ) : null}
 
             {/* 玻璃質感滑塊 thumb 定位外層 */}
             <motion.div
@@ -291,9 +293,9 @@ const DraggableSwitch: React.FC<DraggableSwitchProps> = ({
                         }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                         style={{
-                            backdropFilter: `url("#${filterId}")`,
+                            backdropFilter: lensMapUrl ? `url("#${filterId}")` : undefined,
                             // @ts-ignore
-                            WebkitBackdropFilter: `url("#${filterId}")`,
+                            WebkitBackdropFilter: lensMapUrl ? `url("#${filterId}")` : undefined,
                         }}
                     />
 

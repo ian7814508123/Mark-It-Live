@@ -157,7 +157,8 @@ export {
   LuBox as Box,
   LuChevronLeft as ChevronLeft,
   LuChevronRight as ChevronRight,
-  LuEye as Eye
+  LuEye as Eye,
+  LuCloud as Cloud
 } from 'react-icons/lu';
 // 移除了 react-icons/fi, react-icons/md, react-icons/tb，改用 SVG 或 Lucide 替代
 
