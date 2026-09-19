@@ -19,6 +19,24 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v6.0.2 (2026/06/26) - 新增簡報模式與排版功能',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: PackagePlus,
+        title: '新功能 (New Features)',
+        details: [
+          <>
+            <strong>簡報模式 (Beta):</strong> 全新的簡報播放模式，可以輕鬆將 Markdown 轉為精美的簡報展示。<br />
+            <strong>網格排版:</strong> 支援 <code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">:::row</code> 與 <code className="text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-800 font-mono px-1 ">:::col</code> 語法，輕鬆建立多欄位版面。
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v5.1.0 (2026/06/24) - 全新功能',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',

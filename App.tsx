@@ -14,6 +14,7 @@ import SettingsModal from './src/components/modals/SettingsModal';
 import SEOContent from './src/components/markdown/SEOContent';
 import Footer from './src/components/layout/Footer';
 import IntroModal from './src/components/modals/IntroModal';
+import { X } from './src/components/ui/Icons';
 import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
 import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollTop } from './src/utils';
@@ -133,6 +134,33 @@ const App: React.FC = () => {
   } | null>(null);
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
 
+  // 簡報模式狀態
+  const [isSlideMode, setIsSlideMode] = useState(false);
+
+  // 簡報模式自動全螢幕與 ESC 監聽
+  useEffect(() => {
+    if (isSlideMode) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen request failed:", e));
+      }
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(e => console.log("Exit fullscreen failed:", e));
+      }
+    }
+  }, [isSlideMode]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      // 當使用者按下 ESC 離開全螢幕時，同步關閉簡報模式
+      if (!document.fullscreenElement && isSlideMode) {
+        setIsSlideMode(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, [isSlideMode]);
+
   // Load default contents on mount
   useEffect(() => {
     const loadDefaults = async () => {
@@ -238,6 +266,19 @@ const App: React.FC = () => {
   const [printSessionId, setPrintSessionId] = useState(0);
   const [isCommentMode, setIsCommentMode] = useState(false);
   const [editorRatio, setEditorRatio] = useState<number>(50);
+
+  // 簡報模式 ESC 監聽
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSlideMode) {
+        setIsSlideMode(false);
+      }
+    };
+    if (isSlideMode) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSlideMode]);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [hasSticky, setHasSticky] = useState<boolean>(false);
   const hasStickyRef = useRef<boolean>(false);
@@ -686,7 +727,24 @@ const App: React.FC = () => {
     }
   };
 
-  // 處理文檔切換
+  const handleResetWorkspace = () => {
+    if (window.confirm('確定要清空所有內容嗎？這將刪除所有編輯中的文檔與圖表。')) {
+      setOpenDocIds([]);
+      setIsSlideMode(false);
+      
+      // Clear storage
+      const req = indexedDB.deleteDatabase('mlp-docs-db');
+      req.onsuccess = () => {
+        localStorage.clear();
+        window.location.reload();
+      };
+      req.onerror = () => {
+        alert('清除資料庫失敗，請手動重整網頁。');
+        window.location.reload();
+      };
+    }
+  };
+
   const handleDocumentSwitch = (docId: string | null) => {
     if (!docId) {
       switchDocument(""); // 或者調整 useDocumentStorage 支援 null
@@ -1643,6 +1701,8 @@ const App: React.FC = () => {
             isCommentMode={isCommentMode}
             setIsCommentMode={setIsCommentMode}
             hasOpenDocuments={openDocIds.length > 0}
+            isSlideMode={isSlideMode}
+            setIsSlideMode={setIsSlideMode}
           />
 
           <main className={`app-main flex-1 min-h-0 flex justify-center print:block print:overflow-visible bg-slate-200/40 dark:bg-black/20 ${isPrinting ? 'h-auto' : 'overflow-hidden'}`}>
@@ -1738,9 +1798,18 @@ const App: React.FC = () => {
               )}
 
               <div
-                className={`print:w-full print:h-auto print:overflow-visible print:block min-w-0 min-h-0 print:static ${isPrinting ? 'block h-auto overflow-visible w-full static' : 'flex-1 h-full flex flex-col overflow-hidden'}`}
+                className={`print:w-full print:h-auto print:overflow-visible print:block min-w-0 min-h-0 print:static ${isPrinting ? 'block h-auto overflow-visible w-full static' : 'flex-1 h-full flex flex-col overflow-hidden'} ${isSlideMode ? 'fixed inset-0 z-[100] bg-slate-100 dark:bg-slate-950 transition-all duration-300 animate-in fade-in zoom-in-95' : ''}`}
                 style={{ minWidth: isPrinting ? '0' : '300px' }}
               >
+                {isSlideMode && (
+                  <button
+                    onClick={() => setIsSlideMode(false)}
+                    className="absolute top-6 right-8 z-[110] p-3 bg-transparent hover:bg-slate-800/80 text-slate-400 hover:text-white rounded-full transition-all duration-300 shadow-none hover:shadow-xl backdrop-blur-none hover:backdrop-blur-md group cursor-pointer"
+                    title="結束簡報模式 (ESC)"
+                  >
+                    <X size={24} className="opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" />
+                  </button>
+                )}
                 <PreviewPanel
                   ref={previewRef}
                   mode={mode}
@@ -1783,6 +1852,7 @@ const App: React.FC = () => {
                   onUndo={handleUndo}
                   onRedo={handleRedo}
                   onGoToLine={handleGoToLine}
+                  isSlideMode={isSlideMode}
                 />
               </div>
             </div>
