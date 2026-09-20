@@ -10,6 +10,7 @@ import { remarkPageBreak } from './remarkPageBreak';
 import remarkDirective from 'remark-directive';
 import remarkGridDirective from './remarkGridDirective';
 import rehypeSlideGenerator from './rehypeSlideGenerator';
+import SlideHUD from './SlideHUD';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
@@ -1425,16 +1426,82 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         });
     }, [content, isActuallyPrinting]);
 
-    // ─── 4：簡報模式 ResizeObserver — 動態計算 scale ────────────────────────────────
-    // 核心邏輯（等同 Canva/Google Slides 縮放機制）：
-    //   S = containerWidth / 1920（設計畫布寬）
-    //   透過 CSS 變數 --slide-scale 導入所有 .marp-slide 的 transform 與 .marp-slide-wrapper 的高度
+    // ─── 4：簡報模式 — 單頁展示核心邏輯 ───────────────────────────────────────────
+
+    // 投影片導航狀態
+    const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+    const [totalSlides, setTotalSlides] = useState(0);
+    const currentSlideIndexRef = useRef(0);
+    const totalSlidesRef = useRef(0);
     const slideContainerRef = useRef<HTMLDivElement>(null);
 
+    // 同步 ref 與 state
+    useEffect(() => {
+        currentSlideIndexRef.current = currentSlideIndex;
+    }, [currentSlideIndex]);
+    useEffect(() => {
+        totalSlidesRef.current = totalSlides;
+    }, [totalSlides]);
+
+    // 進入簡報模式時重置至第一張
+    useEffect(() => {
+        if (isSlideMode) {
+            currentSlideIndexRef.current = 0;
+            setCurrentSlideIndex(0);
+        }
+    }, [isSlideMode]);
+
+    // ─── 導航函式（使用 ref 以保持引用穩定）──────────────────────────────────────
+    const navigateToSlide = useCallback((index: number) => {
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        const wrappers = container.querySelectorAll('.marp-slide-wrapper');
+        const total = wrappers.length;
+        if (total === 0) return;
+
+        const clampedIndex = Math.max(0, Math.min(index, total - 1));
+
+        // 切換 active class
+        wrappers.forEach((w, i) => {
+            w.classList.toggle('slide-active', i === clampedIndex);
+        });
+
+        currentSlideIndexRef.current = clampedIndex;
+        setCurrentSlideIndex(clampedIndex);
+    }, []);
+
+    const handlePrevSlide = useCallback(() => {
+        navigateToSlide(currentSlideIndexRef.current - 1);
+    }, [navigateToSlide]);
+
+    const handleNextSlide = useCallback(() => {
+        navigateToSlide(currentSlideIndexRef.current + 1);
+    }, [navigateToSlide]);
+
+    // ─── 點擊翻頁：左 1/3 = 上一頁、右 1/3 = 下一頁 ─────────────────────────────
+    const handleSlideClick = useCallback((e: React.MouseEvent) => {
+        const target = e.target as HTMLElement;
+        // 不在互動元素上觸發翻頁
+        if (target.closest('.slide-hud') || target.closest('a') || target.closest('button') ||
+            target.closest('code') || target.closest('pre') || target.closest('input') ||
+            target.closest('textarea')) return;
+
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x < rect.width / 3) {
+            handlePrevSlide();
+        } else if (x > rect.width * 2 / 3) {
+            handleNextSlide();
+        }
+    }, [handlePrevSlide, handleNextSlide]);
+
+    // ─── ResizeObserver：計算縮放比（填滿視窗，維持 16:9 比例）─────────────────────
     useEffect(() => {
         if (!isSlideMode) return;
 
-        const DESIGN_WIDTH = 1920; // 投影片設計畫布寬度（px）
+        const DESIGN_WIDTH = 1920;
+        const DESIGN_HEIGHT = 1080;
         const container = slideContainerRef.current;
         if (!container) return;
 
@@ -1442,14 +1509,12 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
         const updateScale = () => {
             const containerWidth = container.clientWidth;
-            if (containerWidth === 0) return;
-            // 水平貼合：投影片寬度 = 容器寬度，等比計算縮放比
-            const scale = containerWidth / DESIGN_WIDTH;
-            // 寫入 CSS 變數，子元素的 transform/height 自動跟進
+            const containerHeight = container.clientHeight;
+            // 填滿視窗，維持 16:9 比例，自適應貼齊邊界
+            const scale = Math.min(containerWidth / DESIGN_WIDTH, containerHeight / DESIGN_HEIGHT);
             container.style.setProperty('--slide-scale', String(scale));
         };
 
-        // 防抖動：Resize 高頻觸發時，延遲 60ms 再更新避免畫面卡頓
         const debouncedUpdate = () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(updateScale, 60);
@@ -1457,7 +1522,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
         const ro = new ResizeObserver(debouncedUpdate);
         ro.observe(container);
-        updateScale(); // 初始化立即計算
+        updateScale();
 
         return () => {
             ro.disconnect();
@@ -1465,7 +1530,58 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         };
     }, [isSlideMode]);
 
-    // ─── 5：簡報模式鍵盤切換 ────────────────────────────────────────────────────
+    // ─── 投影片後處理：active class + 內容自動縮放 ───────────────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        const raf = requestAnimationFrame(() => {
+            const wrappers = container.querySelectorAll('.marp-slide-wrapper');
+            const count = wrappers.length;
+
+            // 更新投影片總數
+            setTotalSlides(count);
+
+            // Clamp 目前頁碼（可能因內容變更而超出範圍）
+            const clampedIndex = Math.max(0, Math.min(currentSlideIndexRef.current, count - 1));
+
+            // 套用 active class
+            wrappers.forEach((w, i) => {
+                w.classList.toggle('slide-active', i === clampedIndex);
+            });
+
+            if (clampedIndex !== currentSlideIndexRef.current) {
+                currentSlideIndexRef.current = clampedIndex;
+                setCurrentSlideIndex(clampedIndex);
+            }
+
+            // ─── 內容自動縮放（Auto-fit）────────────────────────────────
+            // 若投影片內容超出 1080px 畫布（減去上下 padding 各 80px = 920px 可用），
+            // 則自動等比縮小內容使其完整顯示。
+            wrappers.forEach(w => {
+                const inner = w.querySelector('.marp-slide-inner') as HTMLElement;
+                if (!inner) return;
+                const availableHeight = 920; // 1080 - 80*2
+                const contentHeight = inner.scrollHeight;
+                if (contentHeight > availableHeight) {
+                    const fitScale = Math.max(0.45, availableHeight / contentHeight);
+                    inner.style.transform = `scale(${fitScale})`;
+                    inner.style.transformOrigin = 'top left';
+                    inner.style.width = `${(1920 - 240) / fitScale}px`;
+                } else {
+                    inner.style.transform = '';
+                    inner.style.transformOrigin = '';
+                    inner.style.width = '';
+                }
+            });
+        });
+
+        return () => cancelAnimationFrame(raf);
+    }, [isSlideMode, content]);
+
+    // ─── 鍵盤導航 ────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!isSlideMode) return;
 
@@ -1473,47 +1589,52 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             const target = e.target as HTMLElement;
             if (['INPUT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable) return;
 
-            const container = slideContainerRef.current;
-            if (!container) return;
-
-            // 鍵盤導航目標改為 .marp-slide-wrapper（scroll snap 錨點）
-            const wrappers = Array.from(container.querySelectorAll('.marp-slide-wrapper'));
-            if (wrappers.length === 0) return;
-
-            const containerRect = container.getBoundingClientRect();
-            const centerLine = containerRect.top + containerRect.height / 2;
-
-            let currentIndex = 0;
-            let minDistance = Infinity;
-
-            wrappers.forEach((wrapper, index) => {
-                const rect = wrapper.getBoundingClientRect();
-                const wrapperCenter = rect.top + rect.height / 2;
-                const distance = Math.abs(wrapperCenter - centerLine);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    currentIndex = index;
-                }
-            });
-
-            let nextIndex = currentIndex;
-
             if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) {
                 e.preventDefault();
-                nextIndex = Math.min(currentIndex + 1, wrappers.length - 1);
+                handleNextSlide();
             } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
                 e.preventDefault();
-                nextIndex = Math.max(currentIndex - 1, 0);
-            }
-
-            if (nextIndex !== currentIndex) {
-                wrappers[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                handlePrevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                navigateToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                navigateToSlide(totalSlidesRef.current - 1);
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isSlideMode]);
+    }, [isSlideMode, handleNextSlide, handlePrevSlide, navigateToSlide]);
+
+    // ─── 滾輪翻頁（帶 debounce 防止連續觸發）────────────────────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        let wheelCooldown = false;
+
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            if (wheelCooldown) return;
+
+            wheelCooldown = true;
+            setTimeout(() => { wheelCooldown = false; }, 450);
+
+            if (e.deltaY > 0) {
+                handleNextSlide();
+            } else if (e.deltaY < 0) {
+                handlePrevSlide();
+            }
+        };
+
+        container.addEventListener('wheel', handleWheel, { passive: false });
+        return () => container.removeEventListener('wheel', handleWheel);
+    }, [isSlideMode, handleNextSlide, handlePrevSlide]);
+
 
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
@@ -1521,6 +1642,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             <div
                 ref={isSlideMode ? slideContainerRef : undefined}
                 className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isSlideMode ? 'slide-mode-container' : 'document-mode-container'}`}
+                onClick={isSlideMode ? handleSlideClick : undefined}
             >
                 <div className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
@@ -1533,6 +1655,14 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                         {content}
                     </ReactMarkdown>
                 </div>
+                {isSlideMode && (
+                    <SlideHUD
+                        currentSlide={currentSlideIndex}
+                        totalSlides={totalSlides}
+                        onPrev={handlePrevSlide}
+                        onNext={handleNextSlide}
+                    />
+                )}
             </div>
         </CommentProvider>
     );

@@ -19,6 +19,23 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v6.0.3 (2026/09/20) - 修正與優化簡報模式功能',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: Palette,
+        title: '簡報模式功能優化 (Improvements)',
+        details: [
+          <>
+            <strong>簡報模式:</strong> 修正字體顯示問題與優化排版方式。<br />
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v6.0.2 (2026/06/26) - 新增簡報模式與排版功能',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
