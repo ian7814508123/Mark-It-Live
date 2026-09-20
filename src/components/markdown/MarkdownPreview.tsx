@@ -7,6 +7,10 @@ import ExternalMediaShield, { extractDomain } from './ExternalMediaShield';
 import { remarkGithubAlerts } from './remarkGithubAlerts';
 import { remarkWikiLink } from './remarkWikiLink';
 import { remarkPageBreak } from './remarkPageBreak';
+import remarkDirective from 'remark-directive';
+import remarkGridDirective from './remarkGridDirective';
+import rehypeSlideGenerator from './rehypeSlideGenerator';
+import SlideHUD from './SlideHUD';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
@@ -33,6 +37,7 @@ interface MarkdownPreviewProps {
     onUpdateLineComment?: (docId: string, line: number, comment: string) => void;
     onUpdateContent?: (docId: string, content: string) => void;
     activeScale?: number;
+    isSlideMode?: boolean;
 }
 
 // 原有的輔助 Hook 與組件已抽離至 DiagramBlock.tsx 與 ResizableWrapper.tsx 處理
@@ -643,45 +648,100 @@ interface ResizableImageProps {
 }
 
 const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, currentDocId, getImage, isDarkMode, isActuallyPrinting }) => {
+    // ─── 語法解析 (Syntax Parsing) ─────────────────────────────────────────────
+    let fixedWidth: string | null = null;
+    let fixedAlign: string | null = null;
+    let displayAlt = alt || '';
+    let parsedSrc = src;
+
+    // 解析 alt 中的語法，例如 ![說明|300|center](url) 或 ![說明|50%](url)
+    if (displayAlt.includes('|')) {
+        const parts = displayAlt.split('|');
+        const altText = parts[0];
+        
+        for (let i = 1; i < parts.length; i++) {
+            const part = parts[i].trim();
+            if (/^\d+(px|%)?$/.test(part)) {
+                fixedWidth = part.includes('px') || part.includes('%') ? part : `${part}px`;
+            } else if (['left', 'center', 'right'].includes(part.toLowerCase())) {
+                fixedAlign = part.toLowerCase();
+            }
+        }
+        displayAlt = altText;
+    }
+
+    // 支援另一種常見語法 =300x 或 =300x400
+    if (displayAlt.includes('=')) {
+        const match = displayAlt.match(/=([\d]+)(px|%)?(x[\d]+)?\s*$/);
+        if (match) {
+            fixedWidth = match[1] + (match[2] || 'px');
+            displayAlt = displayAlt.replace(match[0], '').trim();
+        }
+    }
+
+    // 支援從 src 網址參數解析
+    if (src && src.includes('?')) {
+        try {
+            const [base, query] = src.split('?');
+            const params = new URLSearchParams(query);
+            if (params.has('width') || params.has('w')) {
+                const w = params.get('width') || params.get('w');
+                if (w) {
+                    fixedWidth = w.includes('%') || w.includes('px') ? w : `${w}px`;
+                    parsedSrc = base;
+                }
+            }
+        } catch(e) {}
+    }
+
     // ─── 狀態持久化：加上 currentDocId 和 line 避免同圖打架 ──────────────────────────────
     const storageKey = useMemo(() => {
         const docPrefix = currentDocId ? `doc:${currentDocId}` : 'global';
         const lineSuffix = line !== undefined ? `:line:${line}` : '';
-        return `chart-size-img:${docPrefix}${lineSuffix}:${src}`;
-    }, [src, line, currentDocId]);
+        return `chart-size-img:${docPrefix}${lineSuffix}:${parsedSrc}`;
+    }, [parsedSrc, line, currentDocId]);
+    
     const { width, align, updateWidth, updateAlign, reset } = usePersistentCanvasSettings(storageKey);
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const isLocal = src?.startsWith('img-local://');
-    const imgId = isLocal ? src.replace('img-local://', '') : '';
+    const isLocal = parsedSrc?.startsWith('img-local://');
+    const imgId = isLocal ? parsedSrc.replace('img-local://', '') : '';
 
-    if (isActuallyPrinting) {
+    const finalWidth = fixedWidth || width;
+    const finalAlign = fixedAlign || align;
+
+    if (fixedWidth || fixedAlign || isActuallyPrinting) {
         return (
             <div
-                className={`chart-wrapper align-${align} print:!my-0 flex w-full`}
+                className={`chart-wrapper align-${finalAlign} print:!my-0 flex w-full relative group/fixed-img`}
                 style={{
-                    justifyContent: align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+                    justifyContent: finalAlign === 'left' ? 'flex-start' : finalAlign === 'right' ? 'flex-end' : 'center'
                 }}
             >
                 <div
-                    className="chart-content"
-                    style={{ width }}
+                    className="chart-content relative rounded-xl overflow-hidden"
+                    style={{ width: finalWidth }}
                 >
                     {isLocal ? (
-                        <LocalImage id={imgId} alt={alt} getImage={getImage} className="max-w-full h-auto block" />
+                        <LocalImage id={imgId} alt={displayAlt} getImage={getImage} className="max-w-full h-auto block" />
                     ) : (
-                        <img src={src} alt={alt} className="max-w-full h-auto block" />
+                        <img src={parsedSrc} alt={displayAlt} className="max-w-full h-auto block" />
                     )}
                 </div>
+                {!isActuallyPrinting && (
+                    <div className="absolute bottom-2 right-3 text-[10px] text-slate-400 dark:text-slate-600 font-mono select-none pointer-events-none opacity-0 group-hover/fixed-img:opacity-100 transition-opacity z-10">
+                        {isLocal ? 'LOCAL IMAGE' : 'IMAGE'}
+                    </div>
+                )}
             </div>
         );
     }
 
     return (
         <ResizableWrapper
-            width={width}
-            align={align}
+            width={finalWidth}
+            align={finalAlign}
             onWidthChange={updateWidth}
             onAlignChange={updateAlign}
             onReset={reset}
@@ -689,12 +749,12 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
         >
             <div
                 ref={containerRef}
-                className={`relative rounded-xl overflow-hidden flex w-full justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`}
+                className={`relative rounded-xl overflow-hidden flex w-full justify-${finalAlign === 'left' ? 'start' : finalAlign === 'right' ? 'end' : 'center'}`}
             >
                 {isLocal ? (
-                    <LocalImage id={imgId} alt={alt} getImage={getImage} />
+                    <LocalImage id={imgId} alt={displayAlt} getImage={getImage} />
                 ) : (
-                    <img src={src} alt={alt} className="rounded-xl max-w-full h-auto block" />
+                    <img src={parsedSrc} alt={displayAlt} className="rounded-xl max-w-full h-auto block" />
                 )}
             </div>
             <div className="absolute bottom-2 right-3 text-[10px] text-slate-400 dark:text-slate-600 font-mono select-none pointer-events-none opacity-0 group-hover/resizable:opacity-100 transition-opacity z-10">
@@ -785,6 +845,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     onUpdateContent,
     onUpdateLineComment,
     activeScale = 1,
+    isSlideMode = false,
 }) => {
     const isActuallyPrinting = !!isPrinting;
     const shouldShowDark = isDarkMode && !isActuallyPrinting;
@@ -965,6 +1026,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
 
     const remarkRehypeOptions = useMemo(() => ({
+        allowDangerousHtml: true,
         handlers: {
             math: (h: any, node: any) => ({
                 type: 'element' as const,
@@ -1364,14 +1426,228 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         });
     }, [content, isActuallyPrinting]);
 
+    // ─── 4：簡報模式 — 單頁展示核心邏輯 ───────────────────────────────────────────
+
+    // 投影片導航狀態
+    const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+    const [totalSlides, setTotalSlides] = useState(0);
+    const currentSlideIndexRef = useRef(0);
+    const totalSlidesRef = useRef(0);
+    const slideContainerRef = useRef<HTMLDivElement>(null);
+
+    // 同步 ref 與 state
+    useEffect(() => {
+        currentSlideIndexRef.current = currentSlideIndex;
+    }, [currentSlideIndex]);
+    useEffect(() => {
+        totalSlidesRef.current = totalSlides;
+    }, [totalSlides]);
+
+    // 進入簡報模式時重置至第一張
+    useEffect(() => {
+        if (isSlideMode) {
+            currentSlideIndexRef.current = 0;
+            setCurrentSlideIndex(0);
+        }
+    }, [isSlideMode]);
+
+    // ─── 導航函式（使用 ref 以保持引用穩定）──────────────────────────────────────
+    const navigateToSlide = useCallback((index: number) => {
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        const wrappers = container.querySelectorAll('.marp-slide-wrapper');
+        const total = wrappers.length;
+        if (total === 0) return;
+
+        const clampedIndex = Math.max(0, Math.min(index, total - 1));
+
+        // 切換 active class
+        wrappers.forEach((w, i) => {
+            w.classList.toggle('slide-active', i === clampedIndex);
+        });
+
+        currentSlideIndexRef.current = clampedIndex;
+        setCurrentSlideIndex(clampedIndex);
+    }, []);
+
+    const handlePrevSlide = useCallback(() => {
+        navigateToSlide(currentSlideIndexRef.current - 1);
+    }, [navigateToSlide]);
+
+    const handleNextSlide = useCallback(() => {
+        navigateToSlide(currentSlideIndexRef.current + 1);
+    }, [navigateToSlide]);
+
+    // ─── 點擊翻頁：左 1/3 = 上一頁、右 1/3 = 下一頁 ─────────────────────────────
+    const handleSlideClick = useCallback((e: React.MouseEvent) => {
+        const target = e.target as HTMLElement;
+        // 不在互動元素上觸發翻頁
+        if (target.closest('.slide-hud') || target.closest('a') || target.closest('button') ||
+            target.closest('code') || target.closest('pre') || target.closest('input') ||
+            target.closest('textarea')) return;
+
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x < rect.width / 3) {
+            handlePrevSlide();
+        } else if (x > rect.width * 2 / 3) {
+            handleNextSlide();
+        }
+    }, [handlePrevSlide, handleNextSlide]);
+
+    // ─── ResizeObserver：計算縮放比（填滿視窗，維持 16:9 比例）─────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const DESIGN_WIDTH = 1920;
+        const DESIGN_HEIGHT = 1080;
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        let debounceTimer: ReturnType<typeof setTimeout>;
+
+        const updateScale = () => {
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            // 填滿視窗，維持 16:9 比例，自適應貼齊邊界
+            const scale = Math.min(containerWidth / DESIGN_WIDTH, containerHeight / DESIGN_HEIGHT);
+            container.style.setProperty('--slide-scale', String(scale));
+        };
+
+        const debouncedUpdate = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updateScale, 60);
+        };
+
+        const ro = new ResizeObserver(debouncedUpdate);
+        ro.observe(container);
+        updateScale();
+
+        return () => {
+            ro.disconnect();
+            clearTimeout(debounceTimer);
+        };
+    }, [isSlideMode]);
+
+    // ─── 投影片後處理：active class + 內容自動縮放 ───────────────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        const raf = requestAnimationFrame(() => {
+            const wrappers = container.querySelectorAll('.marp-slide-wrapper');
+            const count = wrappers.length;
+
+            // 更新投影片總數
+            setTotalSlides(count);
+
+            // Clamp 目前頁碼（可能因內容變更而超出範圍）
+            const clampedIndex = Math.max(0, Math.min(currentSlideIndexRef.current, count - 1));
+
+            // 套用 active class
+            wrappers.forEach((w, i) => {
+                w.classList.toggle('slide-active', i === clampedIndex);
+            });
+
+            if (clampedIndex !== currentSlideIndexRef.current) {
+                currentSlideIndexRef.current = clampedIndex;
+                setCurrentSlideIndex(clampedIndex);
+            }
+
+            // ─── 內容自動縮放（Auto-fit）────────────────────────────────
+            // 若投影片內容超出 1080px 畫布（減去上下 padding 各 80px = 920px 可用），
+            // 則自動等比縮小內容使其完整顯示。
+            wrappers.forEach(w => {
+                const inner = w.querySelector('.marp-slide-inner') as HTMLElement;
+                if (!inner) return;
+                const availableHeight = 920; // 1080 - 80*2
+                const contentHeight = inner.scrollHeight;
+                if (contentHeight > availableHeight) {
+                    const fitScale = Math.max(0.45, availableHeight / contentHeight);
+                    inner.style.transform = `scale(${fitScale})`;
+                    inner.style.transformOrigin = 'top left';
+                    inner.style.width = `${(1920 - 240) / fitScale}px`;
+                } else {
+                    inner.style.transform = '';
+                    inner.style.transformOrigin = '';
+                    inner.style.width = '';
+                }
+            });
+        });
+
+        return () => cancelAnimationFrame(raf);
+    }, [isSlideMode, content]);
+
+    // ─── 鍵盤導航 ────────────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (['INPUT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable) return;
+
+            if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) {
+                e.preventDefault();
+                handleNextSlide();
+            } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+                e.preventDefault();
+                handlePrevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                navigateToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                navigateToSlide(totalSlidesRef.current - 1);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isSlideMode, handleNextSlide, handlePrevSlide, navigateToSlide]);
+
+    // ─── 滾輪翻頁（帶 debounce 防止連續觸發）────────────────────────────────────
+    useEffect(() => {
+        if (!isSlideMode) return;
+
+        const container = slideContainerRef.current;
+        if (!container) return;
+
+        let wheelCooldown = false;
+
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            if (wheelCooldown) return;
+
+            wheelCooldown = true;
+            setTimeout(() => { wheelCooldown = false; }, 450);
+
+            if (e.deltaY > 0) {
+                handleNextSlide();
+            } else if (e.deltaY < 0) {
+                handlePrevSlide();
+            }
+        };
+
+        container.addEventListener('wheel', handleWheel, { passive: false });
+        return () => container.removeEventListener('wheel', handleWheel);
+    }, [isSlideMode, handleNextSlide, handlePrevSlide]);
+
+
     return (
         // CommentProvider 確保整個 Markdown 樹內所有 LineCommentItem 共享同一個 editingLine
         <CommentProvider>
-            <div className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0`}>
-                <div className={`prose max-w-none px-8 pb-4  ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
+            <div
+                ref={isSlideMode ? slideContainerRef : undefined}
+                className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isSlideMode ? 'slide-mode-container' : 'document-mode-container'}`}
+                onClick={isSlideMode ? handleSlideClick : undefined}
+            >
+                <div className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak]}
-                        rehypePlugins={[rehypeRaw]}
+                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective]}
+                        rehypePlugins={[rehypeRaw, [rehypeSlideGenerator, { isSlideMode }]]}
                         remarkRehypeOptions={remarkRehypeOptions}
                         components={components}
                         urlTransform={urlTransform}
@@ -1379,6 +1655,14 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                         {content}
                     </ReactMarkdown>
                 </div>
+                {isSlideMode && (
+                    <SlideHUD
+                        currentSlide={currentSlideIndex}
+                        totalSlides={totalSlides}
+                        onPrev={handlePrevSlide}
+                        onNext={handleNextSlide}
+                    />
+                )}
             </div>
         </CommentProvider>
     );

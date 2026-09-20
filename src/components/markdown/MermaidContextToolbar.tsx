@@ -39,8 +39,8 @@ const MermaidContextToolbar: React.FC<MermaidContextToolbarProps> = ({
     onUpdateSequenceElement
 }) => {
     // sequenceElement 有值時，即使 nodeId 為空也應該渲染
-    const hasValidSelection = diagramType === 'sequence' 
-        ? !!sequenceElement 
+    const hasValidSelection = diagramType === 'sequence'
+        ? !!sequenceElement
         : !!nodeId;
 
     if (!hasValidSelection || !position) return null;

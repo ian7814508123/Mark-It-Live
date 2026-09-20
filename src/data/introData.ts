@@ -1,13 +1,14 @@
-import { 
-  Keyboard, 
-  MousePointer2, 
-  Printer, 
-  Layout, 
-  BarChart3, 
-  Music, 
+import {
+  Keyboard,
+  MousePointer2,
+  Printer,
+  Layout,
+  BarChart3,
+  Music,
   HelpCircle,
   Files,
   Wrench,
+  Presentation,
   Share2,
   AlertCircle
 } from '../components/ui/Icons';
@@ -108,6 +109,15 @@ export const MANUAL_SECTIONS: ManualSectionData[] = [
       { label: "工具箱位置", detail: "位於側邊欄底部。內含 PDF 合併、表格產生器、字數統計與圖片上傳。" },
       { label: "表格產生器", detail: "提供視覺化界面建立 Markdown 表格。您也可以直接從 Excel 或試算表複製，系統會自動轉換文字。" },
       { label: "圖片上傳", detail: "支援拖放上傳本地圖片，並將其轉換為 Base64 內嵌於 Markdown 中，確保文檔可攜性。" }
+    ]
+  },
+  {
+    icon: Presentation,
+    title: "簡報模式與版面佈局",
+    items: [
+      { label: "全螢幕簡報模式", detail: "點擊頂部工具列「簡報模式」即可進入全螢幕放映。具備 16:9 自動等比縮放，支援方向鍵、空白鍵、滾輪與畫面兩側點擊翻頁。" },
+      { label: "智慧分頁控制", detail: "在編輯器輸入 ---pb--- 即可精準建立投影片分頁。若未設定手動標記，系統亦會自動依據一級 (#) 與二級 (##) 標題進行智慧分頁。" },
+      { label: "左右對照與多欄排版", detail: "支援 :::row 與 :::col 容器語法，或使用 HTML 標籤（如 <div class=\"markdown-row\"><div class=\"markdown-col\">...</div></div>），即可輕鬆實現左文右圖、雙欄對比等多欄版面，在簡報與預覽中皆完美呈現。\n(載入進階導覽範本查看用法)" }
     ]
   },
   {

@@ -425,20 +425,23 @@
  * 確保多分頁情境下 window.print() 只輸出當前文件，而非所有開啟的分頁
  * ─────────────────────────────────────────────────────────────────────── */
     @media print {
-                
+
         /* ==========================================================================
            列印模式全域排版覆寫 (Print Mode Global Layout Overrides)
            目的：解決 React 應用程式中 Flexbox 佈局在列印時產生的「高度塌陷」問題。
            因傳統列印為由上而下的紙張瀑布流（Block Formatting Context），
            必須強制剝除所有的 Flex 屬性、絕對定位，並釋放高度限制。
            ========================================================================== */
-                
+
         /* 
          * 1. 釋放全域畫布 (Release Global Canvas Context)
          * 確保最外層的根節點不再受到 100vh 或是隱藏溢出內容的限制，
          * 讓列印的頁面可以無限制向下延伸跨頁。
          */
-        html, body, #root, .app-main {
+        html,
+        body,
+        #root,
+        .app-main {
             height: auto !important;
             min-height: 0 !important;
             max-height: none !important;
@@ -452,7 +455,7 @@
          * 由於 .layout-main-content 預設使用 Flexbox 來容納編輯器與預覽面板，
          * 在列印時強制轉換為 block 元素，並解除絕對定位。
          */
-        .layout-main-content, 
+        .layout-main-content,
         .layout-resizing {
             position: static !important;
             display: block !important;
@@ -477,6 +480,7 @@
             position: static !important;
             min-height: 0 !important;
         }
+
         /* 1. 全域重置：關閉所有動畫與過渡效果，並確保顏色忠實呈現 */
         * {
             transition: none !important;
@@ -518,7 +522,8 @@
         border-radius: 0.5rem;
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         margin: 1.5rem 0;
-        overflow: hidden; /* 關鍵：確保內層 Header 與代碼被外層卡片圓角自然截斷 */
+        overflow: hidden;
+        /* 關鍵：確保內層 Header 與代碼被外層卡片圓角自然截斷 */
         display: block;
         width: 100%;
         color: var(--code-token-punctuation);
@@ -538,7 +543,8 @@
         border-radius: 0 !important;
         margin: 0 !important;
         box-shadow: none !important;
-        background-color: transparent !important; /* 透出外層容器的背景色 */
+        background-color: transparent !important;
+        /* 透出外層容器的背景色 */
         width: 100% !important;
         display: block !important;
     }
@@ -640,10 +646,12 @@
     .enhanced-codeblock .code-line::before {
         content: counter(code-line);
         display: inline-block;
-        box-sizing: content-box; /* 強制使用 content-box，使 width 僅代表數字寬度，不受 padding 影響 */
+        box-sizing: content-box;
+        /* 強制使用 content-box，使 width 僅代表數字寬度，不受 padding 影響 */
         /* 依據當前程式碼區塊的總位數，動態計算行號寬度，每個等寬數字寬度約為 0.55em */
         width: calc(var(--code-max-digits, 2) * 0.55em);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 強制等寬字體，確保寬度精確計算 */
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        /* 強制等寬字體，確保寬度精確計算 */
         text-align: right;
         padding-right: 0.75em;
         margin-right: 1.25em;
@@ -820,7 +828,7 @@
     }
 
     /* ── Mermaid 編輯模式：節點互動樣式 (Hover & Selected) ── */
-    
+
     /* 1. 流程圖 (Flowchart) 節點 */
     .mermaid-edit-mode g.node {
         cursor: pointer;
@@ -1248,6 +1256,7 @@
             opacity: 0;
             transform: scale(0.95) translateY(-6px);
         }
+
         to {
             opacity: 1;
             transform: scale(1) translateY(0);
@@ -1270,9 +1279,10 @@
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
     }
+
     .cm-sticky-scroll-wrapper::-webkit-scrollbar,
     .hide-scrollbar::-webkit-scrollbar {
-        display: none !important; 
+        display: none !important;
     }
 
     .cm-sticky-scroll-btn {
@@ -1281,7 +1291,8 @@
         padding: 0 2px;
         margin: 0;
         font: inherit;
-        font-size: 11px; /* 從 12px 調降至 11px 以防止在 22px 高度下被截斷 */
+        font-size: 11px;
+        /* 從 12px 調降至 11px 以防止在 22px 高度下被截斷 */
         line-height: 22px;
         cursor: pointer;
         white-space: nowrap;
@@ -1308,7 +1319,7 @@
         animation: cta-glow-pulse-dark 2s ease-in-out infinite !important;
     }
 
-    .animate-cta-glow > * {
+    .animate-cta-glow>* {
         position: relative;
         z-index: 10;
     }
@@ -1321,13 +1332,11 @@
         left: -150%;
         width: 400%;
         height: 400%;
-        background: conic-gradient(
-            from 0deg,
-            var(--brand-primary) 0deg,
-            var(--brand-secondary) 120deg,
-            var(--brand-accent) 240deg,
-            var(--brand-primary) 360deg
-        );
+        background: conic-gradient(from 0deg,
+                var(--brand-primary) 0deg,
+                var(--brand-secondary) 120deg,
+                var(--brand-accent) 240deg,
+                var(--brand-primary) 360deg);
         /* 常駐：極慢速線性旋轉 (12s) */
         animation: cta-glow-rotate 12s linear infinite !important;
         pointer-events: none;
@@ -1336,7 +1345,7 @@
 
     /* Hover 懸停：切換為高速變速跑馬燈 */
     .animate-cta-glow:hover::before {
-        animation: cta-glow-rotate 2s cubic-bezier(.1,.36,.54,.12) infinite !important;
+        animation: cta-glow-rotate 2s cubic-bezier(.1, .36, .54, .12) infinite !important;
     }
 
     /* 偽元素 2：內圈遮罩，稍微縮小 1.5px 以露出外框，底色與 filled 按鈕背景一致 */
@@ -1361,15 +1370,19 @@
        藉由 React 狀態在開啟時動態設定 animation-delay 負值，來實現多個呼吸燈按鈕的分秒同步。 */
     .animate-status-glow {
         position: relative;
-        background-color: var(--brand-secondary) !important; /* 淺色：極細微天藍 */
-        border: 1px solid rgba(0, 91, 148, 0.2) !important; /* 淺色：淡靛青邊框 */
+        background-color: var(--brand-secondary) !important;
+        /* 淺色：極細微天藍 */
+        border: 1px solid rgba(0, 91, 148, 0.2) !important;
+        /* 淺色：淡靛青邊框 */
         transition: all 0.3s ease !important;
         animation: status-shadow-pulse 3s ease-in-out infinite !important;
     }
 
     .dark .animate-status-glow {
-        background-color: rgba(56, 189, 248, 0.08) !important; /* 深色：透明天藍底 */
-        border-color: rgba(56, 189, 248, 0.25) !important; /* 深色：天藍邊框 */
+        background-color: rgba(56, 189, 248, 0.08) !important;
+        /* 深色：透明天藍底 */
+        border-color: rgba(56, 189, 248, 0.25) !important;
+        /* 深色：天藍邊框 */
         animation: status-shadow-pulse-dark 3s ease-in-out infinite !important;
     }
 
@@ -1377,44 +1390,357 @@
         0% {
             transform: rotate(0deg);
         }
+
         100% {
             transform: rotate(360deg);
         }
     }
 
     @keyframes cta-glow-pulse {
-        0%, 100% {
+
+        0%,
+        100% {
             box-shadow: 0 0 6px rgba(14, 165, 233, 0.15);
         }
+
         50% {
             box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);
         }
     }
 
     @keyframes cta-glow-pulse-dark {
-        0%, 100% {
+
+        0%,
+        100% {
             box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
         }
+
         50% {
             box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
         }
     }
 
     @keyframes status-shadow-pulse {
-        0%, 100% {
+
+        0%,
+        100% {
             box-shadow: 0 0 4px rgba(0, 91, 148, 0.15), inset 0 0 2px rgba(0, 91, 148, 0.05);
         }
+
         50% {
             box-shadow: 0 0 10px rgba(0, 91, 148, 0.35), inset 0 0 4px rgba(0, 91, 148, 0.15);
         }
     }
 
     @keyframes status-shadow-pulse-dark {
-        0%, 100% {
+
+        0%,
+        100% {
             box-shadow: 0 0 6px rgba(56, 189, 248, 0.2), inset 0 0 3px rgba(56, 189, 248, 0.08);
         }
+
         50% {
             box-shadow: 0 0 14px rgba(56, 189, 248, 0.45), inset 0 0 5px rgba(56, 189, 248, 0.25);
         }
     }
+}
+
+/* ── 簡報模式 (Slide Mode) — 單頁展示 ─────────────────────────────────── */
+.slide-mode-container {
+    background: #000000;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Markdown Grid Directives */
+.markdown-row {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    /* gap-8 */
+    width: 100%;
+    align-items: flex-start;
+}
+
+.markdown-col {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+:root.dark .slide-mode-container {
+    background: #000000;
+}
+
+/* 簡報模式下 prose 容器佔滿全部空間 */
+.slide-mode-container .prose {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0 !important;
+    max-width: none !important;
+}
+
+/* ── 投影片外層 wrapper：堆疊定位 + 淡入淡出切換 ──
+ *
+ * 所有 wrapper 堆疊在同一位置（居中），
+ * 透過 .slide-active 類別控制當前可見的那一張。
+ */
+.marp-slide-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* 尺寸 = 設計畫布 × scale，由 JS 設定 --slide-scale CSS 變數 */
+    width: calc(var(--slide-scale, 0.5) * 1920px);
+    height: calc(var(--slide-scale, 0.5) * 1080px);
+    /* 預設不可見 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 0 !important;
+}
+
+.marp-slide-wrapper.slide-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── 投影片本體：1920×1080 設計畫布 ── */
+.marp-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    transform: scale(var(--slide-scale, 0.5));
+    transform-origin: top left;
+    will-change: transform;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: white;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+    padding: 80px 120px;
+    /* ── 簡報級字體：在 1920px 畫布中使用大字體 ── */
+    font-size: 36px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+}
+
+/* ── 簡報級排版：覆蓋 prose 預設大小 ── */
+.marp-slide h1 {
+    font-size: 80px !important;
+    line-height: 1.15 !important;
+    margin-bottom: 32px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
+}
+
+.marp-slide h2 {
+    font-size: 60px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 28px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.015em;
+}
+
+.marp-slide h3 {
+    font-size: 48px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 24px !important;
+    font-weight: 700 !important;
+}
+
+.marp-slide h4 {
+    font-size: 40px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 20px !important;
+    font-weight: 600 !important;
+}
+
+.marp-slide h5 {
+    font-size: 36px !important;
+    margin-bottom: 16px !important;
+}
+
+.marp-slide h6 {
+    font-size: 32px !important;
+    margin-bottom: 16px !important;
+}
+
+.marp-slide p {
+    font-size: 36px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 24px !important;
+}
+
+.marp-slide li {
+    font-size: 34px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 12px !important;
+}
+
+.marp-slide ul,
+.marp-slide ol {
+    padding-left: 48px !important;
+}
+
+.marp-slide code:not(pre code) {
+    font-size: 30px !important;
+    padding: 4px 12px !important;
+}
+
+.marp-slide pre {
+    font-size: 28px !important;
+    padding: 32px !important;
+    border-radius: 12px !important;
+    margin-bottom: 24px !important;
+}
+
+.marp-slide pre code {
+    font-size: 28px !important;
+}
+
+.marp-slide blockquote {
+    font-size: 34px !important;
+    padding-left: 32px !important;
+    border-left-width: 6px !important;
+}
+
+.marp-slide table {
+    font-size: 30px !important;
+}
+
+.marp-slide th,
+.marp-slide td {
+    padding: 16px 24px !important;
+}
+
+.marp-slide img {
+    max-height: 640px;
+    border-radius: 12px;
+}
+
+.marp-slide hr {
+    margin: 32px 0 !important;
+}
+
+.marp-slide-inner>*:first-child {
+    margin-top: 0 !important;
+}
+
+/* ── 內容自動縮放容器 ── */
+.marp-slide-inner {
+    width: 100%;
+    position: relative;
+}
+
+/* ── 深色模式 ── */
+:root.dark .marp-slide {
+    background-color: #1e293b;
+    box-shadow: none;
+}
+
+/* 簡報模式下隱藏分隔線實體 */
+.slide-mode-container .page-break {
+    display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * 簡報 HUD 控制列 — 底部浮動毛玻璃導航面板
+ * ══════════════════════════════════════════════════════════════════════ */
+.slide-hud {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(15, 15, 25, 0.72);
+    backdrop-filter: blur(24px) saturate(1.8);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    user-select: none;
+}
+
+.slide-hud.hud-hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+    pointer-events: none;
+}
+
+.slide-hud-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.65);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.slide-hud-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+}
+
+.slide-hud-btn:active {
+    transform: scale(0.88);
+}
+
+.slide-hud-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.slide-hud-btn:disabled:hover {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.slide-hud-indicator {
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    min-width: 64px;
+    text-align: center;
+}
+
+.slide-hud-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* ── 進度條 ── */
+.slide-progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    border-radius: 0 2px 0 0;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--brand-primary) 60%, transparent);
 }

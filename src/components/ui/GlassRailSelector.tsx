@@ -59,6 +59,115 @@ export interface GlassRailSelectorProps<T extends string | number> {
  * />
  * ```
  */
+// 緩存不同寬高比的方向貼圖，避免重複在 Canvas 中運算
+const lensMapCache = new Map<number, string>();
+
+/**
+ * 在 Canvas 上繪製一張 256×256 的「圓角矩形方向貼圖」。
+ * 為了防止滑塊拉伸後折射變形，本算法在歸一化的 [-aspect, aspect] × [-1, 1] 空間中計算有符號距離場（SDF）。
+ * 內部區間 ($dist < 0$) 產生向圓角矩形中心骨架收縮的「均勻縮小鏡」向量；
+ * 外圍區間 ($dist \ge 0$) 產生垂直於圓角矩形邊緣向內的「邊緣折射」向量，且橫向 $nx$ 向量除以 aspect 以抵消拉伸。
+ */
+function generateLensMap(aspect: number): string {
+    if (typeof document === 'undefined') return '';
+
+    const roundedAspect = Math.round(aspect * 100) / 100;
+    const cached = lensMapCache.get(roundedAspect);
+    if (cached) return cached;
+
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+    const img = ctx.createImageData(size, size);
+
+    // 圓角矩形半徑設定在 y 軸 -1 ~ 1 空間中（0.8 代表滑塊大部分為圓角）
+    const R = 0.8;
+    // 邊緣折射影響的半寬度
+    const w_e = 0.2;
+
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            // 歸一化到 [-aspect, aspect] x [-1, 1] 的比例空間
+            const px = ((x / size) * 2 - 1) * roundedAspect;
+            const py = (y / size) * 2 - 1;
+
+            // 矩形的半寬高 (不含圓角)
+            const bx = Math.max(0, roundedAspect - R);
+            const by = Math.max(0, 1.0 - R);
+
+            // 計算到圓角矩形邊緣最近點的距離向量
+            const qx = Math.max(0, Math.abs(px) - bx);
+            const qy = Math.max(0, Math.abs(py) - by);
+            const len = Math.sqrt(qx * qx + qy * qy);
+
+            // 精確 2D 圓角矩形有符號距離場 (SDF)：dist < 0 為內，dist > 0 為外
+            const dist = len - R + Math.min(Math.max(Math.abs(px) - bx, Math.abs(py) - by), 0);
+
+            let nx = 0;
+            let ny = 0;
+
+            if (dist > w_e) {
+                // ── 1. 外部無影響區 ──
+                nx = 0;
+                ny = 0;
+            } else if (dist >= -w_e && dist <= w_e) {
+                // ── 2. 邊緣折射區間 ──
+                // 計算邊緣法線方向，折射偏折向量指向內部（-dnx, -dny）
+                let dnx = 0;
+                let dny = 0;
+
+                if (len > 0.001) {
+                    dnx = (qx / len) * Math.sign(px);
+                    dny = (qy / len) * Math.sign(py);
+                } else {
+                    if (Math.abs(px) - bx > Math.abs(py) - by) {
+                        dnx = Math.sign(px);
+                        dny = 0;
+                    } else {
+                        dnx = 0;
+                        dny = Math.sign(py);
+                    }
+                }
+
+                // 抵消橫向拉伸，確保偏折率與折射寬度一致
+                dnx = dnx / roundedAspect;
+
+                // 用對稱的 smoothstep 鐘形曲線控制折射強度 (在 dist = 0 處為 1，在 dist = ±w_e 處為 0)
+                const u = 1.0 - Math.abs(dist) / w_e;
+                const factor = 3 * u * u - 2 * u * u * u;
+
+                const strength = 0.8;
+                nx = -dnx * strength * factor;
+                ny = -dny * strength * factor;
+            } else {
+                // ── 3. 內部縮小鏡區 (dist < -w_e) ──
+                // 縮小鏡朝向圓角矩形中心骨架收縮，在 dist = -w_e 處強度平滑為 0 以銜接邊緣折射
+                const maxDepth = R - w_e;
+                const depth = -dist - w_e;
+                const t = Math.min(1.0, depth / maxDepth);
+                const factor = 3 * t * t - 2 * t * t * t; // smoothstep
+
+                // 朝向中心縮小，nx 除以 aspect 抵消橫向拉伸
+                const strength = 0.45;
+                nx = -(px / roundedAspect) * strength * factor;
+                ny = -py * strength * factor;
+            }
+
+            const i = (y * size + x) * 4;
+            img.data[i] = Math.max(0, Math.min(255, Math.round(128 + nx * 110)));
+            img.data[i + 1] = Math.max(0, Math.min(255, Math.round(128 + ny * 110)));
+            img.data[i + 2] = 128;
+            img.data[i + 3] = 255;
+        }
+    }
+    ctx.putImageData(img, 0, 0);
+    const dataUrl = canvas.toDataURL();
+    lensMapCache.set(roundedAspect, dataUrl);
+    return dataUrl;
+}
+
 function GlassRailSelector<T extends string | number>({
     options,
     value,
@@ -135,7 +244,8 @@ function GlassRailSelector<T extends string | number>({
                 const sliderWidth = rect.width / options.length;
                 const sliderHeight = rect.height;
                 if (sliderHeight > 0) {
-                    setAspect(sliderWidth / sliderHeight);
+                    const newAspect = Math.round((sliderWidth / sliderHeight) * 100) / 100;
+                    setAspect(prev => (Math.abs(prev - newAspect) > 0.05 ? newAspect : prev));
                 }
             }
         };
@@ -154,107 +264,8 @@ function GlassRailSelector<T extends string | number>({
         };
     }, [options.length]);
 
-    /**
-     * lensMapUrl：在 Canvas 上繪製一張 256×256 的「圓角矩形方向貼圖」。
-     * 為了防止滑塊拉伸後折射變形，本算法在歸一化的 [-aspect, aspect] × [-1, 1] 空間中計算有符號距離場（SDF）。
-     * 內部區間 ($dist < 0$) 產生向圓角矩形中心骨架收縮的「均勻縮小鏡」向量；
-     * 外圍區間 ($dist \ge 0$) 產生垂直於圓角矩形邊緣向內的「邊緣折射」向量，且橫向 $nx$ 向量除以 aspect 以抵消拉伸。
-     */
-    const [lensMapUrl, setLensMapUrl] = useState('');
-
-    useEffect(() => {
-        if (typeof document === 'undefined') return;
-
-        const size = 256;
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        const img = ctx.createImageData(size, size);
-
-        // 圓角矩形半徑設定在 y 軸 -1 ~ 1 空間中（0.8 代表滑塊大部分為圓角）
-        const R = 0.8;
-        // 邊緣折射影響的半寬度
-        const w_e = 0.2;
-
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-                // 歸一化到 [-aspect, aspect] x [-1, 1] 的比例空間
-                const px = ((x / size) * 2 - 1) * aspect;
-                const py = (y / size) * 2 - 1;
-
-                // 矩形的半寬高 (不含圓角)
-                const bx = Math.max(0, aspect - R);
-                const by = Math.max(0, 1.0 - R);
-
-                // 計算到圓角矩形邊緣最近點的距離向量
-                const qx = Math.max(0, Math.abs(px) - bx);
-                const qy = Math.max(0, Math.abs(py) - by);
-                const len = Math.sqrt(qx * qx + qy * qy);
-
-                // 精確 2D 圓角矩形有符號距離場 (SDF)：dist < 0 為內，dist > 0 為外
-                const dist = len - R + Math.min(Math.max(Math.abs(px) - bx, Math.abs(py) - by), 0);
-
-                let nx = 0;
-                let ny = 0;
-
-                if (dist > w_e) {
-                    // ── 1. 外部無影響區 ──
-                    nx = 0;
-                    ny = 0;
-                } else if (dist >= -w_e && dist <= w_e) {
-                    // ── 2. 邊緣折射區間 ──
-                    // 計算邊緣法線方向，折射偏折向量指向內部（-dnx, -dny）
-                    let dnx = 0;
-                    let dny = 0;
-
-                    if (len > 0.001) {
-                        dnx = (qx / len) * Math.sign(px);
-                        dny = (qy / len) * Math.sign(py);
-                    } else {
-                        if (Math.abs(px) - bx > Math.abs(py) - by) {
-                            dnx = Math.sign(px);
-                            dny = 0;
-                        } else {
-                            dnx = 0;
-                            dny = Math.sign(py);
-                        }
-                    }
-
-                    // 抵消橫向拉伸，確保偏折率與折射寬度一致
-                    dnx = dnx / aspect;
-
-                    // 用對稱的 smoothstep 鐘形曲線控制折射強度 (在 dist = 0 處為 1，在 dist = ±w_e 處為 0)
-                    const u = 1.0 - Math.abs(dist) / w_e;
-                    const factor = 3 * u * u - 2 * u * u * u;
-
-                    const strength = 0.8;
-                    nx = -dnx * strength * factor;
-                    ny = -dny * strength * factor;
-                } else {
-                    // ── 3. 內部縮小鏡區 (dist < -w_e) ──
-                    // 縮小鏡朝向圓角矩形中心骨架收縮，在 dist = -w_e 處強度平滑為 0 以銜接邊緣折射
-                    const maxDepth = R - w_e;
-                    const depth = -dist - w_e;
-                    const t = Math.min(1.0, depth / maxDepth);
-                    const factor = 3 * t * t - 2 * t * t * t; // smoothstep
-
-                    // 朝向中心縮小，nx 除以 aspect 抵消橫向拉伸
-                    const strength = 0.45;
-                    nx = -(px / aspect) * strength * factor;
-                    ny = -py * strength * factor;
-                }
-
-                const i = (y * size + x) * 4;
-                img.data[i] = Math.max(0, Math.min(255, Math.round(128 + nx * 110)));
-                img.data[i + 1] = Math.max(0, Math.min(255, Math.round(128 + ny * 110)));
-                img.data[i + 2] = 128;
-                img.data[i + 3] = 255;
-            }
-        }
-        ctx.putImageData(img, 0, 0);
-        setLensMapUrl(canvas.toDataURL());
-    }, [aspect]);
+    // 使用 useMemo 在第一次渲染時即同步生成 direction map，避免初始狀態空字串觸發 React / SVG 警告
+    const lensMapUrl = useMemo(() => generateLensMap(aspect), [aspect]);
 
     const activeIndex = Math.max(0, options.findIndex(o => o.value === optimisticValue));
     const totalOptions = options.length;
@@ -427,36 +438,38 @@ function GlassRailSelector<T extends string | number>({
              1. feImage 載入 canvas 徑向方向貼圖 → feDisplacementMap 折射 backdrop
              2. feFlood + feMorphology(erode radius="x y") + feComposite → 製作精確 2px 邊緣遮罩
              3. feComposite(in) + feComposite(out) + feMerge → 邊緣折射 ∪ 中心透明 */}
-            <svg aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
-                <defs>
-                    {/* x/y/width/height 設為元素邊界，使貼圖尺寸能自動隨 preserveAspectRatio 完美拉伸適應 */}
-                    <filter id={filterId} x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
-                        {/* 1. 折射背景 */}
-                        <feImage href={lensMapUrl} preserveAspectRatio="none" result="dirMap" />
-                        <feDisplacementMap
-                            ref={displacementRef}
-                            in="SourceGraphic"
-                            in2="dirMap"
-                            scale="0"
-                            xChannelSelector="R"
-                            yChannelSelector="G"
-                            result="refracted"
-                        />
-                        {/* 2. 製作 2px 邊緣遮罩 */}
-                        <feFlood floodColor="white" result="fullArea" />
-                        <feMorphology in="fullArea" operator="erode" radius="15 5" result="centerMask" />
-                        <feComposite in="fullArea" in2="centerMask" operator="out" result="edgeMask" />
-                        {/* 3. 分離並合併：邊緣套用折射，中心保持透明 (原始 SourceGraphic) */}
-                        <feComposite in="refracted" in2="edgeMask" operator="in" result="edgeRefraction" />
-                        <feComposite in="SourceGraphic" in2="centerMask" operator="in" result="centerClear" />
+            {lensMapUrl ? (
+                <svg aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+                    <defs>
+                        {/* x/y/width/height 設為元素邊界，使貼圖尺寸能自動隨 preserveAspectRatio 完美拉伸適應 */}
+                        <filter id={filterId} x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+                            {/* 1. 折射背景 */}
+                            <feImage href={lensMapUrl || undefined} preserveAspectRatio="none" result="dirMap" />
+                            <feDisplacementMap
+                                ref={displacementRef}
+                                in="SourceGraphic"
+                                in2="dirMap"
+                                scale="0"
+                                xChannelSelector="R"
+                                yChannelSelector="G"
+                                result="refracted"
+                            />
+                            {/* 2. 製作 2px 邊緣遮罩 */}
+                            <feFlood floodColor="white" result="fullArea" />
+                            <feMorphology in="fullArea" operator="erode" radius="15 5" result="centerMask" />
+                            <feComposite in="fullArea" in2="centerMask" operator="out" result="edgeMask" />
+                            {/* 3. 分離並合併：邊緣套用折射，中心保持透明 (原始 SourceGraphic) */}
+                            <feComposite in="refracted" in2="edgeMask" operator="in" result="edgeRefraction" />
+                            <feComposite in="SourceGraphic" in2="centerMask" operator="in" result="centerClear" />
 
-                        <feMerge>
-                            <feMergeNode in="centerClear" />
-                            <feMergeNode in="edgeRefraction" />
-                        </feMerge>
-                    </filter>
-                </defs>
-            </svg>
+                            <feMerge>
+                                <feMergeNode in="centerClear" />
+                                <feMergeNode in="edgeRefraction" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+                </svg>
+            ) : null}
 
             <div className="relative flex w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
                 {/* 玻璃滑塊定位外層 */}
@@ -535,9 +548,9 @@ function GlassRailSelector<T extends string | number>({
                             style={{
                                 // 套用 SVG 邊緣折射濾鏡（Chromium only）
                                 // 非 Chromium 此屬性被忽略，無模糊降級
-                                backdropFilter: `url("#${filterId}")`,
+                                backdropFilter: lensMapUrl ? `url("#${filterId}")` : undefined,
                                 // @ts-ignore
-                                WebkitBackdropFilter: `url("#${filterId}")`,
+                                WebkitBackdropFilter: lensMapUrl ? `url("#${filterId}")` : undefined,
                             }}
                         />
 

@@ -229,6 +229,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const [showChangelog, setShowChangelog] = useState(false);
     const [logoVariant, setLogoVariant] = useState<'v1' | 'v2'>('v1');
     const version = pkg.version;
+    const license = pkg.license;
 
     // ─── 外部媒體隱私設定狀態 ──────────────────────────────────────────────
     const [allowAllExternal, setAllowAllExternal] = useState(false);
