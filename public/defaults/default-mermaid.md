@@ -12,8 +12,7 @@ graph TD
     Start(("Start<br/>(圓形)")) --> Node1["<b>標準矩形</b><br/>支援換行"]
     Node1 --> Node2("圓角矩形")
     Node2 --> Node3{"決策<br/>(菱形)"}
-    
-    %% 這裡就是原本報錯的地方，加上引號就修好了
+
     Node3 -->|Yes| Node4[/"平行四邊形<br/>(輸入/輸出)"/]
     
     Node3 -->|No| Node5[("資料庫<br/>Database")]
