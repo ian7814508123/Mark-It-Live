@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Type, X, AlignLeft, AlignCenter, AlignRight, AlignJustify,
-    Palette, RefreshCw, Check
+    Palette, RefreshCw, Check, Highlighter
 } from '../ui/Icons';
 import {
     TypographyAttrs,
     FONT_FAMILY_PRESETS,
     PRESET_COLORS,
+    HIGHLIGHT_COLORS,
     typographyAttrsToStyle,
     getElementComputedTypography
 } from '../../utils/typographyUtils';
@@ -51,8 +52,11 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
     const panelRef = useRef<HTMLDivElement>(null);
     const debounceTimerRef = useRef<any>(null);
 
-    // 預覽文字：使用當前行內容或目標元素文字，限制長度 10（超過用 ...）
+    // 預覽文字：若為「選取文字」模式，優先呈現精確的反白文字；一般行模式則展示前綴清理後的文字
     const previewText = React.useMemo(() => {
+        if (tagName === '選取文字' && lineContent) {
+            return lineContent.length > 20 ? `${lineContent.slice(0, 20)}...` : lineContent;
+        }
         const raw = lineContent || targetElement?.textContent || '';
         const clean = raw
             .replace(/<[^>]+>/g, '')
@@ -60,11 +64,12 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
             .replace(/:(?:font|style|typography)\{[^}]+\}/g, '')
             .replace(/^>+\s*/, '')
             .replace(/^\[![a-zA-Z0-9_-]+\](?:\((.*?)\))?/, '$1')
+            .replace(/^\s*(?:[-*+]|\d+\.)\s+(?:\[[ xX]\]\s+)?/, '')
             .trim();
 
         if (!clean) return 'Mark It Live';
-        return clean.length > 10 ? `${clean.slice(0, 10)}...` : clean;
-    }, [lineContent, targetElement]);
+        return clean.length > 15 ? `${clean.slice(0, 15)}...` : clean;
+    }, [lineContent, targetElement, tagName]);
     const latestAttrsRef = useRef<TypographyAttrs>(initialAttrs);
     latestAttrsRef.current = attrs;
 
@@ -165,6 +170,25 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, handleClose]);
 
+    // 點擊面板外部時自動關閉
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleOutsideClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (panelRef.current && !panelRef.current.contains(target)) {
+                if (target.closest('[data-typography-trigger]') || target.closest('[data-floating-toolbar]')) return;
+                handleClose();
+            }
+        };
+        const timer = setTimeout(() => {
+            document.addEventListener('mousedown', handleOutsideClick);
+        }, 50);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('mousedown', handleOutsideClick);
+        };
+    }, [isOpen, handleClose]);
+
     // 屬性更新：本地 DOM 零延遲即時反饋 + 600ms 等待渲染寫回 HTML
     const updateAttr = useCallback(<K extends keyof TypographyAttrs>(key: K, val: TypographyAttrs[K]) => {
         setAttrs(prev => {
@@ -176,14 +200,27 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
 
             // 1. 本地 DOM 零延遲即時樣式更新 (Direct fast-path) - 100% 不觸發 ReactMarkdown AST 解析或圖表重繪
             if (targetElement) {
-                const liveStyle = typographyAttrsToStyle(next);
-                targetElement.style.fontSize = liveStyle.fontSize ? String(liveStyle.fontSize) : '';
-                targetElement.style.fontFamily = liveStyle.fontFamily ? String(liveStyle.fontFamily) : '';
-                targetElement.style.color = liveStyle.color ? String(liveStyle.color) : '';
-                targetElement.style.letterSpacing = liveStyle.letterSpacing ? String(liveStyle.letterSpacing) : '';
-                targetElement.style.lineHeight = liveStyle.lineHeight ? String(liveStyle.lineHeight) : '';
-                targetElement.style.fontWeight = liveStyle.fontWeight ? String(liveStyle.fontWeight) : '';
-                targetElement.style.textAlign = liveStyle.textAlign ? String(liveStyle.textAlign) : '';
+                const isInlineTextMode = tagName === '選取文字';
+                const canDirectApplyToDom = !isInlineTextMode || targetElement.tagName === 'SPAN';
+
+                if (canDirectApplyToDom) {
+                    const liveStyle = typographyAttrsToStyle(next);
+                    targetElement.style.fontSize = liveStyle.fontSize ? String(liveStyle.fontSize) : '';
+                    targetElement.style.fontFamily = liveStyle.fontFamily ? String(liveStyle.fontFamily) : '';
+                    targetElement.style.color = liveStyle.color ? String(liveStyle.color) : '';
+                    targetElement.style.letterSpacing = liveStyle.letterSpacing ? String(liveStyle.letterSpacing) : '';
+                    targetElement.style.lineHeight = liveStyle.lineHeight ? String(liveStyle.lineHeight) : '';
+                    targetElement.style.fontWeight = liveStyle.fontWeight ? String(liveStyle.fontWeight) : '';
+                    targetElement.style.textAlign = liveStyle.textAlign ? String(liveStyle.textAlign) : '';
+                    targetElement.style.backgroundColor = liveStyle.backgroundColor ? String(liveStyle.backgroundColor) : '';
+                    if (next.bg && next.bg !== 'transparent') {
+                        targetElement.style.padding = '0.1em 0.3em';
+                        targetElement.style.borderRadius = '0.25em';
+                    } else {
+                        targetElement.style.padding = '';
+                        targetElement.style.borderRadius = '';
+                    }
+                }
             }
 
             // 2. 600ms 防抖寫回 Markdown 原始碼（直接以原生 HTML 語法），停止滑動後才觸發一次圖表重新解析
@@ -195,14 +232,14 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
 
             return next;
         });
-    }, [onApply, targetElement]);
+    }, [onApply, targetElement, tagName]);
 
     const handleReset = useCallback(() => {
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
             debounceTimerRef.current = null;
         }
-        if (targetElement) {
+        if (targetElement && (tagName !== '選取文字' || targetElement.tagName === 'SPAN')) {
             targetElement.style.fontSize = '';
             targetElement.style.fontFamily = '';
             targetElement.style.color = '';
@@ -210,11 +247,14 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
             targetElement.style.lineHeight = '';
             targetElement.style.fontWeight = '';
             targetElement.style.textAlign = '';
+            targetElement.style.backgroundColor = '';
+            targetElement.style.padding = '';
+            targetElement.style.borderRadius = '';
         }
         setAttrs({});
         latestAttrsRef.current = {};
         onReset();
-    }, [onReset, targetElement]);
+    }, [onReset, targetElement, tagName]);
 
     if (!isOpen) return null;
 
@@ -343,9 +383,20 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                             <label className="font-semibold text-slate-600 dark:text-slate-300">
                                 字級大小 (Font Size)
                             </label>
-                            <span className="font-mono text-brand-primary font-bold bg-brand-primary/10 px-1.5 py-0.5 rounded">
-                                {currentSizeNum}px
-                            </span>
+                            <div className="flex items-center bg-brand-primary/10 px-1.5 py-0.5 rounded border border-brand-primary/20">
+                                <input
+                                    type="number"
+                                    min="8"
+                                    max="160"
+                                    value={currentSizeNum}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value, 10);
+                                        if (!isNaN(val) && val > 0) updateAttr('size', `${val}px`);
+                                    }}
+                                    className="w-9 text-right bg-transparent font-mono text-brand-primary font-bold text-xs outline-none focus:ring-0 p-0"
+                                />
+                                <span className="text-[10px] font-mono text-brand-primary font-bold ml-0.5">px</span>
+                            </div>
                         </div>
                         <input
                             type="range"
@@ -406,9 +457,21 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                                 <label className="font-semibold text-slate-600 dark:text-slate-300">
                                     字距 (Spacing)
                                 </label>
-                                <span className="font-mono text-slate-500 dark:text-slate-400">
-                                    {currentLsNum}px
-                                </span>
+                                <div className="flex items-center bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-slate-700/80">
+                                    <input
+                                        type="number"
+                                        min="-5"
+                                        max="30"
+                                        step="0.5"
+                                        value={currentLsNum}
+                                        onChange={(e) => {
+                                            const val = parseFloat(e.target.value);
+                                            if (!isNaN(val)) updateAttr('ls', val === 0 ? undefined : `${val}px`);
+                                        }}
+                                        className="w-8 text-right bg-transparent font-mono text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-0 p-0"
+                                    />
+                                    <span className="text-[10px] font-mono text-slate-400 ml-0.5">px</span>
+                                </div>
                             </div>
                             <input
                                 type="range"
@@ -429,9 +492,20 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                                 <label className="font-semibold text-slate-600 dark:text-slate-300">
                                     行高 (Leading)
                                 </label>
-                                <span className="font-mono text-slate-500 dark:text-slate-400">
-                                    {currentLhNum.toFixed(1)}
-                                </span>
+                                <div className="flex items-center bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-slate-700/80">
+                                    <input
+                                        type="number"
+                                        min="0.8"
+                                        max="3.5"
+                                        step="0.1"
+                                        value={currentLhNum}
+                                        onChange={(e) => {
+                                            const val = parseFloat(e.target.value);
+                                            if (!isNaN(val) && val > 0) updateAttr('lh', String(val));
+                                        }}
+                                        className="w-9 text-right bg-transparent font-mono text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-0 p-0"
+                                    />
+                                </div>
                             </div>
                             <input
                                 type="range"
@@ -517,6 +591,41 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                                 />
                                 <span className="text-[10px] text-slate-500">🎨</span>
                             </label>
+                        </div>
+                    </div>
+
+                    {/* 6. 螢光筆標記 (Highlight / Background) */}
+                    <div>
+                        <div className="flex justify-between items-center mb-1.5">
+                            <label className="font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                                <Highlighter size={13} className="text-amber-500" />
+                                <span>螢光筆標記 (Highlight)</span>
+                            </label>
+                            {attrs.bg && attrs.bg !== 'transparent' && (
+                                <span className="font-mono text-[10px] text-slate-400">{attrs.bg}</span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            {HIGHLIGHT_COLORS.map(h => {
+                                const isSelected = (!attrs.bg && h.value === 'transparent') || attrs.bg === h.value;
+                                return (
+                                    <button
+                                        key={h.label}
+                                        type="button"
+                                        onClick={() => updateAttr('bg', h.value === 'transparent' ? undefined : h.value)}
+                                        title={h.label}
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${h.colorClass} ${
+                                            isSelected ? 'ring-2 ring-brand-primary ring-offset-1 scale-110 shadow-sm' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                                        }`}
+                                        style={h.value !== 'transparent' ? { backgroundColor: h.value } : {}}
+                                    >
+                                        {h.value === 'transparent' && <span className="text-[8px] text-slate-400">無</span>}
+                                        {isSelected && h.value !== 'transparent' && (
+                                            <Check size={11} className="text-slate-800" />
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

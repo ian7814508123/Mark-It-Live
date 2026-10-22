@@ -13,7 +13,8 @@ import remarkTypography from './remarkTypography';
 import rehypeSlideGenerator from './rehypeSlideGenerator';
 import SlideHUD from './SlideHUD';
 import { TypographyInspector } from './TypographyInspector';
-import { TypographyAttrs, parseLineTypography, updateLineTypography, parseStyleString, getElementComputedTypography, typographyAttrsToStyle } from '../../utils/typographyUtils';
+import { FloatingSelectionToolbar } from './FloatingSelectionToolbar';
+import { TypographyAttrs, parseLineTypography, updateLineTypography, parseStyleString, getElementComputedTypography, typographyAttrsToStyle, applyInlineTypographyToMarkdown } from '../../utils/typographyUtils';
 import { Type } from '../ui/Icons';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
@@ -947,6 +948,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         targetElement: HTMLElement | null;
         initialAttrs: TypographyAttrs;
         lineContent?: string;
+        occurrenceIndex?: number;
     }>({
         isOpen: false,
         targetLine: 0,
@@ -955,6 +957,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         targetElement: null,
         initialAttrs: {},
         lineContent: '',
+        occurrenceIndex: 0,
     });
 
     const handleOpenTypography = useCallback((
@@ -994,10 +997,22 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         const updateFn = renderContextRef.current?.onUpdateContent || onUpdateContent;
 
         if (updateFn && currentContent && currentDoc) {
-            const newContent = updateLineTypography(currentContent, targetLine, attrs, targetFormat);
-            updateFn(currentDoc, newContent);
+            if (typographyState.tagName === '選取文字' && typographyState.lineContent) {
+                const newContent = applyInlineTypographyToMarkdown({
+                    markdownContent: currentContent,
+                    targetLine,
+                    selectedText: typographyState.lineContent,
+                    attrs,
+                    action: 'apply',
+                    occurrenceIndex: typographyState.occurrenceIndex ?? 0,
+                });
+                updateFn(currentDoc, newContent);
+            } else {
+                const newContent = updateLineTypography(currentContent, targetLine, attrs, targetFormat);
+                updateFn(currentDoc, newContent);
+            }
         }
-    }, [typographyState.targetLine, content, currentDocId, onUpdateContent]);
+    }, [typographyState.targetLine, typographyState.tagName, typographyState.lineContent, typographyState.occurrenceIndex, content, currentDocId, onUpdateContent]);
 
     const handleResetTypography = useCallback(() => {
         const targetLine = typographyState.targetLine;
@@ -1007,11 +1022,22 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         const updateFn = renderContextRef.current?.onUpdateContent || onUpdateContent;
 
         if (updateFn && currentContent && currentDoc) {
-            const newContent = updateLineTypography(currentContent, targetLine, {}, 'html');
-            updateFn(currentDoc, newContent);
+            if (typographyState.tagName === '選取文字' && typographyState.lineContent) {
+                const newContent = applyInlineTypographyToMarkdown({
+                    markdownContent: currentContent,
+                    targetLine,
+                    selectedText: typographyState.lineContent,
+                    action: 'clear',
+                    occurrenceIndex: typographyState.occurrenceIndex ?? 0,
+                });
+                updateFn(currentDoc, newContent);
+            } else {
+                const newContent = updateLineTypography(currentContent, targetLine, {}, 'html');
+                updateFn(currentDoc, newContent);
+            }
         }
         setTypographyState(prev => ({ ...prev, isOpen: false }));
-    }, [typographyState.targetLine, content, currentDocId, onUpdateContent]);
+    }, [typographyState.targetLine, typographyState.tagName, typographyState.lineContent, typographyState.occurrenceIndex, content, currentDocId, onUpdateContent]);
 
     // 簡報模式啟用時，立即關閉開啟中的排版微調彈窗
     useEffect(() => {
@@ -1019,6 +1045,197 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             setTypographyState(prev => ({ ...prev, isOpen: false, targetElement: null, targetRect: null }));
         }
     }, [isSlideMode, typographyState.isOpen]);
+
+    const previewRootRef = useRef<HTMLDivElement>(null);
+
+    // ─── 行內文字選取排版 (Word 模式) 狀態管理 ──────────────────────────────
+    const [inlineSelectionState, setInlineSelectionState] = useState<{
+        isOpen: boolean;
+        position: { top: number; left: number };
+        selectedText: string;
+        targetLine: number;
+        occurrenceIndex: number;
+        currentAttrs: TypographyAttrs;
+        targetElement: HTMLElement | null;
+    }>({
+        isOpen: false,
+        position: { top: 0, left: 0 },
+        selectedText: '',
+        targetLine: 0,
+        occurrenceIndex: 0,
+        currentAttrs: {},
+        targetElement: null,
+    });
+
+    // 監聽文字反白選取事件 (MouseUp & SelectionChange)
+    useEffect(() => {
+        if (isSlideMode || isActuallyPrinting) return;
+
+        const handleSelection = () => {
+            const selection = window.getSelection();
+            if (!selection || selection.isCollapsed || !selection.rangeCount) {
+                return;
+            }
+
+            const rawText = selection.toString();
+            const trimmedText = rawText.trim();
+            if (!trimmedText) return;
+
+            const range = selection.getRangeAt(0);
+            const container = previewRootRef.current;
+            if (!container) return;
+
+            // 確保選取範圍在預覽容器內
+            if (!container.contains(range.commonAncestorContainer)) return;
+
+            // 排除程式碼區塊、圖表容器、SVG 內部與按鈕輸入框
+            const ancestorEl = (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                ? range.commonAncestorContainer
+                : range.commonAncestorContainer.parentElement) as HTMLElement | null;
+
+            if (ancestorEl?.closest('pre, code, .diagram-block-container, svg, button, input, textarea')) {
+                return;
+            }
+
+            // 尋找最近的 [data-line] 父層元素
+            const lineEl = ancestorEl?.closest('[data-line]') as HTMLElement | null;
+            if (!lineEl) return;
+
+            const lineAttr = lineEl.getAttribute('data-line');
+            const targetLine = lineAttr ? parseInt(lineAttr, 10) : 0;
+            if (!targetLine) return;
+
+            // 計算在該行中這是第幾次出現該選取文字 (occurrenceIndex)
+            let occurrenceIndex = 0;
+            try {
+                const preRange = document.createRange();
+                preRange.selectNodeContents(lineEl);
+                preRange.setEnd(range.startContainer, range.startOffset);
+                const textBefore = preRange.toString();
+                occurrenceIndex = Math.max(0, textBefore.split(trimmedText).length - 1);
+            } catch (err) {
+                occurrenceIndex = 0;
+            }
+
+            const rect = range.getBoundingClientRect();
+            // 計算浮動工具列位置（水平置中於選取文字，垂直位於上方）
+            const left = Math.max(100, Math.min(window.innerWidth - 100, rect.left + rect.width / 2));
+            const top = Math.max(45, rect.top);
+
+            const computed = ancestorEl ? getElementComputedTypography(ancestorEl) : {};
+
+            setInlineSelectionState({
+                isOpen: true,
+                position: { top, left },
+                selectedText: trimmedText,
+                targetLine,
+                occurrenceIndex,
+                currentAttrs: computed,
+                targetElement: ancestorEl,
+            });
+        };
+
+        const handleMouseUp = () => {
+            // 短暫延遲等待瀏覽器 selection 穩定
+            setTimeout(handleSelection, 30);
+        };
+
+        const handleSelectionChange = () => {
+            const selection = window.getSelection();
+            if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+                setInlineSelectionState(prev => prev.isOpen ? { ...prev, isOpen: false } : prev);
+            }
+        };
+
+        const handleDocumentClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            // 點擊工具列內部或觸發按鈕時不關閉
+            if (target.closest('[data-floating-toolbar]') || target.closest('[data-typography-trigger]')) return;
+            setInlineSelectionState(prev => prev.isOpen ? { ...prev, isOpen: false } : prev);
+        };
+
+        const previewEl = previewRootRef.current;
+        if (previewEl) {
+            previewEl.addEventListener('mouseup', handleMouseUp);
+        }
+        document.addEventListener('mousedown', handleDocumentClick);
+        document.addEventListener('selectionchange', handleSelectionChange);
+
+        return () => {
+            if (previewEl) {
+                previewEl.removeEventListener('mouseup', handleMouseUp);
+            }
+            document.removeEventListener('mousedown', handleDocumentClick);
+            document.removeEventListener('selectionchange', handleSelectionChange);
+        };
+    }, [isSlideMode, isActuallyPrinting]);
+
+    const handleApplyInlineTypography = useCallback((newAttrs: Partial<TypographyAttrs>) => {
+        const { targetLine, selectedText, occurrenceIndex, currentAttrs } = inlineSelectionState;
+        if (!targetLine || !selectedText) return;
+
+        const mergedAttrs: TypographyAttrs = { ...currentAttrs, ...newAttrs };
+        const currentContent = renderContextRef.current?.content || content;
+        const currentDoc = renderContextRef.current?.currentDocId || currentDocId;
+        const updateFn = renderContextRef.current?.onUpdateContent || onUpdateContent;
+
+        if (updateFn && currentContent && currentDoc) {
+            const newContent = applyInlineTypographyToMarkdown({
+                markdownContent: currentContent,
+                targetLine,
+                selectedText,
+                attrs: mergedAttrs,
+                action: 'apply',
+                occurrenceIndex,
+            });
+            updateFn(currentDoc, newContent);
+            setInlineSelectionState(prev => ({
+                ...prev,
+                currentAttrs: mergedAttrs,
+            }));
+        }
+    }, [inlineSelectionState, content, currentDocId, onUpdateContent]);
+
+    const handleClearInlineTypography = useCallback(() => {
+        const { targetLine, selectedText, occurrenceIndex } = inlineSelectionState;
+        if (!targetLine || !selectedText) return;
+
+        const currentContent = renderContextRef.current?.content || content;
+        const currentDoc = renderContextRef.current?.currentDocId || currentDocId;
+        const updateFn = renderContextRef.current?.onUpdateContent || onUpdateContent;
+
+        if (updateFn && currentContent && currentDoc) {
+            const newContent = applyInlineTypographyToMarkdown({
+                markdownContent: currentContent,
+                targetLine,
+                selectedText,
+                action: 'clear',
+                occurrenceIndex,
+            });
+            updateFn(currentDoc, newContent);
+            setInlineSelectionState(prev => ({
+                ...prev,
+                isOpen: false,
+                currentAttrs: {},
+            }));
+        }
+    }, [inlineSelectionState, content, currentDocId, onUpdateContent]);
+
+    const handleOpenFullInspectorFromInline = useCallback(() => {
+        const { targetLine, selectedText, targetElement, currentAttrs, occurrenceIndex } = inlineSelectionState;
+        if (!targetLine) return;
+        setTypographyState({
+            isOpen: true,
+            targetLine,
+            tagName: '選取文字',
+            targetRect: targetElement ? targetElement.getBoundingClientRect() : null,
+            targetElement: targetElement || null,
+            initialAttrs: currentAttrs,
+            lineContent: selectedText,
+            occurrenceIndex,
+        });
+        setInlineSelectionState(prev => ({ ...prev, isOpen: false }));
+    }, [inlineSelectionState]);
 
     // ─── wrapWithComment：在 block 元素旁插入行內評論組件、排版微調按鈕與 hover 提示 ────────────
     const wrapWithComment = useCallback((
@@ -1226,19 +1443,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             return wrapWithComment(
                 node,
                 <div
-                    className={`mb-4 last:mb-0 transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
+                    className={`mb-4 last:mb-0 transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, firstChildLine && firstChildLine > (node?.position?.start?.line || 0) ? 'Alert 內文' : '段落', e.currentTarget, typoData);
-                    }}
                 />,
                 '',
                 isSlideMode ? undefined : (firstChildLine && firstChildLine > (node?.position?.start?.line || 0) ? 'Alert 內文' : '段落'),
@@ -1261,18 +1468,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <h1
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, 'h1', e.currentTarget, typoData);
-                    }}
-                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
-                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                    className={`${props.className || ''} transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                 />,
                 '',
                 isSlideMode ? undefined : 'h1',
@@ -1295,18 +1491,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <h2
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, 'h2', e.currentTarget, typoData);
-                    }}
-                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
-                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                    className={`${props.className || ''} transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                 />,
                 '',
                 isSlideMode ? undefined : 'h2',
@@ -1329,18 +1514,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <h3
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, 'h3', e.currentTarget, typoData);
-                    }}
-                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
-                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                    className={`${props.className || ''} transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                 />,
                 '',
                 isSlideMode ? undefined : 'h3',
@@ -1363,18 +1537,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <h4
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, 'h4', e.currentTarget, typoData);
-                    }}
-                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
-                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                    className={`${props.className || ''} transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                 />,
                 '',
                 isSlideMode ? undefined : 'h4',
@@ -1397,18 +1560,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <h5
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, 'h5', e.currentTarget, typoData);
-                    }}
-                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
-                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                    className={`${props.className || ''} transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                 />,
                 '',
                 isSlideMode ? undefined : 'h5',
@@ -1431,18 +1583,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <h6
                     {...domProps}
                     style={styleObj}
-                    onClick={isSlideMode ? undefined : (e) => {
-                        const sel = window.getSelection()?.toString();
-                        if (sel && sel.length > 0) return;
-                        if (line) handleOpenTypography(line, 'h6', e.currentTarget, typoData);
-                    }}
-                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
-                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
-                        : !isSlideMode
-                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
-                            : ''
-                        }`}
-                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                    className={`${props.className || ''} transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                 />,
                 '',
                 isSlideMode ? undefined : 'h6',
@@ -1451,7 +1592,55 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         },
         ul: ({ node, ...props }: any) => <ul {...props} />,
         ol: ({ node, ...props }: any) => <ol {...props} />,
-        li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
+        li: ({ node, children, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+            const hasComment = !!lineComments[line];
+
+            return (
+                <li
+                    {...domProps}
+                    style={styleObj}
+                    data-line={line}
+                    className={`relative group/line ${props.className || ''} ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
+                >
+                    {children}
+
+                    {/* ─── 行動作列：排版調整按鈕 + 註解按鈕 ──── */}
+                    {!isPrinting && !isSlideMode && line && (
+                        <div
+                            className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 transition-opacity duration-150 flex items-center gap-1 print:hidden ${
+                                isActive || hasComment
+                                    ? 'opacity-100'
+                                    : 'opacity-0 group-hover/line:opacity-100'
+                            }`}
+                        >
+                            <TypographyButton
+                                line={line}
+                                tagName="清單項目"
+                                typographyData={typoData}
+                                isActive={isActive}
+                                hasComment={hasComment}
+                                onOpen={handleOpenTypography}
+                            />
+                            <LineCommentItem
+                                line={line}
+                                comment={lineComments[line]}
+                                currentDocId={currentDocId ?? null}
+                                onUpdateLineComment={onUpdateLineComment}
+                            />
+                        </div>
+                    )}
+                </li>
+            );
+        },
         blockquote: ({ node, children, ...props }: any) => {
             const line = node?.position?.start?.line;
             // 優先由 HTML 屬性 data-alert-type 或 dataAlertType 讀取以確保在 Rehype AST 中不丟失，最後 fallback 到 node.data.alertType
@@ -1495,13 +1684,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                         data-line={line}
                     >
                         <div
-                            className={`markdown-alert-title ${isSlideMode ? '' : 'cursor-pointer select-none transition-all'} ${!isSlideMode && isTitleActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 rounded-xs' : !isSlideMode ? 'hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40 rounded-xs' : ''}`}
-                            onClick={isSlideMode ? undefined : (e) => {
-                                const sel = window.getSelection()?.toString();
-                                if (sel && sel.length > 0) return;
-                                if (line) handleOpenTypography(line, 'Alert 標題', e.currentTarget, rawTitleTypo);
-                            }}
-                            title={isSlideMode ? undefined : "點擊自訂 Alert 標題排版樣式"}
+                            className={`markdown-alert-title select-none transition-all ${!isSlideMode && isTitleActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 rounded-xs' : ''}`}
                         >
                             <React.Suspense fallback={<div className="w-3.5 h-3.5 mr-1.5 inline-block animate-pulse bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />}>
                                 <LazyAlertIcon type={alertType} />
@@ -2024,7 +2207,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 className={`relative w-full h-full min-h-[500px] print:h-auto print:min-h-0 ${isSlideMode ? 'slide-mode-container' : 'document-mode-container'}`}
                 onClick={isSlideMode ? handleSlideClick : undefined}
             >
-                <div className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
+                <div ref={previewRootRef} className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective, remarkTypography]}
                         rehypePlugins={[rehypeRaw, [rehypeSlideGenerator, { isSlideMode }]]}
@@ -2055,12 +2238,27 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 targetElement={typographyState.targetElement}
                 initialAttrs={typographyState.initialAttrs}
                 lineContent={
-                    typographyState.isOpen && typographyState.targetLine
-                        ? ((renderContextRef.current?.content || content)?.split('\n')?.[typographyState.targetLine - 1] ?? typographyState.lineContent)
-                        : typographyState.lineContent
+                    typographyState.tagName === '選取文字'
+                        ? typographyState.lineContent
+                        : (typographyState.isOpen && typographyState.targetLine
+                            ? ((renderContextRef.current?.content || content)?.split('\n')?.[typographyState.targetLine - 1] ?? typographyState.lineContent)
+                            : typographyState.lineContent)
                 }
                 onApply={handleApplyTypography}
                 onReset={handleResetTypography}
+            />
+
+            {/* ─── 行內文字選取排版 Floating Selection Toolbar (Word 模式) ──── */}
+            <FloatingSelectionToolbar
+                isOpen={inlineSelectionState.isOpen}
+                position={inlineSelectionState.position}
+                selectedText={inlineSelectionState.selectedText}
+                targetLine={inlineSelectionState.targetLine}
+                currentAttrs={inlineSelectionState.currentAttrs}
+                onApplyAttrs={handleApplyInlineTypography}
+                onClearFormat={handleClearInlineTypography}
+                onOpenFullInspector={handleOpenFullInspectorFromInline}
+                onClose={() => setInlineSelectionState(prev => ({ ...prev, isOpen: false }))}
             />
         </CommentProvider>
     );

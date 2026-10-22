@@ -33,6 +33,16 @@ export const PRESET_COLORS = [
     { label: '紫羅蘭', value: '#7c3aed' },
 ];
 
+export const HIGHLIGHT_COLORS = [
+    { label: '無螢光', value: 'transparent', colorClass: 'border border-dashed border-slate-300 dark:border-slate-600' },
+    { label: '柔黃', value: '#fef08a', colorClass: 'bg-yellow-200' },
+    { label: '清新綠', value: '#bbf7d0', colorClass: 'bg-emerald-200' },
+    { label: '晴空藍', value: '#bae6fd', colorClass: 'bg-sky-200' },
+    { label: '櫻花粉', value: '#fbcfe8', colorClass: 'bg-pink-200' },
+    { label: '溫暖橘', value: '#fed7aa', colorClass: 'bg-orange-200' },
+    { label: '薰衣紫', value: '#e9d5ff', colorClass: 'bg-purple-200' },
+];
+
 /**
  * 將 rgb(r, g, b) 或 rgba(r, g, b, a) 轉換為十六進位 #rrggbb
  */
@@ -99,6 +109,11 @@ export function getElementComputedTypography(el: HTMLElement | null): Typography
         // 6. 文字色彩 (Color)
         if (cs.color) {
             result.color = rgbToHex(cs.color);
+        }
+
+        // 7. 螢光背景色 (Background Color / Highlight)
+        if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent') {
+            result.bg = rgbToHex(cs.backgroundColor);
         }
 
         return result;
@@ -325,6 +340,26 @@ export function updateLineTypography(
         return lines.join('\n');
     }
 
+    // ─── 模式 0.5: List Item 清單項目保護 (保留 `* `, `- `, `+ `, `1. ` 等前綴) ────
+    const listMatch = /^(\s*(?:[-*+]|\d+\.)\s+(?:\[[ xX]\]\s+)?)/.exec(originalLine);
+    if (listMatch) {
+        const prefix = listMatch[1]; // 例如 "* ", "1. ", "- [ ] "
+        const innerContent = originalLine.slice(prefix.length);
+
+        // 清除既有 span 或 directive
+        const cleanContent = innerContent
+            .replace(/^<span\b[^>]*style=["'][^"']*["'][^>]*>(.*?)<\/span>$/i, '$1')
+            .replace(directiveRegex, '')
+            .trim();
+
+        if (!hasAttrs) {
+            lines[lineIndex] = `${prefix}${cleanContent}`;
+        } else {
+            lines[lineIndex] = `${prefix}<span style="${styleCss}">${cleanContent}</span>`;
+        }
+        return lines.join('\n');
+    }
+
     // ─── 模式 1: 原生 HTML 模式 (<h1 style="...">標題</h1>) ─────────────────
     if (targetFormat === 'html') {
         if (!hasAttrs) {
@@ -404,5 +439,190 @@ export function updateLineTypography(
     }
 
     lines[lineIndex] = `${originalLine.trimEnd()} ${newDirective}`;
+    return lines.join('\n');
+}
+
+/**
+ * 輔助函數：跳脫正則表達式特殊字元
+ */
+function escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * 輔助函數：解析 CSS style 字串為物件
+ */
+export function parseCssStyleString(styleStr: string): Record<string, string> {
+    const result: Record<string, string> = {};
+    if (!styleStr) return result;
+    const rules = styleStr.split(';');
+    for (const rule of rules) {
+        const colonIdx = rule.indexOf(':');
+        if (colonIdx !== -1) {
+            const key = rule.slice(0, colonIdx).trim().toLowerCase();
+            const value = rule.slice(colonIdx + 1).trim();
+            if (key && value) {
+                result[key] = value;
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ * 輔助函數：將 CSS 物件格式化為 style 字串
+ */
+export function formatCssStyleObject(styleObj: Record<string, string>): string {
+    return Object.entries(styleObj)
+        .map(([k, v]) => `${k}: ${v};`)
+        .join(' ');
+}
+
+export interface ApplyInlineTypographyOptions {
+    markdownContent: string;
+    targetLine: number; // 1-indexed
+    selectedText: string;
+    attrs?: TypographyAttrs;
+    action?: 'apply' | 'clear';
+    occurrenceIndex?: number; // 0-indexed: 此行第幾次出現該選取文字
+}
+
+/**
+ * 精確對個別選取的行內文字套用或清除樣式（Word 級選取排版）
+ * 1. 透過 targetLine 鎖定單行，防止全域文字錯位
+ * 2. 透過 occurrenceIndex 消除同一行多個相同單字的歧義
+ * 3. 智慧檢測既有 <span style="...">，進行屬性合併而非無限巢狀
+ * 4. 支援清除樣式，乾淨還原純文字
+ */
+export function applyInlineTypographyToMarkdown(options: ApplyInlineTypographyOptions): string {
+    const {
+        markdownContent,
+        targetLine,
+        selectedText,
+        attrs = {},
+        action = 'apply',
+        occurrenceIndex = 0
+    } = options;
+
+    const trimmedSelection = selectedText.trim();
+    if (!trimmedSelection) return markdownContent;
+
+    const lines = markdownContent.split('\n');
+    const lineIndex = targetLine - 1;
+    if (lineIndex < 0 || lineIndex >= lines.length) return markdownContent;
+
+    let line = lines[lineIndex];
+
+    // 1. 建立新的 CSS 樣式清單
+    const newCssMap: Record<string, string> = {};
+    if (attrs.family) {
+        const preset = FONT_FAMILY_PRESETS.find(p => p.value === attrs.family);
+        if (preset?.css) newCssMap['font-family'] = preset.css;
+    }
+    if (attrs.size) newCssMap['font-size'] = attrs.size;
+    if (attrs.weight) newCssMap['font-weight'] = attrs.weight;
+    if (attrs.color) newCssMap['color'] = attrs.color;
+    if (attrs.bg) {
+        newCssMap['background-color'] = attrs.bg;
+        if (attrs.bg !== 'transparent') {
+            newCssMap['padding'] = '0.1em 0.3em';
+            newCssMap['border-radius'] = '0.25em';
+        }
+    }
+    if (attrs.ls) newCssMap['letter-spacing'] = attrs.ls;
+    if (attrs.lh) newCssMap['line-height'] = attrs.lh;
+
+    // 2. 檢測行中是否有「專屬包裹該選取文字」的既有 <span style="...">...</span>
+    // 關鍵：使用精確比對避免匹配到外層更大的容器 span（如清單項目或整行樣式）
+    const escapedText = escapeRegExp(trimmedSelection);
+    const exactSpanRegex = new RegExp(`<span\\b([^>]*)>(\\s*${escapedText}\\s*)<\\/span>`, 'gi');
+
+    // 尋找目標 occurrence 的專屬 span
+    let match: RegExpExecArray | null;
+    let spanMatchIndex = 0;
+    let targetSpanMatch: { full: string; attrs: string; inner: string; start: number; end: number } | null = null;
+
+    while ((match = exactSpanRegex.exec(line)) !== null) {
+        if (spanMatchIndex === occurrenceIndex) {
+            targetSpanMatch = {
+                full: match[0],
+                attrs: match[1],
+                inner: match[2],
+                start: match.index,
+                end: match.index + match[0].length
+            };
+            break;
+        }
+        spanMatchIndex++;
+    }
+
+    if (action === 'clear') {
+        if (targetSpanMatch) {
+            // 清除現有的專屬 span 包裹，還原為內部純文字（外層容器樣式得以保留）
+            line = line.slice(0, targetSpanMatch.start) + targetSpanMatch.inner + line.slice(targetSpanMatch.end);
+        }
+        lines[lineIndex] = line;
+        return lines.join('\n');
+    }
+
+    // action === 'apply'
+    if (targetSpanMatch) {
+        // 目標文字已具有專屬 span，合併其 style 屬性
+        const styleMatch = targetSpanMatch.attrs.match(/style=["']([^"']*)["']/i);
+        const existingStyles = styleMatch ? parseCssStyleString(styleMatch[1]) : {};
+        const mergedStyles = { ...existingStyles, ...newCssMap };
+        const newStyleStr = formatCssStyleObject(mergedStyles);
+
+        let newAttrs = targetSpanMatch.attrs;
+        if (styleMatch) {
+            newAttrs = newAttrs.replace(/style=["'][^"']*["']/i, `style="${newStyleStr}"`);
+        } else {
+            newAttrs = `${newAttrs} style="${newStyleStr}"`.trim();
+        }
+
+        const newSpan = `<span ${newAttrs}>${targetSpanMatch.inner}</span>`;
+        line = line.slice(0, targetSpanMatch.start) + newSpan + line.slice(targetSpanMatch.end);
+        lines[lineIndex] = line;
+        return lines.join('\n');
+    }
+
+    // 若原本不是專屬 span，在第 occurrenceIndex 個出現的位置安全包裹 <span style="...">
+    // 關鍵防護：必須避開 HTML 標籤屬性內部（如 <span style="font-family: ...">）
+    const newStyleStr = formatCssStyleObject(newCssMap);
+    const replacementSpan = `<span style="${newStyleStr}">${trimmedSelection}</span>`;
+
+    let searchIdx = -1;
+    let currentOccurrence = 0;
+    while ((searchIdx = line.indexOf(trimmedSelection, searchIdx + 1)) !== -1) {
+        // 檢查 searchIdx 是否位在任何 HTML 標籤 <...> 內部
+        const before = line.slice(0, searchIdx);
+        const lastOpen = before.lastIndexOf('<');
+        const lastClose = before.lastIndexOf('>');
+        if (lastOpen > lastClose) {
+            // 位於標籤內部（如屬性字串），跳過
+            continue;
+        }
+
+        if (currentOccurrence === occurrenceIndex) {
+            line = line.slice(0, searchIdx) + replacementSpan + line.slice(searchIdx + trimmedSelection.length);
+            lines[lineIndex] = line;
+            return lines.join('\n');
+        }
+        currentOccurrence++;
+    }
+
+    // Fallback: 若找不到指定 occurrence，替換第一個不在標籤內的出現位置
+    searchIdx = -1;
+    while ((searchIdx = line.indexOf(trimmedSelection, searchIdx + 1)) !== -1) {
+        const before = line.slice(0, searchIdx);
+        const lastOpen = before.lastIndexOf('<');
+        const lastClose = before.lastIndexOf('>');
+        if (lastOpen <= lastClose) {
+            line = line.slice(0, searchIdx) + replacementSpan + line.slice(searchIdx + trimmedSelection.length);
+            break;
+        }
+    }
+
+    lines[lineIndex] = line;
     return lines.join('\n');
 }
