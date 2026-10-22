@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, MessageSquare, Presentation } from '../ui/Icons';
+import { Download, ChevronDown, Image as ImageIcon, FileImage, FileJson, FileText, Printer, Sun, Moon, FileUp, Settings, Box, Presentation, BadgePlus } from '../ui/Icons';
 import RippleButton from '../ui/RippleButton';
 import MagneticButton from '../ui/MagneticButton';
 import InteractiveLogo from '../ui/InteractiveLogo';
@@ -8,7 +8,7 @@ interface HeaderProps {
     mode: 'mermaid' | 'markdown';
     isDarkMode: boolean;
     toggleDarkMode: (event?: React.MouseEvent) => void;
-    onDownloadMarkdown: () => void;
+    onDownloadMarkdown: (format?: 'standard' | 'enhanced') => void;
     onExportImage: (format: 'png' | 'svg' | 'jpg') => void;
     isSyncScroll: boolean;
     setIsSyncScroll: (isSync: boolean) => void;
@@ -54,26 +54,34 @@ const Header: React.FC<HeaderProps> = ({
     const downloadMenuRef = useRef<HTMLDivElement>(null);
     const [logoVariant, setLogoVariant] = useState<'v1' | 'v2'>('v1');
 
+    // ── 增強 / 通用 Markdown 匯出切換狀態 ──
+    const [isEnhancedExport, setIsEnhancedExport] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('markdown-previewer:enhanced-export') === 'true';
+        } catch {
+            return false;
+        }
+    });
+
+    const handleToggleEnhancedExport = (val: boolean) => {
+        setIsEnhancedExport(val);
+        try {
+            localStorage.setItem('markdown-previewer:enhanced-export', String(val));
+        } catch { }
+    };
+
     const [hasPushedAd, setHasPushedAd] = useState(false);
     const adContainerRef = useRef<HTMLDivElement>(null);
 
     const [syncScrollDelay, setSyncScrollDelay] = useState<string>('0ms');
-    const [commentModeDelay, setCommentModeDelay] = useState<string>('0ms');
 
-    // ── 同步多個呼吸燈按鈕時間軸的負延遲補償 ──
+    // ── 同步呼吸燈按鈕時間軸的負延遲補償 ──
     useEffect(() => {
         if (isSyncScroll && hasOpenDocuments) {
             const offset = Math.round(performance.now() % 3000);
             setSyncScrollDelay(`-${offset}ms`);
         }
     }, [isSyncScroll, hasOpenDocuments]);
-
-    useEffect(() => {
-        if (isCommentMode && hasOpenDocuments) {
-            const offset = Math.round(performance.now() % 3000);
-            setCommentModeDelay(`-${offset}ms`);
-        }
-    }, [isCommentMode, hasOpenDocuments]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -123,18 +131,27 @@ const Header: React.FC<HeaderProps> = ({
 
 
     // ── 下載選單項目的共用樣式 ──────────────────────────────
-    const menuItem = (onClick: () => void, icon: React.ReactNode, label: string, sub: string) => (
-        <button
+    const menuItem = (onClick: () => void, icon: React.ReactNode, label: string, sub: string, rightElement?: React.ReactNode) => (
+        <div
+            role="button"
+            tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
             style={{ position: 'relative', overflow: 'hidden' }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent hover:border-slate-200 dark:hover:border-white/15 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent hover:border-slate-200 dark:hover:border-white/15 transition-all cursor-pointer text-left select-none"
         >
             {icon}
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start flex-1 min-w-0">
                 <span className="font-bold">{label}</span>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase">{sub}</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase truncate max-w-full">{sub}</span>
             </div>
-        </button>
+            {rightElement}
+        </div>
     );
 
     return (
@@ -219,7 +236,7 @@ const Header: React.FC<HeaderProps> = ({
                                 <div className="w-9 h-9 bg-brand-secondary/60 dark:bg-brand-primary/30 text-brand-primary rounded-lg flex items-center justify-center"><FileJson size={18} /></div>,
                                 'SVG 向量', '解析度獨立')}
                             <div className="mx-4 my-1 border-t border-slate-100 dark:border-slate-700" />
-                            {menuItem(() => handleExport(onDownloadMarkdown),
+                            {menuItem(() => handleExport(() => onDownloadMarkdown('standard')),
                                 <div className="w-9 h-9 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center"><FileText size={18} /></div>,
                                 'Mermaid 原始碼', '.md 源碼')}
                             <div className="mx-4 my-1 border-t border-slate-100 dark:border-slate-700" />
@@ -309,25 +326,6 @@ const Header: React.FC<HeaderProps> = ({
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
 
-                    {/* 註解模式開關：註解不隨文檔導出 */}
-                    <MagneticButton
-                        onClick={() => hasOpenDocuments && setIsCommentMode?.(!isCommentMode)}
-                        title={!hasOpenDocuments ? '請先開啟文件以使用註解模式' : '開啟/關閉行號註解模式'}
-                        disabled={!hasOpenDocuments}
-                        style={{ position: 'relative', overflow: 'hidden', animationDelay: isCommentMode && hasOpenDocuments ? commentModeDelay : undefined }}
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none
-                            ${!hasOpenDocuments
-                                ? 'opacity-35 text-slate-400 dark:text-slate-600'
-                                : isCommentMode
-                                    ? 'animate-status-glow text-brand-primary shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200'
-                            }`}>
-                        <MessageSquare size={14} className={isCommentMode && hasOpenDocuments ? '' : ''} />
-                        <span>註解模式</span>
-                    </MagneticButton>
-
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
-
                     {/* 簡報模式開關 */}
                     <MagneticButton
                         onClick={() => hasOpenDocuments && setIsSlideMode?.(!isSlideMode)}
@@ -358,16 +356,38 @@ const Header: React.FC<HeaderProps> = ({
                             <ChevronDown size={14} className={`transition-transform duration-200 ${isDownloadMenuOpen ? 'rotate-180' : ''}`} />
                         </MagneticButton>
                         <div style={{
-                            position: 'absolute', right: 0, marginTop: '0.5rem', width: '18rem',
+                            position: 'absolute', right: 0, marginTop: '0.5rem', width: '21rem',
                             opacity: isDownloadMenuOpen ? 1 : 0,
                             transform: isDownloadMenuOpen ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.96)',
                             pointerEvents: isDownloadMenuOpen ? 'auto' : 'none',
                             transition: 'opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1)',
                             transformOrigin: 'top right',
                         }} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl py-2 px-2 z-50 ring-1 ring-black/5">
-                            {menuItem(() => handleExport(onDownloadMarkdown),
-                                <div className="w-9 h-9 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center"><FileText size={18} /></div>,
-                                'Markdown 檔案', '.md 源碼')}
+                            {menuItem(
+                                () => handleExport(() => onDownloadMarkdown(isEnhancedExport ? 'enhanced' : 'standard')),
+                                isEnhancedExport ? (
+                                    <div className="w-9 h-9 bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary rounded-lg flex items-center justify-center shrink-0 transition-colors">
+                                        <BadgePlus size={18} />
+                                    </div>
+                                ) : (
+                                    <div className="w-9 h-9 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center shrink-0 transition-colors">
+                                        <FileText size={18} />
+                                    </div>
+                                ),
+                                isEnhancedExport ? '增強 Markdown' : '通用 Markdown',
+                                isEnhancedExport ? '保留專屬樣式 / 換裝置相容 (.md)' : '原生寫法 / 全平台相容 (.md)',
+                                <div
+                                    className="ml-auto pl-2 shrink-0 flex items-center"
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    title={isEnhancedExport ? '點擊或拖曳切換為通用 Markdown 模式' : '點擊或拖曳切換為增強 Markdown 模式'}
+                                >
+                                    <DraggableSwitch
+                                        checked={isEnhancedExport}
+                                        onChange={handleToggleEnhancedExport}
+                                    />
+                                </div>
+                            )}
                             <div className="mx-4 my-1 border-t border-slate-100 dark:border-slate-700" />
                             {menuItem(() => handleExport(onPrint),
                                 <div className="w-9 h-9 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg flex items-center justify-center"><Printer size={18} /></div>,

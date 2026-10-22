@@ -12,7 +12,7 @@ import {
   FaDocker
 } from 'react-icons/fa6';
 import { SiYaml, SiGnubash, SiZsh, SiArduino, SiVite, SiVitest, SiDotenv, SiTypescript, SiReact, SiCplusplus, SiSharp } from "react-icons/si";
-import { LuDatabase, LuTerminal, LuFileCode, LuBraces, LuFileText } from "react-icons/lu";
+import { LuDatabase, LuTerminal, LuFileCode, LuBraces, LuFileText, LuChartLine, LuNetwork } from "react-icons/lu";
 
 // 定義 CodeHeaderProps 介面
 interface CodeHeaderProps {
@@ -79,6 +79,14 @@ const getLanguageIconData = (lang: string): { Icon: React.ComponentType<any>; co
     console: { Icon: LuTerminal, colorClass: 'text-neutral-500' },
     zsh: { Icon: SiZsh, colorClass: 'text-emerald-500' },
     log: { Icon: LuFileText, colorClass: 'text-amber-500' },
+
+    plot: { Icon: LuChartLine, colorClass: 'text-sky-500' },
+    functionplot: { Icon: LuChartLine, colorClass: 'text-sky-500' },
+    'function-plot': { Icon: LuChartLine, colorClass: 'text-sky-500' },
+    graph: { Icon: LuChartLine, colorClass: 'text-sky-500' },
+
+    mindmap: { Icon: LuNetwork, colorClass: 'text-emerald-500' },
+    markmap: { Icon: LuNetwork, colorClass: 'text-emerald-500' },
   };
 
   return mapping[langKey] || { Icon: LuFileCode, colorClass: 'text-slate-500 dark:text-neutral-400' };
@@ -90,6 +98,12 @@ const getLanguageLabel = (lang: string): string => {
   const labels: Record<string, string> = {
     json: 'JSON Spec',
     vega: 'Vega Graph',
+    plot: 'Function Plot',
+    functionplot: 'Function Plot',
+    'function-plot': 'Function Plot',
+    graph: 'Function Plot',
+    mindmap: 'Mindmap',
+    markmap: 'Mindmap',
     javascript: 'JavaScript',
     js: 'JavaScript',
     java: 'Java',

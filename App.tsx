@@ -19,6 +19,7 @@ import { usePanZoom } from './src/hooks/usePanZoom';
 import { useDocumentStorage } from './src/hooks/useDocumentStorage';
 import { hashString, debounce, calculatePreviewScrollTop, calculateEditorScrollTop } from './src/utils';
 import { detectMarkdownFeatures } from './src/utils/markdownScanner';
+import { convertAstToStandardMarkdown } from './src/utils/astExportConverter';
 import { useAppSettings } from './src/hooks/useAppSettings';
 import './src/styles/markdown-base.css';
 
@@ -1305,7 +1306,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrint, mode]);
 
-  const downloadMarkdown = () => {
+  const downloadMarkdown = (format: 'standard' | 'enhanced' = 'standard') => {
     let contentToDownload = code;
     let fileName = currentDocument?.name ? sanitizeFileName(currentDocument.name) : `document-${Date.now()}`;
 
@@ -1318,11 +1319,9 @@ const App: React.FC = () => {
             let docContent = d.content;
             if (d.mode === 'mermaid') {
               docContent = `\`\`\`mermaid\n${docContent}\n\`\`\``;
-            } else {
-              // 替換所有WikiLink為錨點連結
-              docContent = docContent.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
-                return `[${p1}](#wikilink-${encodeURIComponent(p1)})`;
-              });
+            } else if (format === 'standard') {
+              // 通用標準模式：使用 AST 轉換引擎編譯為原生 Markdown (含合併錨點跳轉)
+              docContent = convertAstToStandardMarkdown(docContent, { isMerged: true });
             }
             return `--- \n# ${d.name}\n<a id="wikilink-${encodeURIComponent(d.name)}"></a>\n\n${docContent}`;
           })
@@ -1331,12 +1330,14 @@ const App: React.FC = () => {
         const folder = folders.find(f => f.id === currentDocument.folderId);
         fileName = folder ? `${sanitizeFileName(folder.name)}-full` : `${fileName}-merged`;
       } else {
-        // 單檔匯出：原本的 WikiLink 失去作用，直接剝離 [] 轉作純文字
-        contentToDownload = code.replace(/\[\[(.*?)\]\]/g, '$1');
+        if (format === 'standard') {
+          contentToDownload = convertAstToStandardMarkdown(code, { isMerged: false });
+        }
       }
     } else {
-      // 單檔匯出：原本的 WikiLink 失去作用，直接剝離 [] 轉作純文字
-      contentToDownload = code.replace(/\[\[(.*?)\]\]/g, '$1');
+      if (format === 'standard') {
+        contentToDownload = convertAstToStandardMarkdown(code, { isMerged: false });
+      }
     }
 
     const blob = new Blob([contentToDownload], { type: 'text/markdown;charset=utf-8' });

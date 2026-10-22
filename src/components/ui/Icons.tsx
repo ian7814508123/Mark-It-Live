@@ -92,6 +92,8 @@ export {
 
   // 表格產生器相關
   LuTable as Table,
+  LuType as Type,
+  LuBadgePlus as BadgePlus,
   LuAlignLeft as AlignLeft,
   LuAlignCenter as AlignCenter,
   LuAlignRight as AlignRight,

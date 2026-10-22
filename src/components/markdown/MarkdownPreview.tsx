@@ -9,14 +9,19 @@ import { remarkWikiLink } from './remarkWikiLink';
 import { remarkPageBreak } from './remarkPageBreak';
 import remarkDirective from 'remark-directive';
 import remarkGridDirective from './remarkGridDirective';
+import remarkTypography from './remarkTypography';
 import rehypeSlideGenerator from './rehypeSlideGenerator';
 import SlideHUD from './SlideHUD';
+import { TypographyInspector } from './TypographyInspector';
+import { TypographyAttrs, parseLineTypography, updateLineTypography, parseStyleString, getElementComputedTypography, typographyAttrsToStyle } from '../../utils/typographyUtils';
+import { Type } from '../ui/Icons';
 import { useImageStorage } from '../../hooks/useImageStorage';
 import DiagramBlock from './DiagramBlock';
 import { ResizableWrapper } from '../ui/ResizableWrapper';
 import { hashString } from '../../utils';
 import { usePersistentCanvasSettings } from '../../hooks/usePersistentCanvasSettings';
 import LineCommentItem from './LineCommentItem';
+import TypographyButton from './TypographyButton';
 import { CommentProvider } from './CommentContext';
 import MagneticButton from '../ui/MagneticButton';
 import { detectMarkdownFeatures } from '../../utils/markdownScanner';
@@ -361,6 +366,8 @@ const SmilesBlock: React.FC<{ code: string; isDarkMode: boolean; isPrinting?: bo
 
 
 const AbcBlock = React.lazy(() => import('./AbcBlock'));
+const PlotBlock = React.lazy(() => import('./PlotBlock'));
+const MindmapBlock = React.lazy(() => import('./MindmapBlock'));
 
 // ─── 懶載入程式碼區塊（react-syntax-highlighter 只在有程式碼區塊時才下載）────────────────
 // 這是告知 Lighthouse「此為合法懶載入」的關鍵：
@@ -658,7 +665,7 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
     if (displayAlt.includes('|')) {
         const parts = displayAlt.split('|');
         const altText = parts[0];
-        
+
         for (let i = 1; i < parts.length; i++) {
             const part = parts[i].trim();
             if (/^\d+(px|%)?$/.test(part)) {
@@ -691,7 +698,7 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
                     parsedSrc = base;
                 }
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     // ─── 狀態持久化：加上 currentDocId 和 line 避免同圖打架 ──────────────────────────────
@@ -700,7 +707,7 @@ const ResizableImage: React.FC<ResizableImageProps> = ({ src, alt, line, current
         const lineSuffix = line !== undefined ? `:line:${line}` : '';
         return `chart-size-img:${docPrefix}${lineSuffix}:${parsedSrc}`;
     }, [parsedSrc, line, currentDocId]);
-    
+
     const { width, align, updateWidth, updateAlign, reset } = usePersistentCanvasSettings(storageKey);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -931,8 +938,96 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
     const renderContextRef = useRef<any>(null);
 
-    // ─── wrapWithComment：在 block 元素旁插入行內評論組件與 hover 提示 ────────────
-    const wrapWithComment = useCallback((node: any, children: React.ReactNode, className: string = '') => {
+    // ─── 排版微調 Inspector 狀態管理 ──────────────────────────────────────────
+    const [typographyState, setTypographyState] = useState<{
+        isOpen: boolean;
+        targetLine: number;
+        tagName: string;
+        targetRect: DOMRect | null;
+        targetElement: HTMLElement | null;
+        initialAttrs: TypographyAttrs;
+        lineContent?: string;
+    }>({
+        isOpen: false,
+        targetLine: 0,
+        tagName: '',
+        targetRect: null,
+        targetElement: null,
+        initialAttrs: {},
+        lineContent: '',
+    });
+
+    const handleOpenTypography = useCallback((
+        line: number,
+        tagName: string,
+        targetEl: HTMLElement,
+        existingAttrs?: TypographyAttrs
+    ) => {
+        if (isSlideMode) return;
+        const lineContent = (renderContextRef.current?.content || content)?.split('\n')?.[line - 1] || '';
+        const parsedAttrs = existingAttrs && Object.keys(existingAttrs).length > 0
+            ? existingAttrs
+            : parseLineTypography(lineContent);
+
+        // 打開面板前先讀取文字當下在 DOM 中的 Computed Style，避免與主題預設值脫節（如 2.4rem 顯示成 16px）
+        const computedAttrs = targetEl ? getElementComputedTypography(targetEl) : {};
+
+        setTypographyState({
+            isOpen: true,
+            targetLine: line,
+            tagName: tagName.toUpperCase(),
+            targetRect: targetEl ? targetEl.getBoundingClientRect() : null,
+            targetElement: targetEl || null,
+            initialAttrs: {
+                ...computedAttrs,
+                ...parsedAttrs,
+            },
+            lineContent,
+        });
+    }, [content, isSlideMode]);
+
+    const handleApplyTypography = useCallback((attrs: TypographyAttrs, targetFormat: 'directive' | 'html' = 'html') => {
+        const targetLine = typographyState.targetLine;
+        if (!targetLine) return;
+        const currentContent = renderContextRef.current?.content || content;
+        const currentDoc = renderContextRef.current?.currentDocId || currentDocId;
+        const updateFn = renderContextRef.current?.onUpdateContent || onUpdateContent;
+
+        if (updateFn && currentContent && currentDoc) {
+            const newContent = updateLineTypography(currentContent, targetLine, attrs, targetFormat);
+            updateFn(currentDoc, newContent);
+        }
+    }, [typographyState.targetLine, content, currentDocId, onUpdateContent]);
+
+    const handleResetTypography = useCallback(() => {
+        const targetLine = typographyState.targetLine;
+        if (!targetLine) return;
+        const currentContent = renderContextRef.current?.content || content;
+        const currentDoc = renderContextRef.current?.currentDocId || currentDocId;
+        const updateFn = renderContextRef.current?.onUpdateContent || onUpdateContent;
+
+        if (updateFn && currentContent && currentDoc) {
+            const newContent = updateLineTypography(currentContent, targetLine, {}, 'html');
+            updateFn(currentDoc, newContent);
+        }
+        setTypographyState(prev => ({ ...prev, isOpen: false }));
+    }, [typographyState.targetLine, content, currentDocId, onUpdateContent]);
+
+    // 簡報模式啟用時，立即關閉開啟中的排版微調彈窗
+    useEffect(() => {
+        if (isSlideMode && typographyState.isOpen) {
+            setTypographyState(prev => ({ ...prev, isOpen: false, targetElement: null, targetRect: null }));
+        }
+    }, [isSlideMode, typographyState.isOpen]);
+
+    // ─── wrapWithComment：在 block 元素旁插入行內評論組件、排版微調按鈕與 hover 提示 ────────────
+    const wrapWithComment = useCallback((
+        node: any,
+        children: React.ReactNode,
+        className: string = '',
+        tagName?: string,
+        typographyData?: TypographyAttrs
+    ) => {
         const line = node?.position?.start?.line;
         const hasComment = !!lineComments[line];
 
@@ -944,48 +1039,50 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                         return <>{children}</>;
                     }
 
+                    const isTypoActive = typographyState.isOpen && typographyState.targetLine === line;
+
                     return (
                         <IsInBlockContext.Provider value={true}>
-                            <div className={`relative group/line ${className}`} data-line={line}>
+                            <div className={`relative group/line ${className} ${isTypoActive ? 'z-30' : ''}`} data-line={line}>
                                 {children}
 
-                                {/* ─── Hover 提示 Badge（非評論模式 & 有評論時顯示） ──── */}
-                                {!isCommentMode && hasComment && (
+                                {/* ─── 行動作列：排版調整按鈕 + 註解按鈕（簡報模式與列印時隱藏，免開模式隨時可用） ──── */}
+                                {!isPrinting && !isSlideMode && (
                                     <div
-                                        aria-label={`第 ${line} 行有評論`}
-                                        className="
-                                            absolute left-full ml-2 top-1/2 -translate-y-1/2
-                                            opacity-0 group-hover/line:opacity-100
-                                            pointer-events-none
-                                            transition-opacity duration-150
-                                            flex items-center gap-1
-                                            px-1.5 py-0.5 rounded-full
-                                            bg-brand-primary/15 dark:bg-brand-primary/25
-                                            border border-brand-primary/30 dark:border-brand-primary/50
-                                            text-brand-primary text-[9px] font-bold
-                                            select-none z-10 print:hidden
-                                        "
+                                        className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 transition-opacity duration-150 flex items-center gap-1 print:hidden ${
+                                            isTypoActive || hasComment
+                                                ? 'opacity-100'
+                                                : 'opacity-0 group-hover/line:opacity-100'
+                                        }`}
                                     >
-                                        <span>💬</span>
-                                        <span>#{line}</span>
-                                    </div>
-                                )}
+                                            {/* 1. 排版微調按鈕（標題與段落） */}
+                                            {tagName && (
+                                                <TypographyButton
+                                                    line={line}
+                                                    tagName={tagName}
+                                                    typographyData={typographyData}
+                                                    isActive={isTypoActive}
+                                                    hasComment={hasComment}
+                                                    onOpen={handleOpenTypography}
+                                                />
+                                            )}
 
-                                {/* ─── 評論操作組件（評論模式 or 有評論時掛載） ─────────── */}
-                                <LineCommentItem
-                                    line={line}
-                                    comment={lineComments[line]}
-                                    isCommentMode={isCommentMode}
-                                    currentDocId={currentDocId ?? null}
-                                    onUpdateLineComment={onUpdateLineComment}
-                                />
+                                            {/* 2. 註解按鈕（緊鄰排版按鈕，免切換全域模式隨時可用） */}
+                                            <LineCommentItem
+                                                line={line}
+                                                comment={lineComments[line]}
+                                                currentDocId={currentDocId ?? null}
+                                                onUpdateLineComment={onUpdateLineComment}
+                                            />
+                                        </div>
+                                )}
                             </div>
                         </IsInBlockContext.Provider>
                     );
                 }}
             </IsInBlockContext.Consumer>
         );
-    }, [lineComments, isCommentMode, currentDocId, onUpdateLineComment]);
+    }, [lineComments, isCommentMode, currentDocId, onUpdateLineComment, handleOpenTypography, isPrinting, typographyState.isOpen, typographyState.targetLine, isSlideMode]);
 
     // 🛠️ 同步更新渲染上下文 (Ref)，確保 ReactMarkdown 中的 Memoized 子組件能讀取到最新狀態，
     // 同時避免因為 components 物件 identity 改變而觸發整個 Markdown 樹重掛。
@@ -1077,6 +1174,24 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 if (language === 'vega' || language === 'vega-lite') return wrapWithComment(node, <div key={stableKey} className="not-prose"><VegaBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
                 if (language === 'smiles') return wrapWithComment(node, <div key={stableKey} className="not-prose"><SmilesBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div>);
                 if (language === 'abc') return wrapWithComment(node, <React.Suspense key={stableKey} fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">樂譜加載中...</div>}><div className="not-prose"><AbcBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} /></div></React.Suspense>);
+                if (language === 'plot' || language === 'functionplot' || language === 'function-plot' || language === 'graph') {
+                    return wrapWithComment(node, (
+                        <React.Suspense key={stableKey} fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">📈 函數圖加載中...</div>}>
+                            <div className="not-prose">
+                                <PlotBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} />
+                            </div>
+                        </React.Suspense>
+                    ));
+                }
+                if (language === 'mindmap' || language === 'markmap') {
+                    return wrapWithComment(node, (
+                        <React.Suspense key={stableKey} fallback={<div className="p-4 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">🧠 心智圖加載中...</div>}>
+                            <div className="not-prose">
+                                <MindmapBlock code={codeString} isDarkMode={ctx.shouldShowDark} isPrinting={ctx.isPrinting} />
+                            </div>
+                        </React.Suspense>
+                    ));
+                }
 
                 return wrapWithComment(node, (
                     <div key={stableKey} className="code-block-wrapper not-prose">
@@ -1092,14 +1207,248 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             }
             return <code className={`${className || ''} inline-code`} {...props} data-line={line}>{children}</code>;
         },
-        // ─── 注入 Line Number 以實現精準同步捲動 ───────────────────────────────────
-        p: ({ node, ...props }: any) => wrapWithComment(node, <div className="mb-4 last:mb-0" {...props} />),
-        h1: ({ node, ...props }: any) => wrapWithComment(node, <h1 {...props} />),
-        h2: ({ node, ...props }: any) => wrapWithComment(node, <h2 {...props} />),
-        h3: ({ node, ...props }: any) => wrapWithComment(node, <h3 {...props} />),
-        h4: ({ node, ...props }: any) => wrapWithComment(node, <h4 {...props} />),
-        h5: ({ node, ...props }: any) => wrapWithComment(node, <h5 {...props} />),
-        h6: ({ node, ...props }: any) => wrapWithComment(node, <h6 {...props} />),
+        // ─── 注入 Line Number 與 排版雙邊點擊調整 ───────────────────────────────────
+        p: ({ node, ...props }: any) => {
+            // 若為 blockquote / alert 中的段落，其 children[0] 的行號通常才是內文真正所在的行（避免與開頭 [!NOTE] 混淆）
+            const firstChildLine = node?.children?.[0]?.position?.start?.line;
+            const line = (firstChildLine && firstChildLine > (node?.position?.start?.line || 0))
+                ? firstChildLine
+                : (node?.position?.start?.line);
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <div
+                    className={`mb-4 last:mb-0 transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, firstChildLine && firstChildLine > (node?.position?.start?.line || 0) ? 'Alert 內文' : '段落', e.currentTarget, typoData);
+                    }}
+                />,
+                '',
+                isSlideMode ? undefined : (firstChildLine && firstChildLine > (node?.position?.start?.line || 0) ? 'Alert 內文' : '段落'),
+                typoData
+            );
+        },
+        h1: ({ node, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <h1
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, 'h1', e.currentTarget, typoData);
+                    }}
+                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                />,
+                '',
+                isSlideMode ? undefined : 'h1',
+                typoData
+            );
+        },
+        h2: ({ node, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <h2
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, 'h2', e.currentTarget, typoData);
+                    }}
+                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                />,
+                '',
+                isSlideMode ? undefined : 'h2',
+                typoData
+            );
+        },
+        h3: ({ node, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <h3
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, 'h3', e.currentTarget, typoData);
+                    }}
+                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                />,
+                '',
+                isSlideMode ? undefined : 'h3',
+                typoData
+            );
+        },
+        h4: ({ node, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <h4
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, 'h4', e.currentTarget, typoData);
+                    }}
+                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                />,
+                '',
+                isSlideMode ? undefined : 'h4',
+                typoData
+            );
+        },
+        h5: ({ node, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <h5
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, 'h5', e.currentTarget, typoData);
+                    }}
+                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                />,
+                '',
+                isSlideMode ? undefined : 'h5',
+                typoData
+            );
+        },
+        h6: ({ node, ...props }: any) => {
+            const line = node?.position?.start?.line;
+            const styleObj = parseStyleString(props.style);
+            const rawTypo = props?.['data-typography'] || props?.dataTypography || node?.properties?.['data-typography'] || node?.data?.hProperties?.['data-typography'];
+            let typoData: TypographyAttrs | undefined;
+            if (rawTypo) {
+                typoData = typeof rawTypo === 'object' ? rawTypo : (() => { try { return JSON.parse(rawTypo); } catch { return undefined; } })();
+            }
+            const { dataTypography, 'data-typography': _dt, ...domProps } = props;
+            const isActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
+            return wrapWithComment(
+                node,
+                <h6
+                    {...domProps}
+                    style={styleObj}
+                    onClick={isSlideMode ? undefined : (e) => {
+                        const sel = window.getSelection()?.toString();
+                        if (sel && sel.length > 0) return;
+                        if (line) handleOpenTypography(line, 'h6', e.currentTarget, typoData);
+                    }}
+                    className={`${props.className || ''} transition-all ${isSlideMode ? '' : 'cursor-pointer rounded-xs'} ${!isSlideMode && isActive
+                        ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs'
+                        : !isSlideMode
+                            ? 'hover:opacity-90 hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40'
+                            : ''
+                        }`}
+                    title={isSlideMode ? undefined : "點擊自訂字體與排版樣式"}
+                />,
+                '',
+                isSlideMode ? undefined : 'h6',
+                typoData
+            );
+        },
         ul: ({ node, ...props }: any) => <ul {...props} />,
         ol: ({ node, ...props }: any) => <ol {...props} />,
         li: ({ node, ...props }: any) => wrapWithComment(node, <li {...props} />),
@@ -1114,9 +1463,30 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 const config = alertConfig[alertType] || alertConfig.note;
                 const titleToDisplay = alertTitle || config.label;
 
+                // 讀取當前 Alert 標題行 (Line 1) 的排版設定 (:font{...} 或 span)
+                const currentContent = renderContextRef.current?.content || content;
+                const alertHeaderLine = (line && currentContent) ? (currentContent.split('\n')[line - 1] || '') : '';
+                const titleTypoAttrs = parseLineTypography(alertHeaderLine);
+                const titleStyleFromLine = typographyAttrsToStyle(titleTypoAttrs);
+
+                // 支援解析 Alert 標題內的 span 樣式（向後相容）
+                const spanStyleMatch = typeof titleToDisplay === 'string'
+                    ? /^<span\b[^>]*style=["']([^"']*)["'][^>]*>(.*?)<\/span>$/i.exec(titleToDisplay.trim())
+                    : null;
+                const mergedTitleStyle = {
+                    ...(spanStyleMatch ? parseStyleString(spanStyleMatch[1]) : {}),
+                    ...titleStyleFromLine
+                };
+                const cleanTitleText = spanStyleMatch ? spanStyleMatch[2] : titleToDisplay;
+
+                const rawTitleTypo = {
+                    ...titleTypoAttrs,
+                    ...(spanStyleMatch ? parseLineTypography(titleToDisplay) : {}),
+                };
+                const isTitleActive = !isSlideMode && typographyState.isOpen && typographyState.targetLine === line;
+
                 // 過濾掉不該直接傳遞到 blockquote DOM 上的自訂屬性，防止 React 在 Console 報 Custom Property Warning
                 const { dataAlertType, dataAlertTitle, ...domProps } = props;
-
 
                 return wrapWithComment(node, (
                     <blockquote
@@ -1124,12 +1494,20 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                         className={`markdown-alert ${config.className}`}
                         data-line={line}
                     >
-                        <div className="markdown-alert-title">
+                        <div
+                            className={`markdown-alert-title ${isSlideMode ? '' : 'cursor-pointer select-none transition-all'} ${!isSlideMode && isTitleActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 rounded-xs' : !isSlideMode ? 'hover:outline-dashed hover:outline-1 hover:outline-brand-primary/40 rounded-xs' : ''}`}
+                            onClick={isSlideMode ? undefined : (e) => {
+                                const sel = window.getSelection()?.toString();
+                                if (sel && sel.length > 0) return;
+                                if (line) handleOpenTypography(line, 'Alert 標題', e.currentTarget, rawTitleTypo);
+                            }}
+                            title={isSlideMode ? undefined : "點擊自訂 Alert 標題排版樣式"}
+                        >
                             <React.Suspense fallback={<div className="w-3.5 h-3.5 mr-1.5 inline-block animate-pulse bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />}>
                                 <LazyAlertIcon type={alertType} />
                             </React.Suspense>
 
-                            <strong>{titleToDisplay}</strong>
+                            <strong style={mergedTitleStyle}>{cleanTitleText}</strong>
                         </div>
                         <div className="markdown-alert-content">
                             {children}
@@ -1374,7 +1752,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 </div>
             );
         },
-    }), [wrapWithComment, urlTransform, shouldBlock, handleAllowOnce, handleTrustDomain]);
+    }), [wrapWithComment, urlTransform, shouldBlock, handleAllowOnce, handleTrustDomain, typographyState.isOpen, typographyState.targetLine, isSlideMode]);
 
     // 監聽圖片載入完成，若有必要可觸發同步刷新
     useEffect(() => {
@@ -1423,6 +1801,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             if (features.hasMermaid) import('mermaid').catch(() => { });
             if (features.hasVega) import('vega-embed').catch(() => { });
             if (features.hasAbc) import('./AbcBlock').catch(() => { });
+            if (features.hasPlot) import('./PlotBlock').catch(() => { });
+            if (features.hasMindmap) import('./MindmapBlock').catch(() => { });
         });
     }, [content, isActuallyPrinting]);
 
@@ -1646,7 +2026,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             >
                 <div className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective]}
+                        remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective, remarkTypography]}
                         rehypePlugins={[rehypeRaw, [rehypeSlideGenerator, { isSlideMode }]]}
                         remarkRehypeOptions={remarkRehypeOptions}
                         components={components}
@@ -1664,6 +2044,24 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     />
                 )}
             </div>
+
+            {/* ─── 雙邊排版微調 Inspector 浮動控制面板 ──────────────────────── */}
+            <TypographyInspector
+                isOpen={typographyState.isOpen}
+                onClose={() => setTypographyState(prev => ({ ...prev, isOpen: false, targetElement: null }))}
+                targetLine={typographyState.targetLine}
+                tagName={typographyState.tagName}
+                targetRect={typographyState.targetRect}
+                targetElement={typographyState.targetElement}
+                initialAttrs={typographyState.initialAttrs}
+                lineContent={
+                    typographyState.isOpen && typographyState.targetLine
+                        ? ((renderContextRef.current?.content || content)?.split('\n')?.[typographyState.targetLine - 1] ?? typographyState.lineContent)
+                        : typographyState.lineContent
+                }
+                onApply={handleApplyTypography}
+                onReset={handleResetTypography}
+            />
         </CommentProvider>
     );
 };

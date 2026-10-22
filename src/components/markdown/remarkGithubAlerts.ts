@@ -84,20 +84,77 @@ export function remarkGithubAlerts() {
                     }
                 }
             } else if (firstNode.type === 'text') {
-                // 處理標準 [!TYPE] 或 [TYPE] 語法。只匹配方括號本身，後面的字當作普通內文
                 const value = firstNode.value;
-                const match = value.match(/^\s*\[!\s*([a-z0-9_-]+)\s*\](?:\s*\n)?/i) ||
-                    value.match(/^\s*\[\s*([a-z0-9_-]+)\s*\](?:\s*\n)?/i);
+                // 1. 先匹配單一節點內含完整括號的 [!TYPE](Title) 或 [TYPE](Title)
+                const matchWithTitle = value.match(/^\s*\[!\s*([a-z0-9_-]+)\s*\]\((.*?)\)(?:\s*\n)?/i) ||
+                    value.match(/^\s*\[\s*([a-z0-9_-]+)\s*\]\((.*?)\)(?:\s*\n)?/i);
 
-                if (match) {
-                    const originalType = match[1].toLowerCase();
+                if (matchWithTitle) {
+                    const originalType = matchWithTitle[1].toLowerCase();
                     if (supportedTypes.has(originalType)) {
                         alertType = originalType;
-                        matchedLength = match[0].length;
-                        hasNewline = match[0].includes('\n');
+                        matchedLength = matchWithTitle[0].length;
+                        hasNewline = matchWithTitle[0].includes('\n');
                         remainingValue = value.slice(matchedLength);
-                        // 沒有括號語法，所以此處自訂標題為空
-                        alertTitle = '';
+                        alertTitle = matchWithTitle[2] ? matchWithTitle[2].trim() : '';
+                    }
+                } else {
+                    // 2. 檢查是否是 [!TYPE]( 開頭但右括號被 HTML 標籤截斷到後續節點
+                    const openMatch = value.match(/^\s*\[!\s*([a-z0-9_-]+)\s*\]\(/i) ||
+                        value.match(/^\s*\[\s*([a-z0-9_-]+)\s*\]\(/i);
+
+                    if (openMatch) {
+                        const originalType = openMatch[1].toLowerCase();
+                        if (supportedTypes.has(originalType)) {
+                            alertType = originalType;
+                            let closeNodeIdx = -1;
+                            let closeParenOffset = -1;
+
+                            for (let i = 1; i < firstChild.children.length; i++) {
+                                const child = firstChild.children[i];
+                                if (child.type === 'text' && child.value.includes(')')) {
+                                    closeNodeIdx = i;
+                                    closeParenOffset = child.value.indexOf(')');
+                                    break;
+                                }
+                            }
+
+                            if (closeNodeIdx !== -1) {
+                                let collectedTitle = '';
+                                for (let i = 1; i < closeNodeIdx; i++) {
+                                    const ch = firstChild.children[i];
+                                    collectedTitle += ch.value || '';
+                                }
+                                const closeNode = firstChild.children[closeNodeIdx];
+                                collectedTitle += closeNode.value.slice(0, closeParenOffset);
+                                closeNode.value = closeNode.value.slice(closeParenOffset + 1);
+
+                                // 清除中介節點
+                                firstChild.children.splice(1, closeNodeIdx - 1);
+                                if (closeNode.value.trim() === '') {
+                                    firstChild.children.splice(1, 1);
+                                }
+
+                                alertTitle = collectedTitle.trim();
+                                firstChild.children.shift();
+                                isLinkSyntax = true;
+                            }
+                        }
+                    } else {
+                        // 3. 標準 [!TYPE]（無括號標題）
+                        const matchNoTitle = value.match(/^\s*\[!\s*([a-z0-9_-]+)\s*\](?:\s*\n)?/i) ||
+                            value.match(/^\s*\[\s*([a-z0-9_-]+)\s*\](?:\s*\n)?/i);
+
+                        if (matchNoTitle) {
+                            const originalType = matchNoTitle[1].toLowerCase();
+                            if (supportedTypes.has(originalType)) {
+                                alertType = originalType;
+                                matchedLength = matchNoTitle[0].length;
+                                hasNewline = matchNoTitle[0].includes('\n');
+                                remainingValue = value.slice(matchedLength);
+                                alertTitle = '';
+                            }
+                        }
                     }
                 }
             }

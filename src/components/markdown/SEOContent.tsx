@@ -61,9 +61,11 @@ const SEOContent: React.FC = () => {
         <li>自訂 LaTeX 巨集 - 支援自定義常用的數學表示法</li>
       </ul>
 
-      <h3>4. Vega-Lite 數據可視化圖表</h3>
+      <h3>4. Vega-Lite 數據圖表、Plot 函數曲線與 Mindmap 心智圖</h3>
       <ul>
         <li>互動式數據圖表 - 在 Markdown 中直接嵌入折線圖、柱狀圖與散點圖</li>
+        <li>2D 數學函數圖 (Plot) - 支援即時繪製三角函數、多項式曲線與自訂座標範圍</li>
+        <li>互動式心智圖 (Mindmap) - 以 Markdown 階層標題即時生成可折疊縮放的心智樹狀圖</li>
         <li>數據即時轉換 - 支援在代碼塊中進行數據聚合與呈現</li>
       </ul>
 

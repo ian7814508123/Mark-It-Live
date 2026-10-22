@@ -76,7 +76,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         scrollLoopFn: null,
     });
 
-    // 初始化側邊欄廣告
+    /* 初始化側邊欄廣告
     useEffect(() => {
         if (isOpen && !hasPushedAd) {
             let retryCount = 0;
@@ -103,6 +103,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             return () => clearTimeout(timer);
         }
     }, [isOpen, hasPushedAd]);
+    */
 
     const toggleFolder = (folderId: string) => {
         setExpandedFolders(prev => {

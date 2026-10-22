@@ -20,6 +20,10 @@ export interface MarkdownFeatures {
     hasSmiles: boolean;
     /** 是否包含 ABC 樂譜語法 ```abc */
     hasAbc: boolean;
+    /** 是否包含 Plot 函數圖語法 ```plot 或 ```function-plot */
+    hasPlot: boolean;
+    /** 是否包含 Mindmap 心智圖語法 ```mindmap 或 ```markmap */
+    hasMindmap: boolean;
     /** 是否包含 LaTeX 數學式（行間或行內） */
     hasMath: boolean;
     /** 是否包含 WikiLink 語法 [[...]] */
@@ -34,6 +38,8 @@ export const EMPTY_FEATURES: MarkdownFeatures = Object.freeze({
     hasVega: false,
     hasSmiles: false,
     hasAbc: false,
+    hasPlot: false,
+    hasMindmap: false,
     hasMath: false,
     hasWikiLink: false,
     hasLocalImage: false,
@@ -70,6 +76,12 @@ export function detectMarkdownFeatures(content: string): MarkdownFeatures {
         // 偵測 ```abc 代碼圍欄
         hasAbc: /^[ \t]*```[ \t]*abc/im.test(content),
 
+        // 偵測 ```plot 或 ```function-plot 代碼圍欄
+        hasPlot: /^[ \t]*```[ \t]*(?:plot|function-?plot|graph)/im.test(content),
+
+        // 偵測 ```mindmap 或 ```markmap 代碼圍欄
+        hasMindmap: /^[ \t]*```[ \t]*(?:mindmap|markmap)/im.test(content),
+
         // 偵測 LaTeX 數學語法：
         // - 行間公式：$$...$$  或 \[...\]
         // - 行內公式：$...$（需排除 $$，且不為行首的單獨 $）
@@ -97,6 +109,8 @@ export function areFeaturesEqual(a: MarkdownFeatures, b: MarkdownFeatures): bool
         a.hasVega === b.hasVega &&
         a.hasSmiles === b.hasSmiles &&
         a.hasAbc === b.hasAbc &&
+        a.hasPlot === b.hasPlot &&
+        a.hasMindmap === b.hasMindmap &&
         a.hasMath === b.hasMath &&
         a.hasWikiLink === b.hasWikiLink &&
         a.hasLocalImage === b.hasLocalImage
