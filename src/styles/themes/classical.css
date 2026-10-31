@@ -21,12 +21,12 @@
     --theme-heading-color: #111111;
     /* 濃墨黑 */
     --theme-heading-weight: 700;
-    --theme-h1-size: 2.6rem;
-    --theme-h2-size: 1.85rem;
-    --theme-h3-size: 1.45rem;
-    --theme-h4-size: 1.25rem;
-    --theme-h5-size: 1.15rem;
-    --theme-h6-size: 1.05rem;
+    --theme-h1-size: 42px;
+    --theme-h2-size: 30px;
+    --theme-h3-size: 23px;
+    --theme-h4-size: 20px;
+    --theme-h5-size: 18px;
+    --theme-h6-size: 17px;
     --theme-h1-border: none;
     --theme-h2-border: 1px dashed #b22222;
     /* 硃砂紅虛線底邊 */

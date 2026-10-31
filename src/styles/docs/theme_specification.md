@@ -265,12 +265,12 @@
     --theme-heading-font: system-ui, -apple-system, sans-serif;
     --theme-heading-color: #1e293b;
     --theme-heading-weight: 800;
-    --theme-h1-size: 2.5rem;
-    --theme-h2-size: 1.85rem;
-    --theme-h3-size: 1.45rem;
-    --theme-h4-size: 1.25rem;
-    --theme-h5-size: 1.1rem;
-    --theme-h6-size: 1rem;
+    --theme-h1-size: 40px;
+    --theme-h2-size: 30px;
+    --theme-h3-size: 23px;
+    --theme-h4-size: 20px;
+    --theme-h5-size: 18px;
+    --theme-h6-size: 16px;
     --theme-h1-border: none;
     --theme-h2-border: none;
     --theme-h1-transform: none;

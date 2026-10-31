@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
     Bold, Palette, Highlighter, Eraser, Type, ChevronDown, Check
 } from '../ui/Icons';
@@ -7,6 +7,8 @@ import { TypographyAttrs, PRESET_COLORS, HIGHLIGHT_COLORS } from '../../utils/ty
 export interface FloatingSelectionToolbarProps {
     isOpen: boolean;
     position: { top: number; left: number };
+    selectionRect?: DOMRect | null;
+    containerRect?: DOMRect | null;
     selectedText: string;
     targetLine: number;
     currentAttrs?: TypographyAttrs;
@@ -28,6 +30,8 @@ const QUICK_FONT_SIZES = [
 export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> = ({
     isOpen,
     position,
+    selectionRect,
+    containerRect,
     selectedText,
     targetLine,
     currentAttrs = {},
@@ -59,6 +63,66 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
         }
     }, [activePopup]);
 
+    // ─── 容器與視窗邊界感應計算（自動避讓容器頂部與兩側） ─────────────────────────
+    const layout = useMemo(() => {
+        if (!isOpen) return { top: position.top, left: position.left, transform: 'translate(-50%, -100%)', popupDirection: 'up' as const };
+
+        const TOOLBAR_WIDTH = 290;
+        const TOOLBAR_HEIGHT = 42;
+        const POPUP_HEIGHT = 220; // 字級/顏色選單預估高度
+        const GAP = 10;
+        const TOP_SAFE_MARGIN = 62; // 避開頂部導航列
+
+        // 取得預覽容器與視窗的有效邊界
+        const cTop = Math.max(TOP_SAFE_MARGIN, containerRect?.top ?? TOP_SAFE_MARGIN);
+        const cBottom = containerRect ? Math.min(window.innerHeight, containerRect.bottom) : window.innerHeight;
+        const cLeft = containerRect?.left ?? 0;
+        const cRight = containerRect ? Math.min(window.innerWidth, containerRect.right) : window.innerWidth;
+
+        // 1. 垂直避讓：判斷上方是否有足夠空間容納工具列本體
+        const selTop = selectionRect ? selectionRect.top : position.top;
+        const selBottom = selectionRect ? selectionRect.bottom : position.top + 20;
+
+        const spaceAbove = selTop - cTop;
+        const placeAbove = spaceAbove >= (TOOLBAR_HEIGHT + GAP);
+
+        let finalTop: number;
+        let transform: string;
+
+        if (placeAbove) {
+            // 工具列置於文字上方
+            finalTop = selTop - GAP;
+            transform = 'translate(-50%, -100%)';
+        } else {
+            // 工具列翻轉至文字下方（避免衝出預覽容器頂端）
+            finalTop = Math.min(cBottom - TOOLBAR_HEIGHT, selBottom + GAP);
+            transform = 'translate(-50%, 0)';
+        }
+
+        // 2. 水平避讓：嚴格 Clamp 在預覽容器左右邊框之內
+        const halfWidth = TOOLBAR_WIDTH / 2;
+        const minX = cLeft + halfWidth + 8;
+        const maxX = cRight - halfWidth - 8;
+
+        const targetX = selectionRect ? (selectionRect.left + selectionRect.width / 2) : position.left;
+        const finalLeft = minX <= maxX ? Math.max(minX, Math.min(maxX, targetX)) : (cLeft + (cRight - cLeft) / 2);
+
+        // 3. 子選單（字級、顏色、螢光筆）彈出方向智能偵測
+        // 算出工具列本身最終在視窗中的絕對頂部 Y 座標
+        const toolbarActualTop = placeAbove ? (finalTop - TOOLBAR_HEIGHT) : finalTop;
+        const spaceAboveToolbar = toolbarActualTop - cTop;
+
+        // 若工具列上方空間不足以展開 220px 的選單，子選單改為「向下彈出」
+        const popupDirection = spaceAboveToolbar >= POPUP_HEIGHT ? 'up' : 'down';
+
+        return {
+            top: finalTop,
+            left: finalLeft,
+            transform,
+            popupDirection,
+        };
+    }, [isOpen, position, selectionRect, containerRect]);
+
     if (!isOpen) return null;
 
     const isBold = currentAttrs.weight === 'bold' || currentAttrs.weight === '700';
@@ -69,9 +133,9 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
             data-floating-toolbar="true"
             className="fixed z-50 flex items-center gap-0.5 p-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-700/90 rounded-xl shadow-xl shadow-slate-900/15 text-slate-700 dark:text-slate-200 text-xs animate-in fade-in zoom-in-95 duration-150 select-none"
             style={{
-                top: `${position.top}px`,
-                left: `${position.left}px`,
-                transform: 'translate(-50%, -100%) translateY(-10px)',
+                top: `${layout.top}px`,
+                left: `${layout.left}px`,
+                transform: layout.transform,
             }}
             onMouseDown={(e) => {
                 // 關鍵：阻止 mousedown 預設行為，保留預覽區文字反白選取狀態
@@ -93,7 +157,13 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
                 </button>
 
                 {activePopup === 'size' && (
-                    <div className="absolute left-0 bottom-full mb-1.5 w-28 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50 animate-in fade-in duration-100">
+                    <div
+                        className={`absolute left-0 ${
+                            layout.popupDirection === 'down'
+                                ? 'top-full mt-1.5'
+                                : 'bottom-full mb-1.5'
+                        } w-28 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1 z-50 animate-in fade-in duration-100 max-h-56 overflow-y-auto`}
+                    >
                         {QUICK_FONT_SIZES.map((sz) => (
                             <button
                                 key={sz.value}
@@ -152,7 +222,13 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
                 </button>
 
                 {activePopup === 'color' && (
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 animate-in fade-in duration-100">
+                    <div
+                        className={`absolute left-1/2 -translate-x-1/2 ${
+                            layout.popupDirection === 'down'
+                                ? 'top-full mt-1.5'
+                                : 'bottom-full mb-1.5'
+                        } p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in duration-100`}
+                    >
                         <div className="text-[10px] font-bold text-slate-400 mb-1.5">文字色彩</div>
                         <div className="grid grid-cols-5 gap-1.5 w-36">
                             {PRESET_COLORS.map((c) => (
@@ -194,7 +270,13 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
                 </button>
 
                 {activePopup === 'highlight' && (
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 animate-in fade-in duration-100">
+                    <div
+                        className={`absolute left-1/2 -translate-x-1/2 ${
+                            layout.popupDirection === 'down'
+                                ? 'top-full mt-1.5'
+                                : 'bottom-full mb-1.5'
+                        } p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in duration-100`}
+                    >
                         <div className="text-[10px] font-bold text-slate-400 mb-1.5">螢光筆色彩</div>
                         <div className="flex items-center gap-1.5">
                             {HIGHLIGHT_COLORS.map((h) => (

@@ -14,12 +14,12 @@
     --theme-heading-font: "Impact", "Arial Black", system-ui, sans-serif;
     --theme-heading-color: #ff00ff;
     --theme-heading-weight: 900;
-    --theme-h1-size: 2.3rem;
-    --theme-h2-size: 1.8rem;
-    --theme-h3-size: 1.5rem;
-    --theme-h4-size: 1.25rem;
-    --theme-h5-size: 1.1rem;
-    --theme-h6-size: 1rem;
+    --theme-h1-size: 37px;
+    --theme-h2-size: 29px;
+    --theme-h3-size: 24px;
+    --theme-h4-size: 20px;
+    --theme-h5-size: 18px;
+    --theme-h6-size: 16px;
     --theme-h1-border: none;
     --theme-h2-border: 3px solid #39ff14;
     --theme-h1-transform: uppercase;

@@ -11,7 +11,8 @@ import remarkDirective from 'remark-directive';
 import remarkGridDirective from './remarkGridDirective';
 import remarkTypography from './remarkTypography';
 import rehypeSlideGenerator from './rehypeSlideGenerator';
-import SlideHUD from './SlideHUD';
+import rehypeSlideScaleInlineStyles, { scaleStyleObjectForSlide } from './rehypeSlideScaleInlineStyles';
+import SlideHUD, { SlideAspectRatio } from './SlideHUD';
 import { TypographyInspector } from './TypographyInspector';
 import { FloatingSelectionToolbar } from './FloatingSelectionToolbar';
 import { TypographyAttrs, parseLineTypography, updateLineTypography, parseStyleString, getElementComputedTypography, typographyAttrsToStyle, applyInlineTypographyToMarkdown } from '../../utils/typographyUtils';
@@ -1052,6 +1053,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     const [inlineSelectionState, setInlineSelectionState] = useState<{
         isOpen: boolean;
         position: { top: number; left: number };
+        selectionRect?: DOMRect | null;
+        containerRect?: DOMRect | null;
         selectedText: string;
         targetLine: number;
         occurrenceIndex: number;
@@ -1060,6 +1063,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     }>({
         isOpen: false,
         position: { top: 0, left: 0 },
+        selectionRect: null,
+        containerRect: null,
         selectedText: '',
         targetLine: 0,
         occurrenceIndex: 0,
@@ -1118,15 +1123,18 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             }
 
             const rect = range.getBoundingClientRect();
-            // 計算浮動工具列位置（水平置中於選取文字，垂直位於上方）
-            const left = Math.max(100, Math.min(window.innerWidth - 100, rect.left + rect.width / 2));
-            const top = Math.max(45, rect.top);
+            const containerRect = container ? container.getBoundingClientRect() : null;
+            // 計算浮動工具列基礎位置
+            const left = rect.left + rect.width / 2;
+            const top = rect.top;
 
             const computed = ancestorEl ? getElementComputedTypography(ancestorEl) : {};
 
             setInlineSelectionState({
                 isOpen: true,
                 position: { top, left },
+                selectionRect: rect,
+                containerRect,
                 selectedText: trimmedText,
                 targetLine,
                 occurrenceIndex,
@@ -1443,7 +1451,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             return wrapWithComment(
                 node,
                 <div
-                    className={`mb-4 last:mb-0 transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
+                    className={`md-paragraph mb-4 last:mb-0 transition-all ${!isSlideMode && isActive ? 'outline-dashed outline-2 outline-brand-primary ring-4 ring-brand-primary/10 shadow-xs rounded-xs' : ''}`}
                     {...domProps}
                     style={styleObj}
                 />,
@@ -1662,10 +1670,12 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 const spanStyleMatch = typeof titleToDisplay === 'string'
                     ? /^<span\b[^>]*style=["']([^"']*)["'][^>]*>(.*?)<\/span>$/i.exec(titleToDisplay.trim())
                     : null;
-                const mergedTitleStyle = {
+                const rawMergedTitleStyle = {
                     ...(spanStyleMatch ? parseStyleString(spanStyleMatch[1]) : {}),
                     ...titleStyleFromLine
                 };
+                // Alert 標題樣式由原始碼行即時組裝（不經 hast），需在簡報模式下自行換算為畫布級尺寸
+                const mergedTitleStyle = isSlideMode ? scaleStyleObjectForSlide(rawMergedTitleStyle) : rawMergedTitleStyle;
                 const cleanTitleText = spanStyleMatch ? spanStyleMatch[2] : titleToDisplay;
 
                 const rawTitleTypo = {
@@ -2059,12 +2069,35 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         }
     }, [handlePrevSlide, handleNextSlide]);
 
-    // ─── ResizeObserver：計算縮放比（填滿視窗，維持 16:9 比例）─────────────────────
+    // ─── 簡報長寬比狀態 (16:9 / 16:10 / 4:3) ──────────────────────────────────
+    const [slideRatio, setSlideRatio] = useState<SlideAspectRatio>(() => {
+        try {
+            return (localStorage.getItem('slide_aspect_ratio') as SlideAspectRatio) || '16:9';
+        } catch {
+            return '16:9';
+        }
+    });
+
+    const handleSlideRatioChange = useCallback((ratio: SlideAspectRatio) => {
+        setSlideRatio(ratio);
+        try {
+            localStorage.setItem('slide_aspect_ratio', ratio);
+        } catch { }
+    }, []);
+
+    const SLIDE_RATIO_CONFIGS: Record<SlideAspectRatio, { width: number; height: number }> = {
+        '16:9': { width: 1920, height: 1080 },
+        '16:10': { width: 1920, height: 1200 },
+        '4:3': { width: 1440, height: 1080 },
+    };
+
+    // ─── ResizeObserver：計算縮放比（依長寬比填滿視窗）─────────────────────────
     useEffect(() => {
         if (!isSlideMode) return;
 
-        const DESIGN_WIDTH = 1920;
-        const DESIGN_HEIGHT = 1080;
+        const ratioConfig = SLIDE_RATIO_CONFIGS[slideRatio] || SLIDE_RATIO_CONFIGS['16:9'];
+        const designWidth = ratioConfig.width;
+        const designHeight = ratioConfig.height;
         const container = slideContainerRef.current;
         if (!container) return;
 
@@ -2073,9 +2106,15 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         const updateScale = () => {
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
-            // 填滿視窗，維持 16:9 比例，自適應貼齊邊界
-            const scale = Math.min(containerWidth / DESIGN_WIDTH, containerHeight / DESIGN_HEIGHT);
+            // 填滿視窗，維持比例，自適應貼齊邊界
+            let scale = Math.min(containerWidth / designWidth, containerHeight / designHeight);
+            // 響應式保護：小螢幕 (如手機、極窄視窗) 時維持最低可讀 scale
+            if (containerWidth < 640) {
+                scale = Math.max(0.28, scale);
+            }
             container.style.setProperty('--slide-scale', String(scale));
+            container.style.setProperty('--slide-width', `${designWidth}px`);
+            container.style.setProperty('--slide-height', `${designHeight}px`);
         };
 
         const debouncedUpdate = () => {
@@ -2091,11 +2130,15 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             ro.disconnect();
             clearTimeout(debounceTimer);
         };
-    }, [isSlideMode]);
+    }, [isSlideMode, slideRatio]);
 
     // ─── 投影片後處理：active class + 內容自動縮放 ───────────────────────────────
     useEffect(() => {
         if (!isSlideMode) return;
+
+        const ratioConfig = SLIDE_RATIO_CONFIGS[slideRatio] || SLIDE_RATIO_CONFIGS['16:9'];
+        const designWidth = ratioConfig.width;
+        const designHeight = ratioConfig.height;
 
         const container = slideContainerRef.current;
         if (!container) return;
@@ -2121,18 +2164,18 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             }
 
             // ─── 內容自動縮放（Auto-fit）────────────────────────────────
-            // 若投影片內容超出 1080px 畫布（減去上下 padding 各 80px = 920px 可用），
+            // 若投影片內容超出畫布（減去上下 padding 各 80px = designHeight - 160 可用），
             // 則自動等比縮小內容使其完整顯示。
             wrappers.forEach(w => {
                 const inner = w.querySelector('.marp-slide-inner') as HTMLElement;
                 if (!inner) return;
-                const availableHeight = 920; // 1080 - 80*2
+                const availableHeight = designHeight - 160;
                 const contentHeight = inner.scrollHeight;
                 if (contentHeight > availableHeight) {
                     const fitScale = Math.max(0.45, availableHeight / contentHeight);
                     inner.style.transform = `scale(${fitScale})`;
                     inner.style.transformOrigin = 'top left';
-                    inner.style.width = `${(1920 - 240) / fitScale}px`;
+                    inner.style.width = `${(designWidth - 240) / fitScale}px`;
                 } else {
                     inner.style.transform = '';
                     inner.style.transformOrigin = '';
@@ -2142,7 +2185,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         });
 
         return () => cancelAnimationFrame(raf);
-    }, [isSlideMode, content]);
+    }, [isSlideMode, content, slideRatio]);
 
     // ─── 鍵盤導航 ────────────────────────────────────────────────────────────────
     useEffect(() => {
@@ -2210,7 +2253,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <div ref={previewRootRef} className={`prose max-w-none ${isSlideMode ? '' : 'px-8 pb-4'} ${previewTheme && previewTheme !== 'default' ? `theme-${previewTheme}` : ''} ${shouldShowDark ? 'prose-invert' : 'prose-slate'} prose-headings:font-bold prose-a:text-brand-primary prose-img:rounded-xl print:p-0 print:max-w-none print:bg-white relative z-10`}>
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath, remarkGithubAlerts, remarkWikiLink, remarkPageBreak, remarkDirective, remarkGridDirective, remarkTypography]}
-                        rehypePlugins={[rehypeRaw, [rehypeSlideGenerator, { isSlideMode }]]}
+                        rehypePlugins={[rehypeRaw, [rehypeSlideScaleInlineStyles, { isSlideMode }], [rehypeSlideGenerator, { isSlideMode }]]}
                         remarkRehypeOptions={remarkRehypeOptions}
                         components={components}
                         urlTransform={urlTransform}
@@ -2222,6 +2265,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     <SlideHUD
                         currentSlide={currentSlideIndex}
                         totalSlides={totalSlides}
+                        slideRatio={slideRatio}
+                        onChangeSlideRatio={handleSlideRatioChange}
                         onPrev={handlePrevSlide}
                         onNext={handleNextSlide}
                     />
@@ -2252,6 +2297,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             <FloatingSelectionToolbar
                 isOpen={inlineSelectionState.isOpen}
                 position={inlineSelectionState.position}
+                selectionRect={inlineSelectionState.selectionRect}
+                containerRect={inlineSelectionState.containerRect}
                 selectedText={inlineSelectionState.selectedText}
                 targetLine={inlineSelectionState.targetLine}
                 currentAttrs={inlineSelectionState.currentAttrs}

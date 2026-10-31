@@ -1492,9 +1492,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* 尺寸 = 設計畫布 × scale，由 JS 設定 --slide-scale CSS 變數 */
-    width: calc(var(--slide-scale, 0.5) * 1920px);
-    height: calc(var(--slide-scale, 0.5) * 1080px);
+    /* 尺寸 = 設計畫布 × scale，由 JS 設定 --slide-scale, --slide-width, --slide-height CSS 變數 */
+    width: calc(var(--slide-scale, 0.5) * var(--slide-width, 1920px));
+    height: calc(var(--slide-scale, 0.5) * var(--slide-height, 1080px));
     /* 預設不可見 */
     opacity: 0;
     pointer-events: none;
@@ -1507,13 +1507,13 @@
     pointer-events: auto;
 }
 
-/* ── 投影片本體：1920×1080 設計畫布 ── */
+/* ── 投影片本體：自適應長寬比設計畫布 (預設 1920×1080，支援 16:10 / 4:3) ── */
 .marp-slide {
     position: absolute;
     top: 0;
     left: 0;
-    width: 1920px;
-    height: 1080px;
+    width: var(--slide-width, 1920px);
+    height: var(--slide-height, 1080px);
     transform: scale(var(--slide-scale, 0.5));
     transform-origin: top left;
     will-change: transform;
@@ -1530,9 +1530,19 @@
     letter-spacing: -0.01em;
 }
 
-/* ── 簡報級排版：覆蓋 prose 預設大小（若元素有行內自訂樣式則優先套用） ── */
-.slide-mode-container .marp-slide h1,
-.marp-slide h1 {
+/* ── 簡報級排版：覆蓋 prose 與主題預設大小 ──
+ *
+ * ⚠️ 不使用 !important，改以「高權重選擇器」壓制主題：
+ *    - 主題規則 `.theme-xxx.prose h2` 權重 (0,2,1)
+ *    - 下列規則 `.slide-mode-container .prose .marp-slide .marp-slide-inner h2` 權重 (0,4,1)
+ *    → 不論主題 CSS 載入順序先後，簡報級字級都會勝出。
+ *
+ * 之所以不能用 !important：作者層 !important 會壓過「行內 style」，
+ * 使用者透過 Typography Inspector 自訂的字級會在簡報模式下被吃掉；
+ * 而未被 !important 命中的元素（如 <span style>）卻保留文件級 px，造成層級倒掛。
+ * 行內 style 的文件級尺寸由 rehypeSlideScaleInlineStyles 統一換算（×2.25）。
+ */
+.slide-mode-container .prose .marp-slide .marp-slide-inner h1 {
     font-size: 80px;
     line-height: 1.15;
     margin-bottom: 32px;
@@ -1540,8 +1550,7 @@
     letter-spacing: -0.02em;
 }
 
-.slide-mode-container .marp-slide h2,
-.marp-slide h2 {
+.slide-mode-container .prose .marp-slide .marp-slide-inner h2 {
     font-size: 60px;
     line-height: 1.2;
     margin-bottom: 28px;
@@ -1549,43 +1558,39 @@
     letter-spacing: -0.015em;
 }
 
-.slide-mode-container .marp-slide h3,
-.marp-slide h3 {
+.slide-mode-container .prose .marp-slide .marp-slide-inner h3 {
     font-size: 48px;
     line-height: 1.25;
     margin-bottom: 24px;
     font-weight: 700;
 }
 
-.slide-mode-container .marp-slide h4,
-.marp-slide h4 {
+.slide-mode-container .prose .marp-slide .marp-slide-inner h4 {
     font-size: 40px;
     line-height: 1.3;
     margin-bottom: 20px;
     font-weight: 600;
 }
 
-.slide-mode-container .marp-slide h5,
-.marp-slide h5 {
+.slide-mode-container .prose .marp-slide .marp-slide-inner h5 {
     font-size: 36px;
     margin-bottom: 16px;
 }
 
-.slide-mode-container .marp-slide h6,
-.marp-slide h6 {
+.slide-mode-container .prose .marp-slide .marp-slide-inner h6 {
     font-size: 32px;
     margin-bottom: 16px;
 }
 
-.slide-mode-container .marp-slide p,
-.marp-slide p {
-    font-size: 36px;
+/* 段落：MarkdownPreview 的 p 元件實際渲染為 <div class="md-paragraph">，
+ * 字級由 .marp-slide 的 36px 繼承（清單/引言內的段落則跟隨其父層字級） */
+.slide-mode-container .prose .marp-slide .marp-slide-inner p,
+.slide-mode-container .prose .marp-slide .marp-slide-inner .md-paragraph {
     line-height: 1.6;
     margin-bottom: 24px;
 }
 
-.slide-mode-container .marp-slide li,
-.marp-slide li {
+.slide-mode-container .prose .marp-slide .marp-slide-inner li {
     font-size: 34px;
     line-height: 1.5;
     margin-bottom: 12px;

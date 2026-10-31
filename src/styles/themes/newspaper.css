@@ -22,12 +22,12 @@
     --theme-heading-font: "Playfair Display", "Times New Roman", "Heiti TC", "SimHei", serif;
     --theme-heading-color: #111111;
     --theme-heading-weight: 800; /* 極粗頭條字體 */
-    --theme-h1-size: 2.8rem;
-    --theme-h2-size: 2.0rem;
-    --theme-h3-size: 1.55rem;
-    --theme-h4-size: 1.3rem;
-    --theme-h5-size: 1.15rem;
-    --theme-h6-size: 1.05rem;
+    --theme-h1-size: 45px;
+    --theme-h2-size: 32px;
+    --theme-h3-size: 25px;
+    --theme-h4-size: 21px;
+    --theme-h5-size: 18px;
+    --theme-h6-size: 17px;
     --theme-h1-border: none;
     --theme-h2-border: none;
     --theme-h1-transform: none;
@@ -211,7 +211,7 @@
  * 第一個字會以 3.5rem 的特大號粗襯線體浮動在左側，並保持適當字距，塑造文藝史詩感。
  */
 .theme-newspaper.prose p::first-letter {
-    font-size: 3.5rem;
+    font-size: 56px;
     float: left;
     font-weight: 800;
     line-height: 0.9;
@@ -279,7 +279,7 @@
     align-items: center;
     font-family: var(--theme-heading-font);
     font-weight: 800;
-    font-size: 0.95rem;
+    font-size: 15px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.75rem;
@@ -505,7 +505,7 @@
     /* 頑強保留：特色首字放大與雙線社論引言在 PDF 中的高保真輸出 */
     .theme-newspaper.prose p:first-of-type::first-letter {
         color: var(--theme-accent-color) !important;
-        font-size: 3.2rem !important;
+        font-size: 51px !important;
         font-weight: 800 !important;
     }
 

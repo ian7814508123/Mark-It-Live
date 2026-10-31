@@ -139,3 +139,6 @@ public/google*.html
 # function/unit test
 tests/*
 public/THIRD-PARTY-NOTICES.txt
+
+# agent settings
+.agents/

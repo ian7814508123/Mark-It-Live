@@ -12,12 +12,12 @@
     --theme-heading-font: "Times New Roman", Times, Baskerville, Georgia, serif;
     --theme-heading-color: #000000;
     --theme-heading-weight: 700;
-    --theme-h1-size: 2.5rem;
-    --theme-h2-size: 1.75rem;
-    --theme-h3-size: 1.4rem;
-    --theme-h4-size: 1.2rem;
-    --theme-h5-size: 1.1rem;
-    --theme-h6-size: 1rem;
+    --theme-h1-size: 40px;
+    --theme-h2-size: 28px;
+    --theme-h3-size: 22px;
+    --theme-h4-size: 19px;
+    --theme-h5-size: 18px;
+    --theme-h6-size: 16px;
     --theme-h1-border: none;
     --theme-h2-border: 1px solid #1a1a1a;
     --theme-h1-transform: uppercase;
@@ -277,7 +277,7 @@
     background-color: var(--theme-table-header-bg);
     color: var(--theme-table-header-color);
     text-transform: uppercase;
-    font-size: 0.85rem;
+    font-size: 14px;
     font-weight: 700;
 }
 

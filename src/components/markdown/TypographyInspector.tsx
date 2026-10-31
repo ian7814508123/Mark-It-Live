@@ -75,8 +75,13 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
 
     // 視窗邊界安全座標狀態
     const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 120, left: 20 });
+    const isDraggingRef = useRef(false);
+    const hasUserMovedRef = useRef(false);
+    const dragStartRef = useRef<{ mouseX: number; mouseY: number; startLeft: number; startTop: number }>({
+        mouseX: 0, mouseY: 0, startLeft: 0, startTop: 0
+    });
 
-    // 嚴密動態視窗邊界偵測：水平置中於 Editor，垂直自動對齊目標元素
+    // 嚴密動態視窗邊界偵測：若 Editor 可用則置中於 Editor；否則智能停靠目標旁側避免遮擋
     const calculateSafePosition = useCallback(() => {
         const rect = targetElement ? targetElement.getBoundingClientRect() : targetRect;
 
@@ -87,56 +92,70 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         const margin = 16;
-        const topBarSafeHeight = 64; // 頂部導航欄安全高度避免遮蔽
+        const topBarSafeHeight = 62; // 頂部導航欄安全高度避免遮蔽
 
-        // 1. 水平位置計算：展開位置直接置於 Editor 的水平正中間，完全不遮擋 Preview 右側預覽成果
         let left: number;
         const editorEl = (document.querySelector('.cm-editor') ||
             document.querySelector('.layout-main-content > div:first-child') ||
             document.querySelector('section[class*="min-w-[300px]"]') ||
             document.querySelector('section[class*="border-r"]')) as HTMLElement | null;
 
-        if (editorEl) {
+        if (editorEl && editorEl.getBoundingClientRect().width > 240) {
             const editorRect = editorEl.getBoundingClientRect();
-            // 若 Editor 寬度正常可視（非完全隱藏或列印）
-            if (editorRect.width > 220) {
-                const editorCenterX = editorRect.left + (editorRect.width / 2);
-                left = editorCenterX - (panelWidth / 2);
+            const editorCenterX = editorRect.left + (editorRect.width / 2);
+            left = editorCenterX - (panelWidth / 2);
+        } else if (rect) {
+            // 純預覽或小螢幕：智能避開目標元素，優先停靠在兩側
+            const rightSpace = viewportWidth - rect.right;
+            const leftSpace = rect.left;
+            if (rightSpace >= panelWidth + 20) {
+                left = rect.right + 20;
+            } else if (leftSpace >= panelWidth + 20) {
+                left = rect.left - panelWidth - 20;
             } else {
                 left = (viewportWidth - panelWidth) / 2;
             }
         } else {
-            // Fallback: 視窗左半部或中央
-            left = Math.max(margin, (viewportWidth * 0.25) - (panelWidth / 2));
+            left = (viewportWidth - panelWidth) / 2;
         }
 
-        // 雙重 Clamp 水平邊界，確保不溢出螢幕邊界
+        // 雙重 Clamp 水平邊界，確保絕不超出預覽容器或螢幕邊界
         left = Math.max(margin, Math.min(viewportWidth - panelWidth - margin, left));
 
-        // 2. 垂直自動對齊計算：展開時與目標元素 (標題/段落) 自動垂直視覺對齊
+        // 垂直自動對齊計算：展開時與目標元素自動垂直視覺對齊
         let top: number;
         if (rect) {
-            // 將面板適度上移，使面板的即時預覽區/控制區與目標元素中心保持在同一個水平視覺線上
             const targetCenterY = rect.top + (rect.height / 2);
             top = targetCenterY - 110;
         } else {
             top = (viewportHeight - panelHeight) / 2;
         }
 
-        // 自動邊界 Clamp (防止面板頂部衝出頂部導航列 64px，或底部沉入螢幕底部)
+        // 自動邊界 Clamp (防止面板衝出頂部導航列或沉入螢幕底部)
         top = Math.max(topBarSafeHeight, Math.min(viewportHeight - panelHeight - margin, top));
 
         return { top, left };
     }, [targetElement, targetRect]);
 
-    // 當開啟時同步 initialAttrs 並即時定位
+    // 當開啟時同步 initialAttrs 並即時定位 (若使用者已手動拖曳則尊重自訂位置)
     useEffect(() => {
         if (isOpen) {
             setAttrs(initialAttrs);
             latestAttrsRef.current = initialAttrs;
+            hasUserMovedRef.current = false;
 
             const updatePos = () => {
-                setCoords(calculateSafePosition());
+                if (!hasUserMovedRef.current) {
+                    setCoords(calculateSafePosition());
+                } else {
+                    // 若使用者拖曳過，Resize 時依然確保不被擠出螢幕
+                    const panelWidth = panelRef.current?.offsetWidth || 360;
+                    const panelHeight = panelRef.current?.offsetHeight || 500;
+                    setCoords(prev => ({
+                        left: Math.max(16, Math.min(window.innerWidth - panelWidth - 16, prev.left)),
+                        top: Math.max(62, Math.min(window.innerHeight - panelHeight - 16, prev.top)),
+                    }));
+                }
             };
             updatePos();
             const raf = requestAnimationFrame(updatePos);
@@ -149,6 +168,38 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
             };
         }
     }, [isOpen, initialAttrs, calculateSafePosition]);
+
+    // 面板自由拖曳事件處理
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDraggingRef.current) return;
+            const deltaX = e.clientX - dragStartRef.current.mouseX;
+            const deltaY = e.clientY - dragStartRef.current.mouseY;
+
+            const panelWidth = panelRef.current?.offsetWidth || 360;
+            const panelHeight = panelRef.current?.offsetHeight || 500;
+
+            const rawLeft = dragStartRef.current.startLeft + deltaX;
+            const rawTop = dragStartRef.current.startTop + deltaY;
+
+            // 嚴格將拖曳限制在視窗可見區域內
+            const clampedLeft = Math.max(16, Math.min(window.innerWidth - panelWidth - 16, rawLeft));
+            const clampedTop = Math.max(62, Math.min(window.innerHeight - panelHeight - 16, rawTop));
+
+            setCoords({ left: clampedLeft, top: clampedTop });
+        };
+
+        const handleMouseUp = () => {
+            isDraggingRef.current = false;
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
 
     // 關閉時若有待寫入的防抖立即 flush 寫回 Markdown (直接以 HTML 語法)
     const handleClose = useCallback(() => {
@@ -307,8 +358,23 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                     animate-in fade-in zoom-in-95 duration-150 select-none
                 "
             >
-                {/* ─── 頂部 Header ────────────────────────────────────────── */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40">
+                {/* ─── 頂部 Header (支援拖曳避讓) ────────────────────────── */}
+                <div
+                    onMouseDown={(e) => {
+                        if ((e.target as HTMLElement).closest('button, input, select, a')) return;
+                        isDraggingRef.current = true;
+                        hasUserMovedRef.current = true;
+                        dragStartRef.current = {
+                            mouseX: e.clientX,
+                            mouseY: e.clientY,
+                            startLeft: coords.left,
+                            startTop: coords.top,
+                        };
+                        e.preventDefault();
+                    }}
+                    className="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40 cursor-grab active:cursor-grabbing select-none"
+                    title="按住此處可自由拖曳面板"
+                >
                     <div className="flex items-center gap-2.5">
                         <span className="p-1.5 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary">
                             <Type size={16} />
@@ -411,16 +477,19 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                             {FONT_SIZE_PRESETS.map(preset => (
                                 <button
                                     key={preset.value}
+                                    type="button"
                                     onClick={() => updateAttr('size', preset.value)}
+                                    title={`${preset.label} (${preset.value})`}
                                     className={`
-                                        flex-1 py-1 rounded text-[10px] font-mono transition-all
+                                        flex-1 py-1 px-0.5 rounded text-[10px] text-center transition-all
                                         ${attrs.size === preset.value || (!attrs.size && currentSizeNum === parseInt(preset.value, 10))
                                             ? 'bg-brand-primary text-white font-bold shadow-sm'
                                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }
                                     `}
                                 >
-                                    {preset.label}
+                                    <div className="font-semibold leading-tight">{preset.label}</div>
+                                    <div className="text-[8px] opacity-75 font-mono leading-none mt-0.5">{preset.value}</div>
                                 </button>
                             ))}
                         </div>
