@@ -318,7 +318,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             className="pointer-events-auto shadow-sm w-full"
                             options={[
                                 { label: '編輯器設定', value: 'editor', icon: <Box size={13} /> },
-                                { label: '列印與匯出', value: 'print', icon: <Printer size={13} /> },
+                                { label: '樣式與列印', value: 'print', icon: <Printer size={13} /> },
                                 { label: '關於', value: 'about', icon: <AlertCircle size={13} /> },
                             ]}
                             value={activeTab}

@@ -3,27 +3,6 @@
 根據主題開發規範, 進行新主題的發想. 
 ---
 
-## 🍃 主題 E：竹林禪意 (bamboozen) 【STATUS: PLANNED】
-
-### 1. 設計理念與適用場景
-* **核心意象**：石燈籠、白砂、苔蘚綠、竹編墨綠、原木色、清靜悠遠。
-* **適用情境**：心靈日記、長文創作、讀書筆記、思考整理。
-* **UX 目標**：採用極低對比度與冷沉靜色彩，模擬日式榻榻米與竹林小徑的幽靜氛圍，讓讀者心靈沉靜，提供極佳的護眼效果。
-
-### 2. 精細色彩規格 (Colors Specification)
-
-| 變數 / 元素 | 淺色模式 (Light Mode) | 深色模式 (Dark Mode) |
-| :--- | :--- | :--- |
-| `background` (底紙底色) | `#f0f2eb` (竹紙米白) | `#141a16` (深夜竹林綠黑) |
-| `--theme-text-color` | `#2d3a2e` (深苔竹綠) | `#d8e2dc` (發光竹青白) |
-| `--theme-accent-color` | `#4b6b50` (青竹綠) | `#5ba370` (發光鮮竹綠) |
-| `--brand-primary` | `#4b6b50` (竹綠 UI) | `#5ba370` (竹綠 UI) |
-| `--code-bg` (代碼/圖表背景) | `#e5e8de` (淺苔石背景) | `#1a231d` (竹炭深黑背景) |
-| `--code-border` | `#d3d8c8` (青石邊框) | `#25342a` (竹編深綠邊框) |
-| `blockquote` (引言) | 禪寺長廊，左邊框 `4px solid #4b6b50`，背景 `#f5f7f2` | 幽影深篁，左邊框 `4px solid #5ba370`，背景 `rgba(91, 163, 112, 0.05)` |
-
----
-
 ## 🕹️ 主題 F：復古電玩 (pixel8bit) 【STATUS: PLANNED】
 
 ### 1. 設計理念與適用場景
@@ -92,9 +71,9 @@
 ### C.  下拉選單
 
 ## 2. 未來功能擴充（Advanced Features）
-A. 收藏/常用主題（Favorites / Recently Used）當主題多達 20 個以上時，多數使用者常用的其實固定就那 2-3 個。可以在主題卡片右上角加上「星星（$\star$）」功能，讓使用者收藏常用主題。在最上方獨立一區「常用主題」，讓使用者無需每次都重新尋找。
+A. 收藏/常用主題（Favorites / Recently Used）當主題多達 20 個以上時，多數使用者常用的其實固定就那 2-3 個。可以在主題卡片右上角加上「星星（$\star$）」功能，讓使用者收藏常用主題。在最上方獨立一區「常用主題」，讓使用者無需每次都重新尋找。 【STATUS: COMPLETED】
 
-B. 自訂主題 (Custom CSS / Theme Variable Editor) 【STATUS: PLANNED】
+B. 自訂主題 (Custom CSS / Theme Variable Editor) 【STATUS: COMPLETED】
 開放自訂主題以徹底解放自訂權，滿足極客與重度 Markdown 用戶：
 1. **介面設計**：在主題選擇器（`ThemeGridSelector`）中新增「自訂」分類頁籤。當選取時，顯示「自訂設定面板」。
 2. **雙軌制編輯模式**：
@@ -104,6 +83,10 @@ B. 自訂主題 (Custom CSS / Theme Variable Editor) 【STATUS: PLANNED】
    * 將自訂配置 JSON 或純 CSS 儲存於 LocalStorage。
    * 套用主題時，動態將用戶自訂的 CSS 注入到 `<style id="markdown-custom-theme-{x}">` 中進行覆蓋。
    * 發布主題開發規格，指導使用者如何搭配 base 樣式表。
+
+B-2. 自訂主題與排版工具的樣式權重分配
+1. 目前在設定>樣式與列印> 進階自訂預覽風格
+2. 
 
 ### 新的UI動效
 * 我做了一個模擬墨水流動、融合在一起的動效(ink flow.html)，雖然目前沒有找到適用的場景,但未來可能可以用在網頁加載時的動畫。

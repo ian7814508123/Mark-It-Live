@@ -1,6 +1,7 @@
 import React from 'react';
 import { Type } from '../ui/Icons';
 import { TypographyAttrs } from '../../utils/typographyUtils';
+import { useTypographyContext } from './TypographyContext';
 
 export interface TypographyButtonProps {
     /** 當前目標行號 */
@@ -10,11 +11,11 @@ export interface TypographyButtonProps {
     /** 當前已儲存的自訂排版屬性 */
     typographyData?: TypographyAttrs;
     /** 排版面板是否正開啟並指向此行 */
-    isActive: boolean;
+    isActive?: boolean;
     /** 該行是否已有註解（用於 hover 顯隱邏輯） */
     hasComment?: boolean;
     /** 開啟排版微調面板的回調函式 */
-    onOpen: (line: number, tagName: string, targetEl: HTMLElement, existingAttrs?: TypographyAttrs) => void;
+    onOpen?: (line: number, tagName: string, targetEl: HTMLElement, existingAttrs?: TypographyAttrs) => void;
     /** 額外的樣式類名 */
     className?: string;
 }
@@ -29,15 +30,31 @@ export const TypographyButton: React.FC<TypographyButtonProps> = ({
     line,
     tagName,
     typographyData,
-    isActive,
+    isActive: propIsActive,
     hasComment = false,
-    onOpen,
+    onOpen: propOnOpen,
     className = '',
 }) => {
+    const { activeLine, onOpenTypography } = useTypographyContext();
+    const isActive = propIsActive ?? (activeLine === line);
+    const onOpen = propOnOpen || onOpenTypography;
+
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
         e.stopPropagation();
-        const target = (e.currentTarget.closest('[data-line]')?.querySelector('h1, h2, h3, h4, h5, h6, div, p') || e.currentTarget) as HTMLElement;
-        onOpen(line, tagName, target, typographyData);
+        const lineEl = e.currentTarget.closest('[data-line]') as HTMLElement | null;
+        let target = lineEl;
+        if (lineEl) {
+            if (lineEl.tagName === 'LI') {
+                target = lineEl;
+            } else {
+                const contentEl = lineEl.querySelector<HTMLElement>('.md-paragraph, h1, h2, h3, h4, h5, h6, p');
+                if (contentEl) target = contentEl;
+            }
+        }
+        if (onOpen) {
+            onOpen(line, tagName, target || e.currentTarget, typographyData);
+        }
     };
 
     return (

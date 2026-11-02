@@ -674,6 +674,10 @@ const App: React.FC = () => {
     if (!target) return;
     if (scrollSource.current === 'editor' && !isHoveringPreview.current) return;
 
+    const previewMaxScroll = target.scrollHeight - target.clientHeight;
+    // 若預覽內容不可滾動或高度尚未就緒，不觸發同步以避免編輯器被非預期滾動至頂部
+    if (previewMaxScroll <= 0) return;
+
     scrollSource.current = 'preview';
 
     if (editorRef.current?.view) {
@@ -697,7 +701,7 @@ const App: React.FC = () => {
 
       targetScrollTop.current = calculateEditorScrollTop({
         previewScrollTop: target.scrollTop,
-        previewMaxScroll: target.scrollHeight - target.clientHeight,
+        previewMaxScroll,
         editorMaxScroll: editorView.scrollDOM.scrollHeight - editorView.scrollDOM.clientHeight,
         lineMap: lineMap.current,
         getEditorLineTop,

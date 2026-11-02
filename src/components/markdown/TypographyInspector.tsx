@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
     Type, X, AlignLeft, AlignCenter, AlignRight, AlignJustify,
     Palette, RefreshCw, Check, Highlighter
@@ -73,13 +73,43 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
     const latestAttrsRef = useRef<TypographyAttrs>(initialAttrs);
     latestAttrsRef.current = attrs;
 
-    // 視窗邊界安全座標狀態
+    // 視窗邊界安全座標狀態（搭配 coordsRef 在拖曳期間直接操作 DOM transform，避免每幀觸發 React 重渲染與 Layout Reflow）
     const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 120, left: 20 });
-    const isDraggingRef = useRef(false);
+    const coordsRef = useRef<{ top: number; left: number }>({ top: 120, left: 20 });
+    const [isDragging, setIsDragging] = useState(false);
     const hasUserMovedRef = useRef(false);
+    const panelSizeRef = useRef<{ width: number; height: number }>({ width: 360, height: 500 });
     const dragStartRef = useRef<{ mouseX: number; mouseY: number; startLeft: number; startTop: number }>({
         mouseX: 0, mouseY: 0, startLeft: 0, startTop: 0
     });
+
+    const applyPanelPosition = useCallback((nextCoords: { top: number; left: number }, syncState = true) => {
+        coordsRef.current = nextCoords;
+        if (panelRef.current) {
+            panelRef.current.style.transform = `translate3d(${nextCoords.left}px, ${nextCoords.top}px, 0)`;
+        }
+        if (syncState) {
+            setCoords(nextCoords);
+        }
+    }, []);
+
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if ((e.target as HTMLElement).closest('button, input, select, a')) return;
+        e.preventDefault();
+        hasUserMovedRef.current = true;
+        const panelEl = panelRef.current;
+        panelSizeRef.current = {
+            width: panelEl?.offsetWidth || 360,
+            height: panelEl?.offsetHeight || 500,
+        };
+        dragStartRef.current = {
+            mouseX: e.clientX,
+            mouseY: e.clientY,
+            startLeft: coordsRef.current.left,
+            startTop: coordsRef.current.top,
+        };
+        setIsDragging(true);
+    }, []);
 
     // 嚴密動態視窗邊界偵測：若 Editor 可用則置中於 Editor；否則智能停靠目標旁側避免遮擋
     const calculateSafePosition = useCallback(() => {
@@ -134,7 +164,7 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
         // 自動邊界 Clamp (防止面板衝出頂部導航列或沉入螢幕底部)
         top = Math.max(topBarSafeHeight, Math.min(viewportHeight - panelHeight - margin, top));
 
-        return { top, left };
+        return { top: Math.round(top), left: Math.round(left) };
     }, [targetElement, targetRect]);
 
     // 當開啟時同步 initialAttrs 並即時定位 (若使用者已手動拖曳則尊重自訂位置)
@@ -144,21 +174,26 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
             latestAttrsRef.current = initialAttrs;
             hasUserMovedRef.current = false;
 
-            const updatePos = () => {
+            const updatePos = (e?: Event) => {
+                // 忽略面板內部捲軸滾動事件，避免無謂重算
+                if (e && e.type === 'scroll' && panelRef.current?.contains(e.target as Node)) {
+                    return;
+                }
                 if (!hasUserMovedRef.current) {
-                    setCoords(calculateSafePosition());
+                    applyPanelPosition(calculateSafePosition());
                 } else {
                     // 若使用者拖曳過，Resize 時依然確保不被擠出螢幕
                     const panelWidth = panelRef.current?.offsetWidth || 360;
                     const panelHeight = panelRef.current?.offsetHeight || 500;
-                    setCoords(prev => ({
-                        left: Math.max(16, Math.min(window.innerWidth - panelWidth - 16, prev.left)),
-                        top: Math.max(62, Math.min(window.innerHeight - panelHeight - 16, prev.top)),
-                    }));
+                    const clamped = {
+                        left: Math.max(16, Math.min(window.innerWidth - panelWidth - 16, coordsRef.current.left)),
+                        top: Math.max(62, Math.min(window.innerHeight - panelHeight - 16, coordsRef.current.top)),
+                    };
+                    applyPanelPosition(clamped);
                 }
             };
             updatePos();
-            const raf = requestAnimationFrame(updatePos);
+            const raf = requestAnimationFrame(() => updatePos());
             window.addEventListener('resize', updatePos);
             window.addEventListener('scroll', updatePos, true);
             return () => {
@@ -167,39 +202,67 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                 window.removeEventListener('scroll', updatePos, true);
             };
         }
-    }, [isOpen, initialAttrs, calculateSafePosition]);
+    }, [isOpen, initialAttrs, calculateSafePosition, applyPanelPosition]);
 
-    // 面板自由拖曳事件處理
+    // 面板自由拖曳事件處理：採用 rAF Lock + GPU translate3d 直接更新 DOM，拖曳期間零 React 重渲染
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isDraggingRef.current) return;
-            const deltaX = e.clientX - dragStartRef.current.mouseX;
-            const deltaY = e.clientY - dragStartRef.current.mouseY;
+        if (!isDragging) return;
 
-            const panelWidth = panelRef.current?.offsetWidth || 360;
-            const panelHeight = panelRef.current?.offsetHeight || 500;
+        let rafId: number | null = null;
+        let latestClientX = dragStartRef.current.mouseX;
+        let latestClientY = dragStartRef.current.mouseY;
+
+        const updateDragPosition = () => {
+            rafId = null;
+            const deltaX = latestClientX - dragStartRef.current.mouseX;
+            const deltaY = latestClientY - dragStartRef.current.mouseY;
+
+            const { width: panelWidth, height: panelHeight } = panelSizeRef.current;
 
             const rawLeft = dragStartRef.current.startLeft + deltaX;
             const rawTop = dragStartRef.current.startTop + deltaY;
 
             // 嚴格將拖曳限制在視窗可見區域內
-            const clampedLeft = Math.max(16, Math.min(window.innerWidth - panelWidth - 16, rawLeft));
-            const clampedTop = Math.max(62, Math.min(window.innerHeight - panelHeight - 16, rawTop));
+            const clampedLeft = Math.round(Math.max(16, Math.min(window.innerWidth - panelWidth - 16, rawLeft)));
+            const clampedTop = Math.round(Math.max(62, Math.min(window.innerHeight - panelHeight - 16, rawTop)));
 
-            setCoords({ left: clampedLeft, top: clampedTop });
+            applyPanelPosition({ left: clampedLeft, top: clampedTop }, false);
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            latestClientX = e.clientX;
+            latestClientY = e.clientY;
+            if (rafId === null) {
+                rafId = requestAnimationFrame(updateDragPosition);
+            }
         };
 
         const handleMouseUp = () => {
-            isDraggingRef.current = false;
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+            // 拖曳結束時同步一次最終座標至 React 狀態
+            setCoords({ ...coordsRef.current });
+            setIsDragging(false);
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
+        // 拖曳時全域阻止文字反白與鎖定 grabbing 手勢（同 LayoutSplitter / layout-resizing）
+        const prevUserSelect = document.body.style.userSelect;
+        const prevCursor = document.body.style.cursor;
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'grabbing';
+
+        document.addEventListener('mousemove', handleMouseMove, { passive: true });
+        document.addEventListener('mouseup', handleMouseUp);
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+            if (rafId !== null) cancelAnimationFrame(rafId);
+            document.body.style.userSelect = prevUserSelect;
+            document.body.style.cursor = prevCursor;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, []);
+    }, [isDragging, applyPanelPosition]);
 
     // 關閉時若有待寫入的防抖立即 flush 寫回 Markdown (直接以 HTML 語法)
     const handleClose = useCallback(() => {
@@ -307,9 +370,13 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
         onReset();
     }, [onReset, targetElement, tagName]);
 
-    if (!isOpen) return null;
+    // 快取目標元素的 Computed Typography，避免在渲染或拖曳狀態切換時重複呼叫 window.getComputedStyle 造成強制同步排版 (Layout Thrashing)
+    const computedAttrs = useMemo(
+        () => (isOpen && targetElement ? getElementComputedTypography(targetElement) : {}),
+        [isOpen, targetElement]
+    );
 
-    const computedAttrs = targetElement ? getElementComputedTypography(targetElement) : {};
+    if (!isOpen) return null;
 
     const currentSizeNum = parseInt(attrs.size || computedAttrs.size || '16', 10) || 16;
     const currentLsNum = parseFloat(attrs.ls || computedAttrs.ls || '0') || 0;
@@ -340,14 +407,18 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
             aria-modal="true"
             role="dialog"
         >
-            {/* 背景遮罩 (Overlay) */}
-            <div
-                className={`fixed inset-0 duration-300 z-51 `}
-                onClick={onClose}
-            />
+            {/* 拖曳期間啟用透明事件攔截遮罩，避免高速移動時游標穿透觸發底層 CodeMirror / 預覽區 hover 重繪 */}
+            {isDragging && (
+                <div className="fixed inset-0 z-50 pointer-events-auto cursor-grabbing" />
+            )}
             <div
                 ref={panelRef}
-                style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+                style={{
+                    top: 0,
+                    left: 0,
+                    transform: `translate3d(${coords.left}px, ${coords.top}px, 0)`,
+                    willChange: isDragging ? 'transform' : 'auto',
+                }}
                 className="
                     pointer-events-auto absolute w-[360px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-80px)]
                     flex flex-col overflow-hidden rounded-[2rem]
@@ -355,24 +426,15 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                     border border-slate-200/90 dark:border-slate-800/90
                     shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)]
                     text-slate-800 dark:text-slate-100 text-xs
-                    animate-in fade-in zoom-in-95 duration-150 select-none
+                    animate-in fade-in duration-150 select-none
                 "
             >
                 {/* ─── 頂部 Header (支援拖曳避讓) ────────────────────────── */}
                 <div
-                    onMouseDown={(e) => {
-                        if ((e.target as HTMLElement).closest('button, input, select, a')) return;
-                        isDraggingRef.current = true;
-                        hasUserMovedRef.current = true;
-                        dragStartRef.current = {
-                            mouseX: e.clientX,
-                            mouseY: e.clientY,
-                            startLeft: coords.left,
-                            startTop: coords.top,
-                        };
-                        e.preventDefault();
-                    }}
-                    className="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40 cursor-grab active:cursor-grabbing select-none"
+                    onMouseDown={handleMouseDown}
+                    className={`flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40 select-none ${
+                        isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                    }`}
                     title="按住此處可自由拖曳面板"
                 >
                     <div className="flex items-center gap-2.5">
@@ -395,6 +457,7 @@ export const TypographyInspector: React.FC<TypographyInspectorProps> = ({
                         <MagneticButton
                             variant="icon"
                             onClick={handleClose}
+                            disableMagnetic={isDragging}
                             className="w-8 h-8 rounded-full text-slate-500 dark:text-slate-400 hover:text-brand-primary"
                             aria-label="完成並關閉"
                             title="完成並關閉 (Esc)"
