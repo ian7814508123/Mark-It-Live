@@ -2,7 +2,7 @@ import React from 'react';
 import { ThemeOption } from '../components/ui/ThemeGridSelector';
 import {
     Zap, GraduationCap, Feather, Code, ClipboardList,
-    Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake, Eye
+    Scroll, Newspaper, Leaf, Orbit, Sunset, CloudRain, Snowflake, Eye, Cloud
 } from '../components/ui/Icons';
 
 export type PreviewTheme =
@@ -18,7 +18,7 @@ export type PreviewTheme =
     | 'sunsetglow'
     | 'neonrain'
     | 'aurora'
-    | 'eyeburst';
+    | 'clouddancer';
 
 export const PREVIEW_THEMES: ThemeOption[] = [
     {
@@ -105,11 +105,44 @@ export const PREVIEW_THEMES: ThemeOption[] = [
         description: '高飽和粉紅與深紫雨夜黑擦出賽博火花，伴隨電晶外發光，點燃深夜寫作黑客心流。',
         category: 'creative'
     },
+
+    {
+        label: '雲上舞白', value: 'clouddancer', hint: 'Cloud Dancer 2026',
+        icon: <Cloud size={16} />, color: '#8C8275',
+        previewImg: '/image/themes/clouddancer.png',
+        description: '【限時主題】Pantone 2026 年度代表色：PANTONE 11-4201 雲上舞白。融合 TCX 與 TPG 溫潤棉麻白階，平靜留白心流。',
+        category: 'limited',
+        // 做法 2: 自動限時 (支援 ISO 日期字串，到期自動於選單隱藏)
+        startDate: '2026-11-01',
+        endDate: '2026-12-31'
+    },
+];
+
+/**
+ * 做法 3: 歷史歸檔主題 (ARCHIVED THEMES)
+ * 長期下架的主題可移至此區，不佔用現役選單陣列，但保留元數據以相容既有使用者
+ */
+export const ARCHIVED_THEMES: ThemeOption[] = [
+    // 範例: 若眼睛炸裂長期下架可移至此處:
+    // {
+    //     label: '眼睛炸裂', value: 'eyeburst', hint: 'Eye Burst',
+    //     icon: <Eye size={16} />, color: '#ff0055',
+    //     previewImg: '/image/themes/eyeburst.png',
+    //     description: '【歷史限時主題】...',
+    //     category: 'limited',
+    //     hidden: true
+    // }
     {
         label: '眼睛炸裂', value: 'eyeburst', hint: 'Eye Burst',
         icon: <Eye size={16} />, color: '#ff0055',
         previewImg: '/image/themes/eyeburst.png',
         description: '【限時主題】色環 180 度互補色對焦，飽和度拉滿，生活太無聊了嗎？那就來點刺激的！',
-        category: 'limited'
+        category: 'limited',
+        hidden: true
     },
 ];
+
+/**
+ * 全主題列表（包含現役與歸檔，供設定還原與向後相容查找）
+ */
+export const ALL_THEMES: ThemeOption[] = [...PREVIEW_THEMES, ...ARCHIVED_THEMES];

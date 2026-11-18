@@ -19,6 +19,26 @@ export interface ChangelogCard {
 export const CHANGELOG_CARDS: ChangelogCard[] = [
   {
     type: 'version_header',
+    title: 'v6.0.4 (2026/11/18) - 全新功能',
+    cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
+    cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',
+    subSections: [
+      {
+        icon: PackagePlus,
+        title: '新功能 (New Features)',
+        details: [
+          <>
+            <strong>文字排版:</strong> 選取預覽文字展開簡易/進階樣式與排版調整工具, 新的樣式會同時以html語法更新到編輯器。
+            <br />(匯出Markdown分為兩種格式: <br />
+            "增強":將保留所有專屬樣式的html語法, 換工具時能維持原樣式；<br />
+            "通用":使用原生寫法, 維持簡潔資訊量與跨平台相容性。)
+          </>,
+        ]
+      }
+    ]
+  },
+  {
+    type: 'version_header',
     title: 'v6.0.3 (2026/09/20) - 修正與優化簡報模式功能',
     cardBgGradient: 'from-brand-secondary/15 to-white dark:from-slate-800 dark:to-slate-800/50',
     cardBorderColor: 'border-brand-primary/10 dark:border-slate-700/50',

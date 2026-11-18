@@ -11,7 +11,22 @@ export interface ThemeOption {
     color: string;
     previewImg?: string;
     category: 'minimal' | 'tech' | 'creative' | 'limited';
+    /** 手動下架 / 隱藏開關（最高優先級） */
+    hidden?: boolean;
+    /** 自動上架開始時間 (ISO 8601 或 YYYY-MM-DD) */
+    startDate?: string;
+    /** 自動下架結束時間 (ISO 8601 或 YYYY-MM-DD) */
+    endDate?: string;
 }
+
+/** 判斷主題目前是否在架上可選 (兼顧手動開關與自動排程) */
+export const isThemeAvailable = (theme: ThemeOption): boolean => {
+    if (theme.hidden) return false;
+    const now = new Date();
+    if (theme.startDate && new Date(theme.startDate) > now) return false;
+    if (theme.endDate && new Date(theme.endDate) < now) return false;
+    return true;
+};
 
 interface ThemeGridSelectorProps {
     options: ThemeOption[];
@@ -41,9 +56,12 @@ const ThemeGridSelector: React.FC<ThemeGridSelectorProps> = ({
         { label: '限時', value: 'limited' }
     ] as const;
 
+    // 僅過濾出當前有效在架上的主題（但若當前選取中已下架主題，依然能正常容錯）
+    const availableOptions = options.filter(isThemeAvailable);
+
     const filteredOptions = activeCategory === 'favorite'
-        ? options.filter(opt => favoriteValues.includes(opt.value))
-        : options.filter(opt => opt.category === activeCategory);
+        ? availableOptions.filter(opt => favoriteValues.includes(opt.value))
+        : availableOptions.filter(opt => opt.category === activeCategory);
 
     const handleMouseEnter = (e: React.MouseEvent, option: ThemeOption) => {
         setHoveredOption(option);

@@ -1,0 +1,297 @@
+/* ==========================================================================
+   主題名稱: 雲上舞白 / PANTONE 2026 Cloud Dancer (clouddancer)
+   設計理念: 靈感源自彩通 2026 年度代表色 PANTONE 11-4201 Cloud Dancer（雲上舞白/雲上午白）
+             融合 TCX 棉布版 (#F0EEE9) 與 TPG 紙版 (#F1F0EC) 系統色彩
+             象徵在數位喧囂中的平靜留白、重啟心流與空氣感極簡。
+   適用情境: 極簡專注寫作、隨筆、詩歌、生活哲學手記、現代設計提案
+   ========================================================================== */
+
+.theme-clouddancer {
+    /* 1. 排版與基礎字體 (Typography & Layout) */
+    --theme-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", sans-serif;
+    --theme-line-height: 1.75;
+    --theme-text-align: left;
+    --theme-text-color: #383533;
+    /* 沉著溫潤的暖炭灰，確保極高對比與可讀性 */
+    --theme-accent-color: #8c8275;
+    /* 雲霧亞麻灰褐 */
+
+    /* 2. 標題設計 (Headings) */
+    --theme-heading-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --theme-heading-color: #211f1d;
+    /* 深邃溫和炭黑 */
+    --theme-heading-weight: 700;
+    --theme-h1-size: 38px;
+    --theme-h2-size: 28px;
+    --theme-h3-size: 22px;
+    --theme-h4-size: 19px;
+    --theme-h5-size: 17px;
+    --theme-h6-size: 15px;
+    --theme-h1-border: 2px solid #8c8275;
+    --theme-h2-border: 1px solid #e2dfd8;
+    --theme-h1-transform: none;
+
+    /* 3. 引言區塊 (Blockquote) - 採用 TCX 紡織棉布版系統色彩 */
+    --theme-quote-bg: #f0eee9;
+    /* PANTONE TCX #F0EEE9 */
+    --theme-quote-border-left: 4px solid #8c8275;
+    --theme-quote-text: #4a4642;
+    --theme-quote-font-style: italic;
+
+    /* 4. 超連結 (Links) */
+    --theme-link-color: #786f63;
+    --theme-link-decoration: underline;
+    --theme-link-hover-bg: #f0eee9;
+    --theme-link-hover-border: #786f63;
+
+    /* 5. 表格設計 (Tables) - 融入 TPG 紙版系統線條 */
+    --theme-table-border: 1px solid #e4e1da;
+    --theme-table-header-bg: #f1f0ec;
+    /* PANTONE TPG #F1F0EC */
+    --theme-table-header-color: #211f1d;
+    --theme-table-header-border: 2px solid #8c8275;
+
+    /* 6. 系統 UI 對接 (System UI Bridge - 黃金明度差配色) */
+    --brand-primary: #8c8275;
+    --brand-secondary: #f0eee9;
+    --brand-surface: #ffffff;
+    /* 淨白主底色 */
+    --brand-accent: #b5ada3;
+    --code-bg: #f0eee9;
+    /* PANTONE TCX 棉布版溫潤底色 */
+    --code-border: #dedbd4;
+    /* 柔和溫暖的微對比紙質邊框 */
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(56, 53, 51, 0.06);
+
+    /* 7. 標註系統 (Alerts - 柔和低飽和莫蘭迪色調) */
+    --theme-alert-note-border: #7b8e9b;
+    --theme-alert-note-bg: rgba(123, 142, 155, 0.08);
+    --theme-alert-note-text: #445663;
+    --theme-alert-tip-border: #80967a;
+    --theme-alert-tip-bg: rgba(128, 150, 122, 0.08);
+    --theme-alert-tip-text: #485c43;
+    --theme-alert-important-border: #99879d;
+    --theme-alert-important-bg: rgba(153, 135, 157, 0.08);
+    --theme-alert-important-text: #5e4e62;
+    --theme-alert-warning-border: #b89968;
+    --theme-alert-warning-bg: rgba(184, 153, 104, 0.08);
+    --theme-alert-warning-text: #785f36;
+    --theme-alert-caution-border: #b37373;
+    --theme-alert-caution-bg: rgba(179, 115, 115, 0.08);
+    --theme-alert-caution-text: #733c3c;
+
+    /* 8. Mermaid 樣式變數 (自適應主題連動) */
+    --mermaid-node-bg: #f0eee9;
+    --mermaid-node-text: var(--theme-text-color, #383533);
+    --mermaid-node-border: #dedbd4;
+    --mermaid-line: var(--theme-accent-color, #8c8275);
+    --mermaid-edge-bg: var(--brand-surface, #ffffff);
+}
+
+/* --------------------------------------------------------------------------
+   深色模式變數覆蓋 (Dark Mode - 雲夜月白)
+   -------------------------------------------------------------------------- */
+.dark .theme-clouddancer {
+    --theme-text-color: #d8d5cf;
+    --theme-heading-color: #f1f0ec;
+    /* TPG 紙版月白 */
+    --theme-accent-color: #c5beb4;
+
+    --theme-quote-bg: #232220;
+    --theme-quote-border-left: 4px solid #c5beb4;
+    --theme-quote-text: #b0aca5;
+
+    --theme-link-color: #d1cbc2;
+    --theme-link-hover-bg: rgba(240, 238, 233, 0.08);
+    --theme-link-hover-border: #d1cbc2;
+
+    --theme-table-border: 1px solid #363432;
+    --theme-table-header-bg: #252422;
+    --theme-table-header-color: #f1f0ec;
+    --theme-table-header-border: 2px solid #8c8275;
+
+    --brand-primary: #c5beb4;
+    --brand-secondary: #232220;
+    --brand-surface: #181716;
+    /* 深暖夜炭黑 */
+    --brand-accent: #9e978c;
+    --code-bg: #21201e;
+    --code-border: #363431;
+    --code-line-number-bg: var(--code-bg);
+    --code-line-number-shadow: rgba(0, 0, 0, 0.25);
+
+    /* 標註系統 (Alerts - 深色模式對比優化) */
+    --theme-alert-note-border: #9ab4c7;
+    --theme-alert-note-bg: rgba(154, 180, 199, 0.1);
+    --theme-alert-note-text: #b9d2e3;
+    --theme-alert-tip-border: #9fb897;
+    --theme-alert-tip-bg: rgba(159, 184, 151, 0.1);
+    --theme-alert-tip-text: #bdd6b5;
+    --theme-alert-important-border: #bfaec4;
+    --theme-alert-important-bg: rgba(191, 174, 196, 0.1);
+    --theme-alert-important-text: #d8c9dc;
+    --theme-alert-warning-border: #d6b885;
+    --theme-alert-warning-bg: rgba(214, 184, 133, 0.1);
+    --theme-alert-warning-text: #edd4a8;
+    --theme-alert-caution-border: #cc8d8d;
+    --theme-alert-caution-bg: rgba(204, 141, 141, 0.1);
+    --theme-alert-caution-text: #e8b0b0;
+
+    /* Mermaid 深色連動 */
+    --mermaid-node-bg: #21201e;
+    --mermaid-node-text: #d8d5cf;
+    --mermaid-node-border: #363431;
+    --mermaid-line: #c5beb4;
+    --mermaid-edge-bg: var(--brand-surface, #181716);
+}
+
+/* --------------------------------------------------------------------------
+   Markdown 基礎元素與特色客製 (Prose Binding & Scoping)
+   -------------------------------------------------------------------------- */
+.theme-clouddancer.prose {
+    font-family: var(--theme-font-family);
+    color: var(--theme-text-color);
+    line-height: var(--theme-line-height);
+    text-align: var(--theme-text-align);
+    letter-spacing: 0.015em;
+    max-width: 100%;
+}
+
+.theme-clouddancer.prose h1,
+.theme-clouddancer.prose h2,
+.theme-clouddancer.prose h3,
+.theme-clouddancer.prose h4,
+.theme-clouddancer.prose h5,
+.theme-clouddancer.prose h6 {
+    font-family: var(--theme-heading-font);
+    color: var(--theme-heading-color);
+    font-weight: var(--theme-heading-weight);
+    letter-spacing: -0.01em;
+}
+
+.theme-clouddancer.prose h1 {
+    font-size: var(--theme-h1-size);
+    text-transform: var(--theme-h1-transform);
+    border-bottom: var(--theme-h1-border);
+    padding-bottom: 0.4rem;
+}
+
+.theme-clouddancer.prose h2 {
+    font-size: var(--theme-h2-size);
+    border-bottom: var(--theme-h2-border);
+    padding-bottom: 0.3rem;
+}
+
+.theme-clouddancer.prose h3 {
+    font-size: var(--theme-h3-size);
+}
+
+.theme-clouddancer.prose h4 {
+    font-size: var(--theme-h4-size);
+}
+
+.theme-clouddancer.prose h5 {
+    font-size: var(--theme-h5-size);
+}
+
+.theme-clouddancer.prose h6 {
+    font-size: var(--theme-h6-size);
+}
+
+.theme-clouddancer.prose blockquote {
+    background-color: var(--theme-quote-bg);
+    border-left: var(--theme-quote-border-left);
+    font-style: var(--theme-quote-font-style);
+    color: var(--theme-quote-text);
+    border-radius: 0 6px 6px 0;
+}
+
+/* ─── 行內代碼 (Inline Code) 樣式自訂 ───
+   嚴格使用 :not(pre) > code 選擇器隔離，防止代碼塊內部雙重邊框 Bug */
+.theme-clouddancer.prose :not(pre)>code {
+    background-color: var(--code-bg);
+    color: var(--theme-text-color);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.15em 0.45em;
+    font-size: 0.88em;
+}
+
+/* ─── 表格自訂 ─── */
+.theme-clouddancer.prose table {
+    border: var(--theme-table-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.theme-clouddancer.prose th {
+    background-color: var(--theme-table-header-bg);
+    color: var(--theme-table-header-color);
+    border-bottom: var(--theme-table-header-border);
+    font-weight: 600;
+}
+
+.theme-clouddancer.prose td {
+    border-top: var(--theme-table-border);
+    color: var(--theme-text-color);
+}
+
+/* ─── 超連結 ─── */
+.theme-clouddancer.prose a {
+    color: var(--theme-link-color);
+    text-decoration: var(--theme-link-decoration);
+    text-underline-offset: 3px;
+    transition: all 0.2s ease;
+}
+
+.theme-clouddancer.prose a:hover {
+    background-color: var(--theme-link-hover-bg);
+    border-radius: 2px;
+}
+
+/* ─── Alerts 標註客製 ─── */
+.theme-clouddancer.prose blockquote.markdown-alert-note {
+    border-left-color: var(--theme-alert-note-border);
+    background-color: var(--theme-alert-note-bg);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-note .markdown-alert-title {
+    color: var(--theme-alert-note-text);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-tip {
+    border-left-color: var(--theme-alert-tip-border);
+    background-color: var(--theme-alert-tip-bg);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-tip .markdown-alert-title {
+    color: var(--theme-alert-tip-text);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-important {
+    border-left-color: var(--theme-alert-important-border);
+    background-color: var(--theme-alert-important-bg);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-important .markdown-alert-title {
+    color: var(--theme-alert-important-text);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-warning {
+    border-left-color: var(--theme-alert-warning-border);
+    background-color: var(--theme-alert-warning-bg);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-warning .markdown-alert-title {
+    color: var(--theme-alert-warning-text);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-caution {
+    border-left-color: var(--theme-alert-caution-border);
+    background-color: var(--theme-alert-caution-bg);
+}
+
+.theme-clouddancer.prose blockquote.markdown-alert-caution .markdown-alert-title {
+    color: var(--theme-alert-caution-text);
+}
